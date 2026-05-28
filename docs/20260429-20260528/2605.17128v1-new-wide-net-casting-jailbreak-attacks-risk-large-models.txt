@@ -1,0 +1,936 @@
+Title: New Wide-Net-Casting Jailbreak Attacks Risk Large Models
+
+URL Source: https://arxiv.org/pdf/2605.17128v1
+
+Published Time: Tue, 19 May 2026 01:09:17 GMT
+
+Number of Pages: 25
+
+Markdown Content:
+# New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Qiuchi Xiang 1 Haoxuan Qu 1 Hossein Rahmani 1 Jun Liu 1
+
+Abstract 
+
+Jailbreak attacks on large models have drawn growing attention due to their close ties to societal safety. This work identifies a practical yet unex-plored jailbreak scenario, the wide-net-casting scenario, where an adversary can query a group of large models instead of a single one to elicit harmful outputs. Our analysis reveals substan-tial yet previously overlooked safety risks under this scenario. As a key part of our analysis, we further develop a novel jailbreak method tailored to the wide-net-casting scenario. With this tai-lored method, the jailbreak success rate can even reach 100% in some experiments when targeting the large models without additional safeguards, exposing wide-net-casting as a distinct, high-risk scenario that warrants attention in future evalua-tion and defense research. Code is available here. Warning: This paper contains potentially harmful example text. 
+
+1. Introduction 
+
+Large language models (LLMs) and multimodal large lan-guage models (MLLMs) have achieved remarkable success across diverse real-world tasks (Liu et al., 2023a; Yin et al., 2024; Zeng et al., 2025; Li et al., 2026). However, these models are usually trained on massive web-scraped data with limited filtering, often including toxic, offensive, and even dangerous information (e.g., technical details of con-structing explosive devices), which makes these models prone to generating unsafe responses (Ouyang et al., 2022; Gehman et al., 2020; Rafailov et al., 2023). To avoid harm-ful responses, practitioners typically employ safety align-ment techniques to align the behavior of large models with safe and harmless outputs (Ouyang et al., 2022; Rafailov et al., 2023). However, even with alignment, LLMs and MLLMs can still 
+
+> 1
+
+Lancaster University. Correspondence to: Jun Liu 
+
+<j.liu81@lancaster.ac.uk >.
+
+Proceedings of the 43 rd International Conference on Machine Learning , Seoul, South Korea. PMLR 306, 2026. Copyright 2026 by the author(s). 
+
+Figure 1. Illustration of the single-model jailbreak scenario and the wide-net-casting jailbreak scenario. As shown, in the wide-net-casting scenario, unlike the single-model case, successfully jailbreaking any one large model in the group is sufficient for the adversary to obtain a desired harmful response. 
+
+be “attacked”, i.e., their safeguards could still be bypassed by malicious intent, leading them to produce harmful out-puts (Liu et al., 2024; Zou et al., 2023). This kind of attack is called the “jailbreak” attack, which poses non-trivial safety risks and has gained much research attention recently (Yang et al., 2025; Jeong et al., 2025; Hao et al., 2025). Generally, the jailbreak research focuses on intentionally simulating real-world jailbreak attacks, causing large models to pro-duce harmful outputs, through which we can uncover poten-tial vulnerabilities and societal risks in the models and thus further develop corresponding defense mechanisms. In this context, many jailbreak methods have been proposed (Qi et al., 2024; Li et al., 2024; Paulus et al., 2024). However, prior research has largely overlooked a potential jailbreak attack scenario, the wide-net-casting scenario . Such a po-tential scenario can be inspired by people’s typical daily usage patterns of large models. Specifically, in the real world, when users send a complex query (e.g., a complex math problem) to a large model and receive an unsatisfac-tory response, we may tend to switch to another large model. Given availabilities of various publicly available large mod-els (e.g., Llama (Grattafiori et al., 2024), Mistral (Jiang et al., 2023), and Gemma (Team et al., 2024)), users can “cast a wide net” over a group of multiple large models that ex-hibit various strengths and domain specializations, issuing the same request to various models to seek a correct and accurate answer. This observation leads to an important hypothesis: malicious users could also employ similar strategies to achieve their desired harmful outputs under the wide-net-casting scenario 1
+
+> arXiv:2605.17128v1 [cs.CR] 16 May 2026 New Wide-Net-Casting Jailbreak Attacks Risk Large Models
+
+(in contrast to the single-model scenario that focuses on jailbreaking one large model only). Given that large models within different families exhibit distinct characteristics, they usually possess distinct, model-specific vulnerabilities. Con-sequently, when multiple such large models are grouped and simultaneously attacked, their collective vulnerabilities can be amplified, thereby increasing the overall risk of success-ful jailbreak. For instance, as shown in Fig. 1, if one large model (in the model group) fails to provide responses on how to build explosive devices, attackers can easily switch to other large models and thus succeed as long as any single model provides the technical details of building explosive devices. This indicates that risks of jailbreaking in the wide-net-casting jailbreak scenario may be higher, compared to those reported in prior studies under the single-model set-ting. Yet, despite its potential to expose significant risks, this practical jailbreak scenario remains unexplored. Recognizing this critical gap, this work aims to systemat-ically investigate the safety risks posed by the wide-net-casting jailbreak scenario, from two key aspects. Aspect 1 
+
+examines whether directly adapting existing single-model jailbreak attacks to this scenario can significantly amplify safety risks when targeting a group of large models from different families. It also analyzes how these safety risks vary (i) when the target models belong to the same fam-ily (which thus may share similar vulnerabilities), and (ii) when additional safeguards beyond each model’s original safety alignment are applied. Aspect 2 simulates skilled adversaries who explicitly recognize this scenario and craft attacks tailored to it, evaluating the resulting safety risks. For Aspect 1 , our analysis (Sec. 3) reveals directly adapting single-model jailbreaks to the wide-net-casting scenario can already lead to substantial safety risk amplification. For ex-ample, on the AdvBench dataset (Zou et al., 2023), adapting the single-model GCG jailbreak method (Zou et al., 2023) to the wide-net-casting scenario increases the jailbreak suc-cess rate by at least 28.8%, from 46.2% to 75.0% (see the first row of results in Tab. 1). This amplification trend persists even when targeting large models from the same family or employing additional safeguards. For Aspect 2 ,to simulate skilled adversaries, inspired by exploration-to-exploitation transition in optimization (Perera et al., 2024; Xu et al., 2025), we design a novel jailbreak method tai-lored to the wide-net-casting scenario. The method pairs each target large model with a dedicated “jailbreak expert”, encouraging each expert to focus exclusively on its paired model’s distinct, model-specific vulnerabilities rather than attempting to cover all weaknesses uniformly. This targeted specialization prevents over-spreading each expert’s atten-tion and ensures that each large model’s vulnerabilities are attacked by a dedicated expert, increasing the chance that at least one large model produces harmful outputs (detailed in Sec. 4). Empirically, our tailored attack can even achieve 100% jailbreak success rates in some experiments when the target large models rely solely on their original safety align-ments, exposing a stark and previously unexplored safety risk: when adversaries optimize for the wide-net-casting scenario, large models can become alarmingly fragile .Our contributions are: 1) We are the first to reveal the pre-viously unexplored wide-net-casting jailbreak scenario ,and through comprehensive analysis, we uncover its previ-ously overlooked safety risks. 2) As a key part of analysis, we propose a novel jailbreak method tailored to this sce-nario, thereby more comprehensively exposing the underly-ing risks of wide-net-casting attacks. 
+
+2. Related Work 
+
+Recent studies have shown that both LLMs and MLLMs are vulnerable to jailbreak attacks (Hao et al., 2025; Geng et al., 2025; Shayegani et al., 2023; Liu et al., 2023b; Xie et al., 2024). Among various jailbreak strategies, optimization-based jailbreaks (Liu et al., 2023b; Yang et al., 2025; Jeong et al., 2025; Hao et al., 2025; Geng et al., 2025; Paulus et al., 2024) have emerged as a mainstream approach, demonstrat-ing remarkable empirical effectiveness (Zhou et al., 2024; Jia et al., 2025). In this work, aiming to maximize the expo-sure of safety risks under the wide-net-casting scenario, we then primarily focus on optimization-based jailbreaks. Such methods can be broadly categorized into instance-based and model-based approaches: the former directly optimizes individual adversarial samples, while the latter learns an ad-versarial sample generator (e.g., a text-suffix generator for LLMs or an adversarial image generator for MLLMs). For 
+
+instance-based approaches , targeting LLMs, GCG (Zou et al., 2023) optimizes text suffixes for harmful prompts, while AutoDan (Liu et al., 2023b) employs genetic search to automate stealthy jailbreaks Targeting MLLMs, Qi et al. (Qi et al., 2024) optimizes adversarial images using a prompt-tuning-inspired approach, MLAI (Hao et al., 2025) itera-tively applies gradient-based updates to improve a scenario-aware initial image for attacking, and HADES (Li et al., 2024) embeds harmful intent into images via gradient re-finement. In addition to instance-based methods, recently, a growing body of model-based approaches (Liao & Sun, 2024; Sun et al., 2024; Paulus et al., 2024) have been fur-ther proposed. Typically, model-based approaches curate high-quality adversarial samples from instance-based at-tacks and use them to supervise the adversarial generator, achieving state-of-the-art jailbreak performance across di-verse setups (Sun et al., 2024; Xie et al., 2024). Remiss (Xie et al., 2024) searches for effective jailbreak suffixes, and uses these suffixes to train an adversarial sample generator. Different from existing jailbreak methods that are typically designed for single-model jailbreak, this work introduces, for the first time, the wide-net-casting jailbreak scenario, a 2New Wide-Net-Casting Jailbreak Attacks Risk Large Models  
+
+> Figure 2. Illustration of straightforward adaptation of an existing model-based jailbreak method to the wide-net-casting scenario. A jailbreak attack is deemed successful in the wide-net-casting sce-nario as long as any target large model is successfully jailbroken.
+
+practical yet previously unexplored setting. 
+
+3. Risk Analysis of Wide-net-casting Jailbreak 
+
+To investigate risks underlying the wide-net-casting sce-nario, we first note that existing jailbreak methods, both instance-based and model-based, are typically designed for single models. In existing instance-based methods, given a testing harmful intent and a target large model, the attacker typically first optimizes the intent into an adversarial sample specifically against that model, and then uses the optimized sample to jailbreak the same model. In existing model-based methods, given a training set of harmful intents and a target large model, the attacker uses all these intents to train an adversarial sample generator so that, at test time, the trained generator can automatically produce adversarial samples from arbitrary harmful intents to jailbreak the target model. Since both types of methods inherently target single models, and no method has been developed specifically for wide-net-casting jailbreaks, a natural first step to understand the safety risks underlying the wide-net-casting scenario can be to examine how existing single-model methods behave when they are directly adapted to this new scenario. To this end, we find that existing jailbreak methods, both instance-based and model-based, can be adapted to the wide-net-casting scenario in a straightforward manner. To adapt an instance-based method, given a harmful intent and a group of M target large models, for each large model, we apply an independent copy of the method to that model, optimizing the given intent into a distinct adversarial sam-ple specifically crafted to jailbreak that model. We then record whether any of these samples successfully breach its respective target. To adapt a model-based method, we instantiate M independent copies of the adversarial sam-ple generator and train each copy independently on the full training set of harmful intents, with each generator opti-mized against a different target large model. During testing, given a harmful intent, as shown in Fig. 2, we run all M
+
+trained generators in parallel, use each generator to pro-duce a separate adversarial sample, and feed each sample to its corresponding large model to attempt a jailbreak at-tack. Similar to the instance-based case, we then record whether any of these attacks succeed to determine jailbreak success under the wide-net-casting scenario. Through the above straightforward adaptation processes, existing single-model jailbreak techniques, both instance- and model-based, can be leveraged to expose the potential safety risks intro-duced by wide-net-casting. Building on this foundation, our investigation then centers on three key questions: 
+
+Q1: When existing single-model jailbreak attacks are adapted to the wide-net-casting scenario, does this scenario amplify safety risks compared to the single-model scenario? If so, to what extent? Q2: Given that large models within the same family often share similar architectures or training data and may therefore exhibit fewer model-specific vulner-abilities, how do associated risks change when wide-net-casting attacks are performed exclusively on models from the same family? Q3: When large models are equipped with additional safeguards beyond their original safety alignment mechanisms, how does the overall risk level vary? 
+
+3.1. Empirical Analysis for Q1 Datasets. We use two widely used datasets, AdvBench (Zou et al., 2023) and MM-SafetyBench (Liu et al., 2024). In our analysis, we test LLMs on AdvBench and test MLLMs on MM-SafetyBench. We follow (Paulus et al., 2024; Xie et al., 2024) for the train-test split of AdvBench, and follow (Hao et al., 2025) for the train-test split of MM-SafetyBench. 
+
+Evaluation Metrics. To assess attack success, we report the Attack Success Rate (ASR) metric (Zou et al., 2023) when jailbreaking a single large model. However, this metric eval-uates each model independently and thus fails to capture the wide-net-casting scenario, where an attack is considered suc-cessful if any model within a group is jailbroken. To address this, we further introduce the Wide-net-casting Attack Suc-cess Rate (WASR) metric: WASR = 1
+
+> N
+
+PNn=1 
+
+WMm=1 snm,where N is the number of harmful intents used in evalu-ation, and M is the number of large models in the group. The binary variable snm ∈ { 0, 1} indicates whether the n-th intent successfully jailbreaks the m-th model in the group (1 for success, 0 for failure). The logical OR operator W aggre-gates these binary variables across all M models, yielding WMm=1 snm = 1 if at least one model in the group is success-fully jailbroken by the n-th intent, and yielding 0 otherwise. In this way, WASR quantifies the proportion of harmful in-tents that successfully jailbreak at least one model within the target group, effectively measuring jailbreak success under the wide-net-casting scenario. Following (Hao et al., 2025), we use Beaver-Dam-7B (Ji et al., 2023) as the judge model to determine whether each individual large model has been successfully jailbroken or not, based on the jailbreak quality rating that Beaver-Dam-7B assigns to the large model’s re-sponse. We report WASR as the primary evaluation metric under the wide-net-casting scenario. Besides, following (Wang et al., 2025; Miao et al., 2025), we also evaluate the response toxicity in jailbreaking and adopt the Toxicity Score metric (Wang et al., 2025), which can 3New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Table 1. Evaluation of jailbreaking LLMs across different model families under the wide-net-casting scenario on AdvBench.                          
+
+> Defense Attack ASR / Toxicity Score WASR / W-Toxicity Score Gemma-2-9b Vicuna-7b-v1.5 Llama-3.1-8b Mistral-7b Original Safety Alignment GCG 24.0% / 0.221 36.5% / 0.328 28.8% / 0.241 46.2% / 0.443 75.0% / 0.736
+> ReMiss 45.2% / 0.370 49.0% / 0.424 38.5% / 0.352 86.5% / 0.811 92.3% / 0.877
+> + SmoothLLM (Robey et al., 2023) GCG 11.5% / 0.081 17.3% / 0.124 14.4% / 0.098 26.9% / 0.202 46.1% / 0.353
+> ReMiss 21.2% / 0.187 27.9% / 0.260 18.3% / 0.155 38.5% / 0.389 61.5% / 0.530
+> + RobustKV (Jiang et al., 2024) GCG 5.9% / 0.021 16.4% / 0.121 7.9% / 0.038 24.6% / 0.228 37.3% / 0.325
+> ReMiss 10.8% / 0.059 28.7% / 0.224 15.3% / 0.107 34.4% / 0.289 56.1% / 0.511
+
+Table 2. Evaluation of jailbreaking MLLMs across different model families under the wide-net-casting scenario on MM-SafetyBench.                                        
+
+> Defense Attack ASR / Toxicity Score WASR / W-Toxicity Score MiniGPT-4-13b LLaVA-1.5-13b InstructBLIP Qwen2-VL-7B Original Safety Alignment MLAI 77.7% / 0.732 64.1% / 0.602 50.5% / 0.455 38.7% / 0.349 89.1% / 0.824
+> MLAI+ PixArt-α77.9% / 0.744 65.2% / 0.609 53.3% / 0.472 39.7% / 0.355 93.7% / 0.891
+> + VLGuard (Zong et al., 2024) MLAI 22.6% / 0.182 13.1% / 0.092 19.3% / 0.152 11.6% / 0.091 36.2% / 0.310
+> MLAI+ PixArt-α22.9% / 0.198 13.7% / 0.108 20.1% / 0.177 12.5% / 0.096 40.2% / 0.387
+> + IMMUNE (Ghosal et al., 2025) MLAI 18.4% / 0.139 4.7% / 0.025 17.6% / 0.126 8.7% / 0.039 33.6% / 0.301
+> MLAI+ PixArt-α20.9% / 0.151 6.2% / 0.038 18.1% / 0.137 9.1% / 0.050 37.2% / 0.321
+> + ASTRA (Wang et al., 2025) MLAI 10.1% / 0.061 11.2% / 0.078 13.7% / 0.083 6.1% / 0.038 29.5% / 0.257
+> MLAI+ PixArt-α10.9% / 0.070 12.3% / 0.091 15.9% / 0.099 7.1% / 0.044 32.9% / 0.271
+
+indicate severity of jailbreak outputs (Bachu et al., 2025). Yet, while suitable for single-model jailbreaks, this metric evaluates each model’s response independently and is thus not directly applicable to wide-net-casting jailbreaks. To address this, we introduce the Wide-net-casting Toxicity Score (W-Toxicity Score). Specifically, for each harmful intent, among the responses generated by models in the tar-get group, we simulate attackers to select the response most likely to be used for harm using a large model, and define the W-Toxicity Score as the toxicity score of this selected response. We find that using different large models can yield highly consistent selections (details in the Appendix A). 
+
+Jailbreak Attacks and Target Models. We begin by in-troducing the target models selected for jailbreaking LLMs. For comprehensive evaluation under the wide-net-casting scenario, we consider four widely-used LLMs as our targets: Gemma-2-9b (Team et al., 2024), Vicuna-7b-v1.5 (Zheng et al., 2023), Llama-3.1-8b (Grattafiori et al., 2024), and Mistral-7b (Jiang et al., 2023). Each of these LLMs is widely used as a target model in prior jailbreak research for evaluation (Zou et al., 2023; Liu et al., 2023b; Lin et al., 2024). For attack methods, we adopt two representative approaches: a classic instance-based LLM jailbreak method GCG (Zou et al., 2023), and a state-of-the-art model-based LLM jailbreak method ReMiss (Xie et al., 2024). For MLLMs, we consider four widely used MLLMs as attack targets: MiniGPT-4-13b (Zhu et al., 2023), LLaVA-1.5-13b (Liu et al., 2023a), InstructBLIP (Dai et al., 2023), and Qwen2-VL-7B (Wang et al., 2024). For attack meth-ods, we first adopt an instance-based jailbreak method MLAI (Hao et al., 2025). We further aim to also explore model-based jailbreaks for MLLMs under the wide-net-casting scenario. However, model-based jailbreaks for MLLMs remain largely underexplored. To fully expose risks in the wide-net-casting scenario, we then also con-struct a model-based jailbreak for MLLMs, via adapting 
+
+Table 3. Evaluation of jailbreaking MLLMs within the same model family under the wide-net-casting scenario on MM-SafetyBench.             
+
+> Method ASR / Toxicity Score WASR / W-Toxicity Score LLaVA-1.5-13b LLaVA-1.6-vicuna-13b LLaVA-1.6-vicuna-7b LLaVA-llama2-13b MLAI 64.1% / 0.602 16.7% / 0.135 34.3% / 0.291 75.2% / 0.708 87.6% / 0.832
+> MLAI+PixArt-α65.2% / 0.609 18.2% / 0.151 37.6% / 0.327 79.3% / 0.746 89.9% / 0.865
+
+Table 4. Evaluation of jailbreaking MLLMs within the same model family and same version on MM-SafetyBench.          
+
+> Method ASR / Toxicity Score WASR / W-Toxicity Score LLaVA-1.6-vicuna-13b LLaVA-1.6-vicuna-7b MLAI 16.7% / 0.135 34.3% / 0.291 38.9% / 0.352
+> MLAI+PixArt-α18.2% / 0.151 37.6% / 0.327 41.1% / 0.372
+
+LLM-oriented model-based pipelines (Liao & Sun, 2024; Sun et al., 2024; Paulus et al., 2024; Xie et al., 2024). Specif-ically, we first leverage MLAI (Hao et al., 2025) to generate high-quality adversarial images. Inspired by (Li et al., 2024; Wu et al., 2025), we then adopt PixArt-α (Chen et al., 2024) as the adversarial image generator and fine-tune it on these samples. The resulting method, denoted as “MLAI (Hao et al., 2025) + PixArt-α (Chen et al., 2024)”, serves as our model-based jailbreak for MLLMs. Additional details w.r.t. this method are in Appendix G. 
+
+Experimental Results. As shown in Tab. 1 and Tab. 2 (“Original Safety Alignment” parts), across both LLMs and MLLMs and on different datasets, adapting existing single-model jailbreaks to the wide-net-casting scenario consis-tently increases both attack success rates and response toxi-city. These results affirmatively answer Q1 : Adapting exist-ing single-model jailbreak attacks to the wide-net-casting scenario can consistently and significantly amplify safety risks. This amplification occurs as different large models often exhibit model-distinct vulnerabilities: a jailbreak at-tack that fails on one model may succeed on another. In the wide-net-casting scenario, these model-specific vulner-abilities can be collectively exploited, thereby amplifying safety risks. We also conducted experiments of jailbreaking MLLMs on AdvBench, see Appendix A for details. 
+
+3.2. Empirical Analysis for Q2 Experimental Setups. We keep the evaluation metrics and jailbreak methods consistent with Sec. 3.1, varying only the target models by restricting to models from the same family. For MLLMs, we build target groups from the popular LLaVA family on MLLMs, initially including four representative models (see Tab. 3). For LLMs, we construct experiments on the Llama family in Appendix A for details. To further analyze risks among even more closely related models, we construct another group comprising LLaVA models from both the same family and version (see Tab. 4). 
+
+Experimental Results. As shown in Tab. 3 and Tab. 4, even when the target group is limited to models within the same family, their (possibly fewer) model-specific vulnerabilities 4New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+can still be exploited in the wide-net-casting scenario, and the resulting amplification of safety risks remains evident. Moreover, Tab. 4 shows that while amplification becomes less pronounced when the target group is further restricted to models of the same family and version, a modest increase in vulnerability still persists. These results answer Q2 :The wide-net-casting scenario consistently amplifies safety risks for large models, even when the attack is performed exclusively on models from the same family. 
+
+3.3. Empirical Analysis for Q3 Experimental Setups. We largely follow the setups in Sec. 3.1, differing only by equipping the large models with additional safeguards. We evaluate diverse additional safe-guards. For LLMs, we consider two representative ap-proaches: the classic SmoothLLM (Robey et al., 2023) and recent RobustKV (Jiang et al., 2024). For MLLMs, we test three representative safeguards: the classic VLGuard (Zong et al., 2024), and two recent ones, IMMUNE (Ghosal et al., 2025) and ASTRA (Wang et al., 2025). 
+
+Experimental Results. As shown in Tab. 1 and Tab. 2, though equipping additional safeguards substantially re-duces the (single-model) ASR of large models, the WASR remains noticeably higher than the ASR across LLMs and MLLMs, suggesting that the wide-net-casting scenario can still exploit model-specific vulnerabilities even under addi-tional safeguards. These results answer Q3 : Even with additional safeguards, the wide-net-casting scenario can still consistently and substantially elevate safety risks. 
+
+4. Risk Exposure Under Skilled Adversaries 
+
+In Sec. 3, we examine the wide-net-casting scenario under an independently-optimized threat manner, independently optimizing adversarial samples (or their generators) to jail-break each large model. The analysis already shows that this previously overlooked scenario can consistently elevate safety risks across diverse experimental setups, revealing a distinct, high-risk paradigm that merits dedicated attention in future evaluation and defense research. However, because multiple large models co-exist within a target group in the wide-net-casting scenario, independently-optimized attacks may still underestimate the true threat level of this scenario. A skilled adversary could instead exploit cross-model infor-mation to craft coordinated jailbreaks that jointly target mul-tiple models, thereby further amplifying attack effectiveness. Motivated by this insight and further drawn inspiration from exploration-to-exploitation transition in optimization (Per-era et al., 2024), in this section, we simulate such skilled adversaries by developing a new jailbreak method explicitly tailored to the wide-net-casting scenario, aiming to more comprehensively expose the underlying risks. 
+
+4.1. A Jailbreak Tailored to Wide-net-casting 
+
+We observe in Sec. 3 that when single-model jailbreak meth-ods are straightforwardly adapted to the wide-net-casting scenario, model-based approaches consistently outperform instance-based ones across diverse experimental setups. Based on this, we adopt the model-based paradigm as the foundation for developing a new jailbreak method tailored to the wide-net-casting scenario, aiming to more thoroughly reveal the underlying safety risks of this scenario. Pursu-ing this direction, we first notice that the straightforward adaptation of existing model-based approaches to wide-net-casting can suffer from a key limitation, namely, a lack of specialization within each adversarial sample generator. Specifically, as detailed in Sec. 3, under such an adapta-tion, given a group of M target large models, the M cor-responding adversarial sample generators are each trained independently on the entire training set of harmful intents, pushing every generator to attempt to cover all weaknesses. While such an all-covering strategy can be appropriate in single-model settings where only one generator targeting a single large model typically exists, it can be ill-suited to wide-net-casting, where M generators co-exist and an at-tack succeeds once any generator successfully breaches its corresponding large model (as shown in Fig. 2). Thus, it is unnecessary for every generator to attempt to fully cover all weaknesses. Instead, given that each target large model of-ten exhibits distinct, model-specific vulnerabilities, a more effective jailbreak strategy in the wide-net-casting scenario shall be to optimize all M generators jointly with an empha-sis on specialization , focusing each generator exclusively on vulnerabilities of its corresponding large model rather than on all weaknesses. This emphasis on specialization prevents over-dispersion of each generator’s attention and ensures that every large model is attacked by a specialized (dedi-cated) expert, increasing likelihood that at least one large model will be breached under wide-net-casting jailbreaks. Building on the advantages of specialization discussed above, we explore how to effectively equip each adversarial sample generator with such specialization. Our key intu-ition is that specialization can be encouraged by driving each generator to learn from intents that it already handles rela-tively well: by repeatedly reinforcing its existing strengths, a generator’s expertise can be progressively refined, thus sharpening its specialization. The remaining question, then, is how to determine, for each training intent, which gener-ator among the M generators already handles that intent relatively well (i.e., already relatively proficient at it). Given this, we observe that, given a training intent, the loss value calculated from a generator’s jailbreak attempt over its cor-responding large model can reflect its proficiency on that intent: a smaller loss value can indicate higher proficiency. Based on this insight while also drawn inspiration from 5New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+(Guzman-Rivera et al., 2012), some naive strategies using such loss values as proficiency indicators first come to our mind, such as the two described below: (1) Naive Strategy 1: Recall that after the analysis in Sec. 3, we have obtained a set of independently-trained adversarial sample genera-tors that, though trained in isolation, each capture some meaningful jailbreak-related knowledge. Given M such generators corresponding to a target group of M large mod-els, we can then use their loss values to quantify proficiency: each training intent is passed through all generators, and the one yielding the smallest loss is deemed the most pro-ficient. Next, to reinforce each generator’s strengths and thereby enhance its specialization, we can assign each train-ing intent to its most proficient generator, and subsequently fine-tune each generator exclusively on its assigned intents. (2) Naive Strategy 2 : Instead of relying on loss values from independently-trained generators, we can also use the loss values computed at each iteration of the subsequent (joint) training process as proficiency indicators. Specifically, at each training step (iteration), we can pass the current in-tent through all generators and update only the one with the smallest loss. This update scheme shall also continu-ally reinforce each generator’s expertise and progressively enhance specialization. Yet, despite appearing promising, both above naive strate-gies share a common limitation: they quantify proficiency from intermediate loss values, either those derived from independently-trained generators or those measured during joint training iterations. Yet, these intermediate losses may not align with losses produced by an “ideally” well-trained generator that has achieved “ideal” specialization, since the optimization landscape of each adversarial sample genera-tor, being deep and highly non-convex, is inherently very complex. Consequently, generators showing relatively large intermediate losses may still achieve very small loss after “ideal” specialization. In other words, intermediate losses serve only as noisy indicators of the true proficiency that would emerge after “ideal” specialization. Relying entirely on them for update scheduling may therefore misguide the training process (e.g., by overlooking the generator which should actually be updated for the current intent), resulting in each generator becoming only sub-optimally specialized. As a result, these naive strategies may still underestimate actual risks inherent in the wide-net-casting scenario. To handle the above limitation, since the loss value of an “ideally” specialized generator is clearly inaccessible dur-ing training, we draw inspiration from optimization theory on how classical optimization is conducted when only a 
+
+noisy, instantaneous indicator of the true objective is avail-able. To this end, we find that prior studies (Laarhoven & Aarts, 1987; Shi & Eberhart, 1999; Perera et al., 2024; Shi & Eberhart, 1998; Bengio et al., 2015) suggest a key remedy: structuring the optimization as a gradual transition from ex-ploration to exploitation . Specifically, these studies suggest that, when the true objective cannot be directly observed, to well-optimize towards the objective, each optimization step should aim to maximize exploitation while maintaining at least a non-zero and monotonically decreasing level of sustainable exploration. In our problem, exploitation refers to treating the intermediate loss as a fully reliable indicator and concentrating updates as much as possible on genera-tors with smaller intermediate losses, whereas exploration 
+
+refers to allowing each generator to retain some opportunity for updates even when it performs relatively poorly on the current training intent. Building on this interpretation, we note that, by jointly optimizing the M adversarial sample generators in the above-underlined manner, we shall be able to simultaneously encourage effective specialization within each generator (by maximizing exploitation), while explic-itly accounting for the noise inherent in intermediate loss values (by maintaining sustainable exploration). This moti-vates us to design our training process to operate precisely in this exploration–exploitation manner. After conceptually defining our goal as above (see the under-lined sentence), we next formulate it mathematically to en-able its practical achievement. This conceptual-to-practical transition, however, is non-trivial. To accomplish it, we first decompose the overall goal into sub-goal ❶: maximizing exploitation , and sub-goal ❷: maintaining sustainable ex-ploration , and express each in analytical form. We then integrate these sub-goals into the complete formulation. For the sub-goal ❶ (maximizing exploitation ), recall that its objective is to concentrate updates as much as possible on generators with smaller losses. Let ℓt = ( ℓ1 
+
+> t
+
+, . . . , ℓ Mt )
+
+denote the training losses of the M generators at a certain training step t. Let ηt = ( η1 
+
+> t
+
+, . . . , η Mt ) be a weight vector at a certain training step t with ηmt ≥ 0 and PMm=1 ηmt = 1 ,where ηmt represents the relative update weight assigned to the m-th generator in the update schedule. Using these notations, the sub-goal ❶ can be viewed as a problem that aims to simultaneously satisfy two criteria: (1) generators with smaller losses ℓmt should be assigned larger update weights ηmt as much as possible; and (2) ηt needs to remain a valid weight vector in the simplex ∆M , i.e., ηmt ≥ 0 and 
+
+PMm=1 ηmt = 1 . As theoretically shown in Appendix D, handling the problem with these criteria is equivalent to solving the following optimization problem: 
+
+η∗ 
+
+> t
+
+← arg min 
+
+> ηt∈∆M
+> M
+
+X
+
+> m=1
+
+ηmt ℓmt ,
+
+∆M = {ηt : ηmt ≥ 0,
+
+> M
+
+X
+
+> m=1
+
+ηmt = 1 }.
+
+(1) Therefore, the sub-goal ❶ can be formally represented as the optimization problem in Eq. 1. Next, we formalize the sub-6New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+goal ❷ (maintaining at least a non-zero and monotonically decreasing level of sustainable exploration ), through the following three steps of reasoning. (1) Recall that in our set-ting, exploration refers to granting each generator some non-trivial opportunity for updates, even when it performs poorly on the current training intent. Accordingly, we find that, the level of exploration can actually be reflected by how spread-out the update weights in ηt are: when ηt is highly con-centrated (i.e., non-trivial weights are assigned to only few generators), exploration is low; conversely, when ηt is more uniformly distributed (i.e., non-trivial weights are broadly assigned), exploration is high. (2) We can then naturally quantify how spread-out is ηt using its entropy (Shannon, 1948), defined as H(ηt) = − PMm=1 ηmt log ηmt , where 
+
+0 ≤ H(ηt) ≤ log M . A larger H(ηt) indicates a more 
+
+spread-out (uniform) ηt, and hence a higher level of explo-ration. (3) Based on H(ηt), we can formalize the sub-goal 
+
+❷ as constraining ηt to satisfy, at each training step t,
+
+H(ηt) ≥ ¯Ht, (2) where ¯Ht = log M × T −tT specifies a non-zero and monoton-ically decreasing entropy threshold, and t ∈ { 0, . . . , T − 1}
+
+with T denoting the total number of training steps. Integrating Eq. 1 and Eq. 2, which respectively correspond to the two sub-goals, we can formulate our overall goal ana-lytically as the following constrained optimization problem: 
+
+η∗ 
+
+> t
+
+← arg min 
+
+> ηt∈∆M
+> M
+
+X
+
+> m=1
+
+ηmt ℓmt s.t. H(ηt) ≥ ¯Ht,
+
+∆M = { ηt : ηmt ≥ 0,
+
+> M
+
+X
+
+> m=1
+
+ηmt = 1 } .
+
+(3) Accordingly, achieving our goal now reduces to solving Eq. 3. Building on (Perera et al., 2024), which solves con-strained optimization problems using a Lagrangian formu-lation, Eq. 3, though seemingly complex, can be solved through the following four steps. 
+
+Step (1). We first rewrite H(ηt) ≥ ¯Ht into: g(ηt) ≜
+
+¯Ht − H(ηt) = ¯Ht + PMm=1 ηmt log ηmt ≤ 0. Step (2). We then introduce Lagrange multipliers (Boyd & Vandenberghe, 2004): βt ≥ 0 for the inequality g(ηt) ≤ 0; νt ∈ R for the constraint PMm=1 ηmt = 1 ; and αmt ≥ 0 for the constraint 
+
+ηmt ≥ 0. Denoting αt = ( α1 
+
+> t
+
+, . . . , α Mt ), the resulting La-grangian is: 
+
+L(ηt, β t, ν t, αt) = 
+
+> M
+
+X
+
+> m=1
+
+ηmt ℓmt + βt( ¯Ht +
+
+> M
+
+X
+
+> m=1
+
+ηmt log ηmt )+ νt(
+
+> M
+
+X
+
+> m=1
+
+ηmt − 1) −
+
+> M
+
+X
+
+> m=1
+
+αmt ηmt .
+
+(4) 
+
+Step (3). Applying the Karush-Kuhn-Tucker (KKT) first-order stationarity condition with respect to ηit then gives: 
+
+∂L
+
+∂η it
+
+= ℓit + νt − αit + βt(1 + log ηit) = 0 . (5) 
+
+Step (4) . Applying the complementary slackness condition (see Appendix E for details on its application), we can finally derive the optimal solution η∗ 
+
+> t
+
+to Eq. 3 as: 
+
+η∗ 
+
+> t
+
+= ( η1,∗ 
+
+> t
+
+, . . . , η M, ∗ 
+
+> t
+
+), η i, ∗ 
+
+> t
+
+= exp( −ℓit/β t)
+
+PMm=1 exp( −ℓmt /β t) ,
+
+(6) which forms a Boltzmann distribution. Notably, at each training step t, based on ¯Ht and losses ℓt = ( ℓ1 
+
+> t
+
+, . . . , ℓ Mt ),
+
+η∗ 
+
+> t
+
+in Eq. 6 is uniquely determined, since βt is uniquely specified by ¯Ht and ℓt (see Appendix F for proof). Overall, during training, at each training step t, based on 
+
+¯Ht and ℓt at this step, we first compute βt, and then use βt
+
+together with ℓt to derive η∗ 
+
+> t
+
+through Eq. 6. With η∗ 
+
+> t
+
+deter-mined, we subsequently update each of the M adversarial sample generators according to η∗ 
+
+> t
+
+, using the weighted loss 
+
+ηm, ∗ 
+
+> t
+
+× ℓmt to update the m-th generator. As discussed ear-lier, arranging the update schedule in this manner according to η∗ 
+
+> t
+
+enables the generators to be optimized in a way that si-multaneously maximizes exploitation while still maintaining sustainable exploration. Consequently, throughout training, each generator shall gradually evolve towards becoming a specialized expert in jailbreaking its corresponding large model (as elaborated in the front part of this subsection). This, in turn, increases the likelihood that at least one large model will be breached under wide-net-casting, thereby ultimately exposing the safety risks underlying the wide-net-casting jailbreak scenario in a more comprehensive manner. 
+
+4.2. Overall Training and Testing Training. Given M target large models, we first pair each model with an independently-trained adversarial sample generator. We then further jointly train these M generators for T steps, using the method in Sec. 4.1. Testing. At test time, given a harmful intent, each generator converts the intent into an adversarial sample targeting its corresponding large model. Feeding these M samples into their respective large models then yields M candidate jailbreak outputs. Fi-nally, we automatically select the highest-jailbreak-quality output among them as the final output of our method. No-tably, this automatic selection process can be performed simply and accurately using a large model (e.g., Beaver-Dam-7B) or a template-based scoring method (Li & Kim, 2025). See more details in Appendix J. 7New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Table 5. Evaluation of jailbreaking LLMs using different methods tailored to the wide-net-casting jailbreak scenario.               
+
+> Dataset Attack WASR / W-Toxicity Score Original Safety Alignment Original Safety Alignment + SmoothLLM (Robey et al., 2023) Original Safety Alignment + RobustKV (Jiang et al., 2024) AdvBench Baseline (ReMiss) 92.3% / 0.877 61.5% / 0.530 56.1% / 0.511 Naive Strategy 1 95.1% / 0.902 64.1% / 0.574 59.2% / 0.550 Naive Strategy 2 95.8% / 0.906 64.9% / 0.591 60.3% / 0.563 Ours 100% / 0.941 76.7% / 0.724 72.8% / 0.686
+
+Table 6. Evaluation of jailbreaking MLLMs using different meth-ods tailored to the wide-net-casting jailbreak scenario.                                  
+
+> Dataset Attack WASR / W-Toxicity Score Original Safety Alignment Original Safety Alignment + VLGuard (Zong et al., 2024) Original Safety Alignment + IMMUNE (Ghosal et al., 2025) Original Safety Alignment + ASTRA (Wang et al., 2025) AdvBench Baseline (MLAI+PixArt-α)93.3% / 0.867 37.5% / 0.311 36.9% / 0.320 30.7% / 0.253 Naive Strategy 1 95.5% / 0.883 40.6% / 0.355 38.6% / 0.344 33.2% / 0.277 Naive Strategy 2 95.8% / 0.898 41.1% / 0.363 39.4% / 0.351 33.9% / 0.291 Ours 100% / 0.940 50.8% / 0.473 47.8% / 0.440 42.0% / 0.387
+> MM-SafetyBench Baseline (MLAI+PixArt-α)93.7% / 0.891 40.2% / 0.387 37.2% / 0.321 32.9% / 0.271 Naive Strategy 1 94.9% / 0.899 43.4% / 0.409 40.1% / 0.359 35.2% / 0.309 Naive Strategy 2 95.1% / 0.907 44.1% / 0.418 40.8% / 0.363 35.6% / 0.311 Ours 100% / 0.939 53.5% / 0.517 50.1% / 0.469 43.6% / 0.382
+
+5. Evaluation of the Proposed Method 
+
+Experimental Setups & Implementation Details. To eval-uate the effectiveness of our proposed jailbreak method tai-lored to the wide-net-casting scenario, we conduct two sets of experiments following the setups described in Sec. 3.1 and Sec. 3.3, respectively. For experiments targeting LLMs and MLLMs, we initialize the joint training process using adversarial sample generators independently trained by Re-Miss (Xie et al., 2024) and “MLAI (Hao et al., 2025) + PixArt-α (Chen et al., 2024)”, respectively (as in Sec. 3). Then for both the LLM and MLLM experiments, the total number of joint training steps T is set to 3,000. All experi-ments are conducted on four NVIDIA A100 GPUs. More implementation details are in Appendix I. 
+
+5.1. Main Results 
+
+We compare our method with both the straightforward OR-aggregation adaptation of existing single-model jailbreak approaches, which serves as the baseline and is described in Sec. 3, and the two naive strategies tailored to the wide-net-casting scenario, introduced in Sec. 4.1. For a fair com-parison, both naive strategies use the same independently trained adversarial generators as ours and undergo an equal number of joint training steps. Results targeting LLMs and MLLMs are reported in Tab. 5 and Tab. 6, respectively. As shown, while the two naive strategies slightly outperform the straightforward adaptation of single-model methods, our approach consistently and very significantly outperforms the two naive strategies and the straightforward adaptation across datasets. Notably, across both LLMs and MLLMs, our method consistently achieves a 100% jailbreak success rate when the target large models rely solely on their original safety alignments. The above shows the superior efficacy of our method. 
+
+5.2. Ablation Studies 
+
+We conduct extensive ablation studies on AdvBench, focus-ing on jailbreaking MLLMs from different families. 
+
+Table 7. Evaluation on the designs in our method. We evaluate under two settings: MLLMs that rely solely on their original safety alignments, and MLLMs additionally equipped with VLGuard.                              
+
+> Method WASR / W-Toxicity Score Original Safety Alignment Original Safety Alignment + VLGuard (Zong et al., 2024) Baseline (MLAI+PixArt-α)93.3% / 0.867 37.5% / 0.311 Naive Strategy 1 95.5% / 0.883 40.6% / 0.355 Naive Strategy 2 95.8% / 0.898 41.1% / 0.363 Variant I: Inversely proportional to loss 96.2% / 0.905 41.9% / 0.377 Variant II: Fixed emphasis on the smallest-loss generator 96.1% / 0.901 41.7% / 0.374 Variant III: Dynamic emphasis on the smallest-loss generator 96.7% / 0.909 42.4% / 0.380 Variant IV: Ours with random ¯Ht97.2% / 0.913 44.5% / 0.418 Variant V: Ours with fixed ¯Ht98.0% / 0.919 45.2% / 0.427 Variant VI: Ours with exponentially decaying ¯Ht100% / 0.939 50.7% / 0.471 Variant VII: Ours with cosine-decaying ¯Ht100% / 0.936 50.6% / 0.468 Ours 100% / 0.940 50.8% / 0.473
+
+Impact of key designs in our method. At each training step 
+
+t, our method arranges the update schedule of the adversarial sample generators according to η∗
+
+t , which depends on the losses ℓt and the threshold ¯Ht. During training, our method linearly decreases ¯Ht (i.e., ¯Ht = log M × T −tT ) to gradually transition from exploration to exploitation. To evaluate the efficacy of our above designs, we test seven variants. We first test rule-based variants that heuristically arrange the update schedule at each training step, instead of follow-ing η∗
+
+t , which is our theoretically derived optimal schedule that maximizes exploitation while maintaining sustainable exploration. Besides the two naive strategies used in the main experiments, we test 3 rule-based variants. Variant I (Inversely proportional to loss) , at each training step, as-signs each generator an update weight inversely proportional to its current loss, so smaller-loss generators can receive larger updates. Variant II (Fixed emphasis on the smallest-loss generator) pre-defines a large update weight λ0 before training; at each training step, the smallest-loss generator receives λ0, while others share remaining weight equally, each receiving λ1 = 1−λ0
+
+M −1 . We test various λ0 values and re-port best-performing one ( λ0 = 0 .8) in Tab. 7. Variant III (Dynamic emphasis on the smallest-loss generator) also uses λ0 and λ1 as update weights, but instead of fixing λ0, it gradually increases λ0 from 1
+
+M to 1 over training, smoothly transitioning from exploration to exploitation. While these rule-based variants heuristically balance exploration and exploitation, they lack theoretical grounding. We next test four variants of our method that also use η∗
+
+t
+
+to arrange the update schedule like ours but differ in how they schedule ¯Ht. Variant IV (Ours with random ¯Ht) ran-domly samples ¯Ht ∈ [0 , log M ] at each training step. Vari-ant V (Ours with fixed ¯Ht) fixes ¯Ht = log M
+
+2 throughout training. Variant VI (Ours with exponentially decaying 
+
+¯Ht) applies exponential decay, setting ¯Ht = log M × γ tT ,with γ = 0 .99 following common exponential decay prac-tices. Variant VII (Ours with cosine-decaying ¯Ht) adopts 8New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+a cosine decay schedule (Loshchilov & Hutter, 2016), set-ting ¯Ht = 12 log M (1 + cos( tT π)) .As shown in Tab. 7, (1) our method and Variants IV-VII consistently and significantly outperform the rule-based al-ternatives, showing the efficacy of our theoretically derived optimal update schedule η∗ 
+
+> t
+
+. (2) Our method and Variants VI-VII, which monotonically decrease ¯Ht to gradually tran-sition from exploration to exploitation, further outperform Variants IV-V, underscoring benefit of this gradual transition. (3) Our method and Variants VI–VII, all monotonically de-creasing ¯Ht, yield highly consistent results. For simplicity, we use a linearly decreasing ¯Ht in our final implementation. 
+
+6. Discussions 
+
+Above, we identify wide-net-casting jailbreaks as a practi-cal yet previously unexplored scenario that poses greater risks than conventional single-model jailbreaks. From the perspective of individual companies, our findings suggest that safeguards should drive each model’s jailbreak success rate to near zero, rather than merely maintaining it below an “acceptable” threshold (Google, 2025), which may still be risky under the wide-net-casting scenario. Moreover, this also motivates prioritizing mitigation of model-specific vulnerabilities for providers, since attackers could selec-tively exploit specific weaknesses of their models, and, more broadly, exploring cross-provider collaboration may further strengthen protection beyond isolated defenses. In addition to the relatively general defense suggestions discussed above, we further discuss two more concrete po-tential defense directions for the wide-net-casting scenario, as outlined below. (1) After running our method, model providers can know which harmful intents their models are particularly vulnerable to. They may then use these intents to train a lightweight safety filter, and use the filter to detect and reject queries targeting similar vulnerabilities at test time. (2) Our method may also be incorporated into safety alignment process of large models via an adversarial train-ing mechanism. Specifically, we could progressively train generators to become dedicated jailbreak experts for differ-ent target models, use them to generate specialized attacks, and then use these attacks as adversarial training examples during safety alignment. In this way, large models can be progressively made more robust under the wide-net-casting scenario. 
+
+7. Conclusion 
+
+We have identified a wide-net-casting jailbreak setting, and show that it can substantially amplify safety risks. We fur-ther propose a tailored jailbreak method, underscoring the serious security implications of wide-net-casting that calls for dedicated evaluation and defenses. 
+
+Impact Statement 
+
+This paper investigates vulnerabilities in large models under the wide-net-casting jailbreak scenario to advance safety evaluation and to call for defensive design for real-world deployments. By systematically characterizing how risks can be amplified when adversaries target groups of models, we aim to encourage more realistic red-teaming protocols and stronger protective measures before such weaknesses can be exploited at scale. We believe transparent research on these issues is essential for accurately assessing real-world risk and for developing more robust defenses and monitoring mechanisms. 
+
+References 
+
+Achiam, J., Adler, S., Agarwal, S., Ahmad, L., Akkaya, I., Aleman, F. L., Almeida, D., Altenschmidt, J., Altman, S., Anadkat, S., et al. Gpt-4 technical report. arXiv preprint arXiv:2303.08774, 2023. Bachu, S., Shayegani, E., Lal, R., Chakraborty, T., Dutta, A., Song, C., Dong, Y., Abu-Ghazaleh, N., and Roy-Chowdhury, A. K. Layer-wise alignment: Examin-ing safety alignment across image encoder layers in vision language models. In Proceedings of the 42nd International Conference on Machine Learning (ICML) ,2025. Bai, J., Bai, S., Chu, Y., Cui, Z., Dang, K., Deng, X., Fan, Y., Ge, W., Han, Y., Huang, F., et al. Qwen technical report. arXiv preprint arXiv:2309.16609, 2023. Bengio, S., Vinyals, O., Jaitly, N., and Shazeer, N. Sched-uled sampling for sequence prediction with recurrent neu-ral networks. Advances in neural information processing systems, 28, 2015. Boyd, S. P. and Vandenberghe, L. Convex optimization .Cambridge university press, 2004. Chen, J., Yu, J., Ge, C., Yao, L., Xie, E., Wang, Z., Kwok, J. T., Luo, P., Lu, H., and Li, Z. Pixart-α: Fast training of diffusion transformer for photorealistic text-to-image synthesis. In ICLR, 2024. Dai, W., Li, J., Li, D., Tiong, A., Zhao, J., Wang, W., Li, B., Fung, P. N., and Hoi, S. Instructblip: Towards general-purpose vision-language models with instruction tuning. Advances in neural information processing systems , 36: 49250–49267, 2023. Gehman, S., Gururangan, S., Sap, M., Choi, Y., and Smith, N. A. Realtoxicityprompts: Evaluating neural toxic degeneration in language models. arXiv preprint arXiv:2009.11462, 2020. 9New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Geng, J., Tran, T. T., Nakov, P., and Gurevych, I. Con in-struction: Universal jailbreaking of multimodal large lan-guage models via non-textual modalities. arXiv preprint arXiv:2506.00548, 2025. Ghosal, S. S., Chakraborty, S., Singh, V., Guan, T., Wang, M., Beirami, A., Huang, F., Velasquez, A., Manocha, D., and Bedi, A. S. Immune: Improving safety against jailbreaks in multi-modal llms via inference-time align-ment. In Proceedings of the Computer Vision and Pattern Recognition Conference, pp. 25038–25049, 2025. GLM, T., Zeng, A., Xu, B., Wang, B., Zhang, C., Yin, D., Zhang, D., Rojas, D., Feng, G., Zhao, H., et al. Chatglm: A family of large language models from glm-130b to glm-4 all tools. arXiv preprint arXiv:2406.12793, 2024. Google. Gemma Model Card. https://ai. google.dev/gemma/docs/core/model_ card#evaluation_results , 2025. Google AI for Developers. Last updated: Feb. 25, 2025. Accessed: Oct. 25, 2025. Grattafiori, A., Dubey, A., Jauhri, A., Pandey, A., Kadian, A., Al-Dahle, A., Letman, A., Mathur, A., Schelten, A., Vaughan, A., et al. The llama 3 herd of models. arXiv preprint arXiv:2407.21783, 2024. Guzman-Rivera, A., Batra, D., and Kohli, P. Multiple choice learning: Learning to produce multiple structured outputs. Advances in neural information processing systems , 25, 2012. Hao, S., Hooi, B., Liu, J., Chang, K.-W., Huang, Z., and Cai, Y. Exploring visual vulnerabilities via multi-loss adversarial search for jailbreaking vision-language mod-els. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR) , pp. 19890–19899, June 2025. Inan, H., Upasani, K., Chi, J., Rungta, R., Iyer, K., Mao, Y., Tontchev, M., Hu, Q., Fuller, B., Testug-gine, D., et al. Llama guard: Llm-based input-output safeguard for human-ai conversations. arXiv preprint arXiv:2312.06674, 2023. Jeong, J., Bae, S., Jung, Y., Hwang, J., and Yang, E. Playing the fool: Jailbreaking llms and multimodal llms with out-of-distribution strategy. In Proceedings of the Computer Vision and Pattern Recognition Conference , pp. 29937– 29946, 2025. Ji, J., Liu, M., Dai, J., Pan, X., Zhang, C., Bian, C., Chen, B., Sun, R., Wang, Y., and Yang, Y. Beavertails: Towards improved safety alignment of llm via a human-preference dataset. Advances in Neural Information Processing Systems, 36:24678–24704, 2023. Jia, X., Pang, T., Du, C., Huang, Y., Gu, J., Liu, Y., Cao, X., and Lin, M. Improved techniques for optimization-based jailbreaking on large language models. In The Thirteenth International Conference on Learning Representations ,2025. Jiang, D., Liu, Y., Liu, S., Zhao, J., Zhang, H., Gao, Z., Zhang, X., Li, J., and Xiong, H. From clip to dino: Visual encoders shout in multi-modal large language models. arXiv preprint arXiv:2310.08825, 2023. Jiang, T., Wang, Z., Liang, J., Li, C., Wang, Y., and Wang, T. Robustkv: Defending large language models against jailbreak attacks via kv eviction. arXiv preprint arXiv:2410.19937, 2024. Laarhoven, P. J. and Aarts, E. H. Simulated annealing: theory and applications. Springer, 1987. Li, J. and Kim, J.-E. Safety alignment can be not superficial with explicit safety signals. In Forty-second International Conference on Machine Learning, 2025. Li, Y., Guo, H., Zhou, K., Zhao, W. X., and Wen, J.-R. Images are achilles’ heel of alignment: Exploiting visual vulnerabilities for jailbreaking multimodal large language models. In European Conference on Computer Vision, pp. 174–189. Springer, 2024. Li, Z., Rahmani, H., Zhang, J., Xue, Y., Mirmehdi, M., Kuen, J., Gu, J., and Liu, J. Diffgraph: An au-tomated agent-driven model merging framework for in-the-wild text-to-image generation. arXiv preprint arXiv:2603.20470, 2026. Liao, Z. and Sun, H. Amplegcg: Learning a universal and transferable generative model of adversarial suffixes for jailbreaking both open and closed llms. arXiv preprint arXiv:2404.07921, 2024. Lin, Y., He, P., Xu, H., Xing, Y., Yamada, M., Liu, H., and Tang, J. Towards understanding jailbreak attacks in llms: A representation space analysis. In Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing, pp. 7067–7085, 2024. Liu, H., Li, C., Wu, Q., and Lee, Y. J. Visual instruction tun-ing. Advances in neural information processing systems, 36:34892–34916, 2023a. Liu, X., Xu, N., Chen, M., and Xiao, C. Autodan: Generat-ing stealthy jailbreak prompts on aligned large language models. arXiv preprint arXiv:2310.04451, 2023b. Liu, X., Zhu, Y., Gu, J., Lan, Y., Yang, C., and Qiao, Y. Mm-safetybench: A benchmark for safety evaluation of multi-modal large language models. In European Conference on Computer Vision, pp. 386–403, 2024. 10 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Loshchilov, I. and Hutter, F. Sgdr: Stochastic gra-dient descent with warm restarts. arXiv preprint arXiv:1608.03983, 2016. Miao, Z., Ding, Y., Li, L., and Shao, J. Visual contextual at-tack: Jailbreaking mllms with image-driven context injec-tion. Proceedings of the 2025 Conference on Empirical Methods in Natural Language Processing, 2025. OpenAI. Gpt-4o system card, 2024. Accessed: 2025-11-06. Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., et al. Training language models to follow instructions with human feedback. Advances in neural information processing systems, 35:27730–27744, 2022. Paulus, A., Zharmagambetov, A., Guo, C., Amos, B., and Tian, Y. Advprompter: Fast adaptive adversarial prompt-ing for llms. arXiv preprint arXiv:2404.16873, 2024. Perera, D., Letzelter, V., Mariotte, T., Cort ´es, A., Chen, M., Essid, S., and Richard, G. Annealed multiple choice learn-ing: Overcoming limitations of winner-takes-all with annealing. Advances in neural information processing systems, 37:10541–10574, 2024. Press, W. H. Numerical recipes 3rd edition: The art of scientific computing. Cambridge university press, 2007. Qi, X., Huang, K., Panda, A., Henderson, P., Wang, M., and Mittal, P. Visual adversarial examples jailbreak aligned large language models. In Proceedings of the AAAI conference on artificial intelligence , volume 38, pp. 21527–21536, 2024. Rafailov, R., Sharma, A., Mitchell, E., Manning, C. D., Ermon, S., and Finn, C. Direct preference optimiza-tion: Your language model is secretly a reward model. Advances in neural information processing systems , 36: 53728–53741, 2023. Robey, A., Wong, E., Hassani, H., and Pappas, G. J. Smooth-llm: Defending large language models against jailbreak-ing attacks. arXiv preprint arXiv:2310.03684, 2023. Shannon, C. E. A mathematical theory of communication. The Bell system technical journal, 27(3):379–423, 1948. Shayegani, E., Dong, Y., and Abu-Ghazaleh, N. Jailbreak in pieces: Compositional adversarial attacks on multi-modal language models. arXiv preprint arXiv:2307.14539 ,2023. Shi, Y. and Eberhart, R. A modified particle swarm optimizer. In 1998 IEEE international conference on evolutionary computation proceedings. IEEE world congress on computational intelligence (Cat. No. 98TH8360), pp. 69–73. Ieee, 1998. Shi, Y. and Eberhart, R. C. Empirical study of parti-cle swarm optimization. In Proceedings of the 1999 congress on evolutionary computation-CEC99 (Cat. No. 99TH8406), volume 3, pp. 1945–1950. IEEE, 1999. Sun, C.-E., Liu, X., Yang, W., Weng, T.-W., Cheng, H., San, A., Galley, M., and Gao, J. Iterative self-tuning llms for enhanced jailbreaking capabilities. arXiv preprint arXiv:2410.18469, 2024. Team, G., Georgiev, P., Lei, V. I., Burnell, R., Bai, L., Gulati, A., Tanzer, G., Vincent, D., Pan, Z., Wang, S., et al. Gemini 1.5: Unlocking multimodal understand-ing across millions of tokens of context. arXiv preprint arXiv:2403.05530, 2024. Team, Z. A. Glm-4v-9b: An open chinese/english multi-modal large language model, 2024. Accessed: 2025-11-06. Wang, H., Wang, G., and Zhang, H. Steering away from harm: An adaptive approach to defending vision language model against jailbreaks. In Proceedings of the Computer Vision and Pattern Recognition Conference , pp. 29947– 29957, 2025. Wang, P., Bai, S., Tan, S., Wang, S., Fan, Z., Bai, J., Chen, K., Liu, X., Wang, J., Ge, W., et al. Qwen2-vl: Enhancing vision-language model’s perception of the world at any resolution. arXiv preprint arXiv:2409.12191, 2024. Wu, Q., Han, M., Jiang, T., Jiang, C., Luo, J., Jiang, M., Fan, H., and Liu, S. Realistic noise synthesis with diffu-sion models. In Proceedings of the AAAI Conference on Artificial Intelligence, volume 39, pp. 8432–8440, 2025. Xie, Z., Gao, J., Li, L., Li, Z., Liu, Q., and Kong, L. Jailbreaking as a reward misspecification problem. The Thirteenth International Conference on Learning Representations, 2024. Xu, Y., Letzelter, V., Chen, M., Zablocki, ´E., and Cord, M. Annealed winner-takes-all for motion forecasting. In 2025 IEEE International Conference on Robotics and Automation (ICRA), pp. 1264–1270. IEEE, 2025. Yang, Z., Fan, J., Yan, A., Gao, E., Lin, X., Li, T., Mo, K., and Dong, C. Distraction is all you need for multimodal large language model jailbreaking. In Proceedings of the Computer Vision and Pattern Recognition Conference ,pp. 9467–9476, 2025. Yin, S., Fu, C., Zhao, S., Li, K., Sun, X., Xu, T., and Chen, E. A survey on multimodal large language models. National Science Review, 11(12):nwae403, 2024. 11 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Zeng, K., Zhong, G., Cheng, J., Yuan, J., and Li, Z. Avam: Universal training-free adaptive visual anchoring embed-ded into multimodal large language model for multi-image question answering. Proceedings of the IEEE/CVF International Conference on Computer Vision, 2025. Zheng, L., Chiang, W.-L., Sheng, Y., Zhuang, S., Wu, Z., Zhuang, Y., Lin, Z., Li, Z., Li, D., Xing, E., et al. Judging llm-as-a-judge with mt-bench and chatbot arena. Advances in neural information processing systems , 36: 46595–46623, 2023. Zhou, Y., Lu, L., Sun, R., Zhou, P., and Sun, L. Virtual context enhancing jailbreak attacks with special token injection. In Al-Onaizan, Y., Bansal, M., and Chen, Y.-N. (eds.), Findings of the Association for Computational Linguistics: EMNLP 2024 , pp. 11843–11857, Miami, Florida, USA, 2024. Association for Computational Lin-guistics. doi: 10.18653/v1/2024.findings-emnlp.692. Zhu, D., Chen, J., Shen, X., Li, X., and Elhoseiny, M. Minigpt-4: Enhancing vision-language understanding with advanced large language models. arXiv preprint arXiv:2304.10592, 2023. Zong, Y., Bohdal, O., Yu, T., Yang, Y., and Hospedales, T. Safety fine-tuning at (almost) no cost: A base-line for vision large language models. arXiv preprint arXiv:2402.02207, 2024. Zou, A., Wang, Z., Carlini, N., Nasr, M., Kolter, J. Z., and Fredrikson, M. Universal and transferable adversar-ial attacks on aligned language models. arXiv preprint arXiv:2307.15043, 2023. 12 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+A. Extended Evaluation of Sec. 3 in the Main Paper 
+
+Extended experiments of jailbreaking a group of target MLLMs under the wide-net-casting scenario. In Sec. 3.1 of the main paper, we investigate whether the wide-net-casting jailbreak scenario amplifies safety risks when adapting existing jailbreak methods. To this end, we conduct extensive experiments targeting a group of different large models (with a fixed group size M = 4 ). The investigation shows that jailbreaking a target group of large models indeed amplifies safety risks under the wide-net-casting scenario. To further explore how the target group size affects this amplification, following the setups of jailbreaking MLLMs in Sec. 3.1, we conduct the evaluation only by varying the group size M of target MLLMs (setting M = 2 and M = 3 ), while keeping both the evaluation metrics (WASR and W-Toxicity Score) and the jailbreak method “MLAI (Hao et al., 2025) + PixArt-α (Chen et al., 2024)”. As shown in Tab. 8, both the attack success rate and response toxicity consistently increase compared to single-model results across all groups, suggesting that, regardless of variation in target group size, applying existing jailbreak attack methods to the wide-net-casting scenario can consistently amplify safety risks. 
+
+Table 8. Evaluation of jailbreaking a group of target MLLMs under the wide-net-casting scenario on AdvBench. Notably, “-” indicates the large model is not included in the corresponding group, and thus no result is available. Attack Group Size M ASR / Toxicity Score WASR / W-Toxicity Score MiniGPT-4-13b LLaVA-1.5-13b InstructBLIP Qwen2-VL-7B MLAI (Hao et al., 2025) + PixArt-α (Chen et al., 2024)                                                 
+
+> M= 4 74.0% / 0.695 59.6% / 0.527 69.2% / 0.651 38.5% / 0.343 93.3% / 0.867
+> M= 3
+> -59.6% / 0.527 69.2% / 0.651 38.5% / 0.343 86.7% / 0.803
+> 74.0% / 0.695 -69.2% / 0.651 38.5% / 0.343 87.0% / 0.816
+> 74.0% / 0.695 59.6% / 0.527 -38.5% / 0.343 87.5% / 0.822
+> 74.0% / 0.695 59.6% / 0.527 69.2% / 0.651 -90.2% / 0.848
+> M= 2
+> --69.2% / 0.651 38.5% / 0.343 73.6% / 0.680
+> -59.6% / 0.527 -38.5% / 0.343 64.8% / 0.602
+> -59.6% / 0.527 69.2% / 0.651 -83.6% / 0.680
+> 74.0% / 0.695 --38.5% / 0.343 81.2% / 0.766
+> 74.0% / 0.695 -69.2% / 0.651 -83.0% / 0.781
+> 74.0% / 0.695 59.6% / 0.527 --82.5% / 0.773
+
+Extended experiments of jailbreaking MLLMs on AdvBench for Q1. In Sec. 3.1 of the main paper, we evaluate the safety risks of jailbreaking MLLMs on MM-SafetyBench under the wide-net-casting scenario. To further examine whether the observed risk amplification across datasets occurs when adapting existing single-model jailbreak attacks to MLLMs, we also evaluate jailbreaking MLLMs on AdvBench under the wide-net-casting scenario, while keeping all other experimental setups consistent with Sec. 3.1. As shown in Tab. 9, the amplified attack success rate and response toxicity persist on AdvBench, indicating that the wide-net-casting scenario can consistently and significantly amplify safety risks, even when adapting existing single-model jailbreak attacks. 
+
+Table 9. Evaluation of jailbreaking MLLMs across different model families under the wide-net-casting scenario on AdvBench.                                                       
+
+> Defense Attack ASR / Toxicity Score WASR / W-Toxicity Score MiniGPT-4-13b LLaVA-1.5-13b InstructBLIP Qwen2-VL-7B Original Safety Alignment MLAI (Hao et al., 2025) 72.1% / 0.682 56.7% / 0.498 64.4% / 0.612 32.7% / 0.281 88.5% / 0.810
+> MLAI (Hao et al., 2025) + PixArt-α(Chen et al., 2024) 74.0% / 0.695 59.6% / 0.527 69.2% / 0.651 38.5% / 0.343 93.3% / 0.867
+> + VLGuard (Zong et al., 2024) MLAI (Hao et al., 2025) 21.1% / 0.148 11.5% / 0.075 18.2% / 0.124 10.2% / 0.066 33.7% / 0.287
+> MLAI (Hao et al., 2025) + PixArt-α(Chen et al., 2024) 22.0% / 0.158 13.3% / 0.089 19.2% / 0.134 12.2% / 0.082 37.5% / 0.311
+> + IMMUNE (Ghosal et al., 2025) MLAI (Hao et al., 2025) 17.3% / 0.107 3.8% / 0.021 16.3% / 0.098 6.7% / 0.037 32.0% / 0.293
+> MLAI (Hao et al., 2025) + PixArt-α(Chen et al., 2024) 19.2% / 0.123 5.8% / 0.034 16.9% / 0.105 8.6% / 0.050 36.9% / 0.320
+> + ASTRA (Wang et al., 2025) MLAI (Hao et al., 2025) 9.6% / 0.058 10.1% / 0.063 12.9% / 0.077 4.8% / 0.026 27.1% / 0.212
+> MLAI (Hao et al., 2025) + PixArt-α(Chen et al., 2024) 10.6% / 0.066 12.4% / 0.079 14.3% / 0.089 5.2% / 0.030 30.7% / 0.253
+
+Extended experiments of jailbreaking LLMs and MLLMs within the same family on AdvBench for Q2. In Sec. 3.2 of the main paper, to evaluate how the safety risks vary when targeting large models within the same family under the wide-net-casting scenario, we conduct experiments on MLLMs by adapting existing jailbreak methods on MM-SafetyBench. To further assess risk variations in this evaluation setting across different datasets, we further evaluate jailbreaking LLMs and MLLMs within the same family on AdvBench, while keeping all other experimental setups consistent with Sec. 3.2. As shown in Tab. 10 to 12, the amplified attack success rate and response toxicity score persist across both MLLMs and LLMs. This further indicates that even within the same family, the wide-net-casting scenario consistently amplifies safety risks. 13 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Table 10. Evaluation of jailbreaking LLMs within the same model family under the wide-net-casting scenario on AdvBench. Defense Method ASR / Toxicity Score WASR / W-Toxicity Score Llama-2-7b-chat Llama-3-8b-Instruct Llama-3.1-8b-Instruct Llama-3.2-3b-Instruct Original Safety Alignment GCG (Zou et al., 2023) 2.0% / 0.037 18.2% / 0.173 28.8% / 0.241 24.0% / 0.210 39.3% / 0.357      
+
+> ReMiss (Xie et al., 2024) 4.8% / 0.059 25.0% / 0.231 38.5% / 0.352 39.8% / 0.351 50.2% / 0.469
+
+Table 11. Evaluation of jailbreaking MLLMs within the same model family under the wide-net-casting scenario on AdvBench. Defense Method ASR / Toxicity Score WASR / W-Toxicity Score LLaVA-1.5-13b LLaVA-1.6-vicuna-13b LLaVA-1.6-vicuna-7b LLaVA-llama2-13b Original Safety Alignment MLAI (Hao et al., 2025) 56.7% / 0.498 14.4% / 0.129 33.7% / 0.312 74.0% / 0.682 84.8% / 0.819       
+
+> MLAI (Hao et al., 2025) + PixArt-α(Chen et al., 2024) 59.6% / 0.527 15.3% / 0.142 36.5% / 0.334 78.9% / 0.733 89.4% / 0.858
+
+Table 12. Evaluation of jailbreaking MLLMs within the same version under the wide-net-casting scenario on AdvBench. Defense Method ASR / Toxicity Score WASR / W-Toxicity Score LLaVA-1.6-vicuna-13b LLaVA-1.6-vicuna-7b Original Safety Alignment MLAI (Hao et al., 2025) 14.4% / 0.129 33.7% / 0.312 37.7% / 0.335     
+
+> MLAI (Hao et al., 2025) + PixArt-α(Chen et al., 2024) 15.3% / 0.142 36.5% / 0.334 40.4% / 0.361
+
+Extended experiments of selecting the responses to compute the W-Toxicity Score. In Sec. 3.1 of the main paper, we propose the W-Toxicity Score, defined as the toxicity score of the response selected as most likely to be used for harm, for each intent. Specifically, we use GPT-4o (OpenAI, 2024) to select the response to calculate the W-Toxicity Score in our experiments. To assess the robustness of this metric to the choice of response-selection LLMs, we evaluate jailbreaking MLLMs with our method on MM-SafetyBench under the wide-net-casting scenario, using GPT-4o as well as two widely used large models, Gemini-1.5-Pro (Team et al., 2024) and Qwen-VL-Max (Bai et al., 2023). As shown in Tab. 13, using different large models to select the response yields almost the same W-Toxicity Scores, indicating highly consistent response selections and demonstrating the robustness of the W-Toxicity Score to the choice of response-selection LLMs. 
+
+Table 13. Evaluation of jailbreaking MLLMs with different response-selection LLMs under the wide-net-casting scenario.     
+
+> Large models for selection W-Toxicity Score GPT-4o (Ours) 0.939 Gemini-1.5-Pro 0.939 Qwen-VL-Max 0.938
+
+B. Extended Evaluation of Sec. 5 in the Main Paper 
+
+Extended experiments of jailbreaking large models within the same model family using different methods tailored to the wide-net-casting jailbreak scenario. In Sec. 5.1 of the main paper, to evaluate the effectiveness of our proposed jailbreak method tailored to the wide-net-casting scenario, we compare our approach to both the straightforward adaptation of existing single-model jailbreak approaches (serving as the baseline) and two naive strategies tailored to the wide-net-casting scenario (introduced in Sec. 4.1) on jailbreaking large models across different families. To further validate the effectiveness of our method, we conduct extended experiments on jailbreaking large models within the same family under the wide-net-casting scenario. Specifically, we largely follow the setups in Sec. 5.1, varying only by restricting target large models within the same family (as the setup in Sec. 3.2, jailbreaking LLMs within the Llama family, and jailbreaking MLLMs within the LLaVA family). As shown in Tab. 14 and Tab. 15, our approach consistently outperforms both naive strategies and straightforward adaptation in terms of attack success rate and response toxicity, showing superior effectiveness in exposing the underlying risks of the wide-net-casting scenario. 
+
+Extended experiments on transfer jailbreaking for closed-source MLLMs under the wide-net-casting scenario. In the main paper, to comprehensively investigate safety risks and potential threats of the wide-net-casting jailbreak scenario, we conducted extensive evaluations across various open-source MLLMs in Sec. 3 and Sec. 5. Beyond these open-source models, numerous closed-source commercial models also exist (e.g., Qwen-VL-Max (Bai et al., 2023), Gemini-1.5-Pro (Team et al., 2024), and GPT-4o (OpenAI, 2024)) and have been widely used in prior jailbreak studies for evaluation (Hao et al., 2025; Li et al., 2024; Xie et al., 2024; Yang et al., 2025). 14 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Table 14. Evaluation of jailbreaking LLMs within the same model family using different methods tailored to the wide-net-casting jailbreak scenario. Dataset Attack WASR / W-Toxicity Score Original Safety Alignment Original Safety Alignment + SmoothLLM (Robey et al., 2023) Original Safety Alignment + RobustKV (Jiang et al., 2024) AdvBench Baseline (ReMiss (Xie et al., 2024)) 50.2% / 0.469 33.1% / 0.293 28.5% / 0.257 Naive Strategy 1 55.5% / 0.513 37.3% / 0.325 31.1% / 0.279 Naive Strategy 2 56.2% / 0.520 38.0% / 0.336 31.8% / 0.284 Ours 73.3% / 0.672 51.9% / 0.462 40.6% / 0.363 
+
+Table 15. Evaluation of jailbreaking MLLMs within the same model family using different methods tailored to the wide-net-casting jailbreak scenario. Dataset Attack WASR / W-Toxicity Score Original Safety Alignment Original Safety Alignment + VLGuard (Zong et al., 2024) Original Safety Alignment + IMMUNE (Ghosal et al., 2025) Original Safety Alignment + ASTRA (Wang et al., 2025) AdvBench Baseline (MLAI (Hao et al., 2025) + PixArt-α (Chen et al., 2024)) 89.4% / 0.858 32.3% / 0.284 31.5% / 0.273 28.1% / 0.242 Naive Strategy 1 92.4% / 0.886 34.7% / 0.317 33.8% / 0.295 32.0% / 0.283 Naive Strategy 2 93.6% / 0.897 35.5% / 0.318 34.4% / 0.307 32.7% / 0.292 Ours 99.6% / 0.932 46.2% / 0.412 44.2% / 0.406 40.6% / 0.365                  
+
+> MM-SafetyBench Baseline (MLAI (Hao et al., 2025) + PixArt-α(Chen et al., 2024)) 89.9% / 0.865 34.3% / 0.303 33.1% / 0.294 29.4% / 0.257 Naive Strategy 1 93.0% / 0.892 37.1% / 0.335 35.3% / 0.318 31.5% / 0.283 Naive Strategy 2 93.7% / 0.903 37.8% / 0.343 36.6% / 0.321 32.2% / 0.295 Ours 100% / 0.934 47.6% / 0.435 46.7% / 0.423 42.3% / 0.381
+
+To evaluate jailbreak methods on large closed-source models, a common practice is to first train jailbreak methods on open-source models and then transfer them to jailbreak closed-source models. In our approach, we simultaneously jailbreak groups of target models under the wide-net-casting scenario by jointly training adversarial sample generators to specialize in exploiting the model-specific vulnerabilities of their respective targets. Therefore, we optimize specialized generators on a set of open-source large models that may share similarities with the closed-source counterparts (e.g., the open-source and closed-source models belong to the same model family), and therefore could be more likely to exhibit inherently similar vulnerabilities under the wide-net-casting scenario. Consequently, we construct a surrogate-target correspondence between two target model groups: a closed-source target MLLM group for transfer evaluation (including four widely used closed-source models, Qwen-VL-Max (Bai et al., 2023), GLM-4V-Plus (GLM et al., 2024), Gemini-1.5-Pro (Team et al., 2024), and GPT-4o (OpenAI, 2024)), and an open-source target MLLM group as surrogates for jointly training specialized generators (including Qwen-2-VL (Wang et al., 2024), GLM-4V-9B (Team, 2024), Gemma-3 (vision) (Google, 2025), and MiniGPT-4-13b (Zhu et al., 2023)). Specifically, Qwen2-VL-7B and GLM-4V-9B are developed by the same organizations as their corresponding closed-source counterparts (Qwen-VL-Max and GLM-4V-Plus). Therefore, among available open-source models, they could be more plausible surrogates for these closed-source targets than models from unrelated families, so we treat them as approximate open-source surrogates in our transfer evaluations. Gemma-3 (vision) is reported to be derived from the same research and technology stack as the Gemini family (Google, 2025), suggesting that it may share similar characteristics with Gemini-1.5-Pro, which motivates us to include Gemma-3 (vision) as a surrogate that could approximate potential vulnerabilities of Gemini-1.5-Pro. In addition, MiniGPT-4 has been widely adopted in prior work for transfer evaluations targeting GPT-4o due to its similar capabilities and behavior (Zhu et al., 2023; Yang et al., 2025). Following this practice, we treat MiniGPT-4 as a practical surrogate for GPT-4o, with the expectation that its behavior may approximate their jailbreak vulnerabilities more closely than that of arbitrary open-source MLLMs. Accordingly, we jointly train the adversarial sample generators on the open-source target MLLM group and evaluate on the closed-source target MLLM group .As shown in Tab. 16, when transferred to closed-source models under the wide-net-casting scenario, our method still achieves superior amplification of both the attack success rate and response toxicity score compared to Baseline. The results show that the wide-net-casting scenario consistently and significantly amplifies safety risks, and that our method can effectively expose these amplified risks even for closed-source targets. Additionally, we also test the setups of randomly pairing each closed-source model with an open-source model in the target MLLM group. We observe that our constructed surrogate-target correspondence performs better than these random matching setups, supporting the reasonableness of our surrogate selection for transfer jailbreaking under the wide-net-casting scenario. 15 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Table 16. Evaluation on transferring jailbreak closed-source MLLMs under the wide-net-casting scenario on AdvBench. Method ASR / Toxicity Score WASR / W-Toxicity Score Qwen-VL-Max (Bai et al., 2023) GLM-4V-Plus (GLM et al., 2024) Gemini-1.5-Pro (Team et al., 2024) GPT-4o (OpenAI, 2024) Baseline (MLAI (Hao et al., 2025) + PixArt-α (Chen et al., 2024)) 43.6% / 0.392 52.1% / 0.489 38.9% / 0.341 47.7% / 0.433 69.5% / 0.653      
+
+> Ours 51.2% / 0.481 61.2% / 0.580 46.1% / 0.424 55.2% / 0.523 86.8% / 0.799
+
+C. Additional Ablation Studies 
+
+In this section, we conduct extensive ablation studies on AdvBench, focusing on jailbreaking MLLMs from different families. We perform evaluation on two settings: MLLMs that rely solely on their original safety alignments, and MLLMs additionally equipped with VLGuard (Zong et al., 2024). 
+
+Impact of naive strategies for specialization in joint training. In Sec. 4.1 of the main paper, we mention that the straightforward adaptation of existing model-based approaches to the wide-net-casting scenario (serving as the baseline) suffers from a lack of specialization within each adversarial sample generator, i.e., failing to more extensively exploit the distinct, model-specific vulnerabilities of target large models under the wide-net-casting scenario. Inspired by this limitation, we design several naive strategies for specialization, two of which are introduced in Sec. 4.1 of the main paper. To further evaluate the specialization achieved by our proposed method, we also test an extended naive strategy ( Naive Strategy 3 ). Specifically, recall that in Naive Strategy 1, we pass each training intent through all independently optimized generators once to obtain their respective losses, and assign each intent only to the generator that yields the smallest loss (i.e., the most proficient generator) for specialization. In contrast, Naive Strategy 3 handles two cases: for intents where at least one generator successfully jailbreaks its corresponding target model, the intent is assigned to every generator that achieves a successful jailbreak. But for intents that fail to jailbreak any model across all generators, we follow the same rule as in Naive Strategy 1 and assign them to the generator with the smallest loss. As shown in Tab. 17, all naive strategies yield only a marginal increase in attack success rate and response toxicity compared to the straightforward adaptation (Baseline). In contrast, our proposed method consistently achieves substantially better performance. These results further validate the superior effectiveness of our tailored approach. 
+
+Table 17. Evaluation of jailbreaking MLLMs using different methods for specialization in joint training.            
+
+> Method WASR / W-Toxicity Score Original Safety Alignment Original Safety Alignment + VLGuard (Zong et al., 2024) Baseline (MLAI (Hao et al., 2025) + PixArt-α(Chen et al., 2024)) 93.3% / 0.867 37.5% / 0.311 Naive Strategy 1 95.5% / 0.883 40.6% / 0.355 Naive Strategy 2 95.8% / 0.898 41.1% / 0.363 Naive Strategy 3 95.6% / 0.887 40.9% / 0.358 Ours 100% / 0.940 50.8% / 0.473
+
+Impact of our output selection strategy during inference. Our method produces a set of responses for each intent when simultaneously attacking a group of target large models under the wide-net-casting scenario. To select the highest jailbreak-quality output during inference, our strategy ( Our method with LLM-judge selection ) assigns a jailbreak quality rating to each candidate response using LLM-judge and selects the one with the highest jailbreak quality as output (see Sec. J for more implementation details). In addition to using LLM-judge, we also test another variant ( Our method with router-based prediction ) to obtain the highest jailbreak-quality output during inference. Specifically, we first generate responses for each training intent using optimized generators. Subsequently, we manually select the highest jailbreak-quality responses and construct supervision labels based on them. We then train a router to predict which target large model is most likely to generate the highest jailbreak-quality output for a given intent. With this trained router, the inference phase for this variant is as follows: given a testing intent, we first pass the intent to this router. The router then determines the single target large model most likely to produce the highest jailbreak quality output. We then jailbreak only the target model selected by the router and use its output as the final harmful response. As shown in Table 18, we assess the attack success rate, response toxicity score, and the total jailbreak time (per intent) (i.e., the average time from inputting a harmful intent to receiving the final harmful output on NVIDIA A100 GPUs) between our method with LLM-judge selection and the variant. The results show that while the variant slightly reduces the total jailbreak time, it also slightly decreases the attack success rate compared to our 16 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+approach with the LLM-based judge. Consistent with our goal of maximally exposing the underlying safety risks in the wide-net-casting scenario, our method with the LLM-based judge achieves the best performance at amplifying safety risks. 
+
+Table 18. Evaluation on different output selection strategies. Notably, the jailbreak time (per intent) is the average time from inputting a harmful intent to receiving the final harmful output.       
+
+> Method WASR / W-Toxicity Score Total Jailbreak Time (per intent) Original Safety Alignment Original Safety Alignment + VLGuard (Zong et al., 2024) Our method with router-based prediction 99.1% / 0.935 48.7% / 0.435 4.34s Our method with LLM-judge selection 100% / 0.940 50.8% / 0.473 9.12s
+
+Impact of the training-time-matched independent training process. As mentioned in Sec. 4, we adopt a set of independently-trained adversarial sample generators (Baseline) as a foundation to design our new jailbreak method tailored to the wide-net-casting scenario, and further jointly training them for specialization. To isolate the possible effect of joint training rather than training time, we conduct a training-time-matched variant ( Baseline with matched training time ), in which the independently trained generators are further trained to match the training time of our method. As shown in Tab. 19, even with the same total training time budget, our method achieves significantly higher attack success rates and response toxicity scores than the training-time-matched baseline. Meanwhile, even after additional training time, baseline performance does not change significantly. These results confirm that the performance gain stems from the proposed joint optimization strategy rather than from extended training time, demonstrating the effectiveness of our method. 
+
+Table 19. Evaluation on matching training time between straightforward adaptation (Baseline) and our method.     
+
+> Method WASR / W-Toxicity Score Original Safety Alignment Original Safety Alignment + VLGuard (Zong et al., 2024) Baseline with matched training time 93.4% / 0.868 37.5% / 0.314 Ours 100% / 0.940 50.8% / 0.473
+
+Impact of initializing joint-training from independently-trained generators. In our main experiments, we initialize the joint training process of our method from independently trained adversarial sample generators ( joint training from independently-trained generators ). Here, we further evaluate another variant of our method ( joint training from scratch ), which jointly trains the adversarial sample generators from scratch. As shown in Tab. 20, both variants effectively perform wide-net-casting jailbreaks, showing the robustness of our approach. 
+
+Table 20. Evaluation on initializing joint-training from independently-trained generators.      
+
+> Method WASR / W-Toxicity Score Original Safety Alignment Original Safety Alignment + VLGuard (Zong et al., 2024) Ours (joint-training from scratch) 100% / 0.938 50.7% / 0.470 Ours (joint-training from independently-trained generators) 100% / 0.940 50.8% / 0.473
+
+Visualization of specialization analysis. To illustrate the specialization of the optimized generators trained by our method, we visualize word clouds of keywords for harmful intents that each generator specializes in when targeting its corresponding large model. Specifically, we pass each intent in AdvBench through all optimized generators and, for each successful jailbroken intent, compute the keyword frequencies. As shown in Fig. 3, the clearly distinct patterns across word clouds highlight the specialized capabilities learned by each generator through our method. Additionally, inspired by prior work on representation-space analysis (Lin et al., 2024), we also embed all harmful intents that each optimized generator specializes in into a unified sentence-level feature space and project the embeddings into 2D to visualize whether they exhibit specialized distribution patterns. As shown in Fig. 4, each generator specializes in harmful intents that occupy relatively separated regions in the feature space, further demonstrating the strong specialization capability of our approach. 17 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Figure 3. Visualization of word clouds showing the keywords of harmful intents that each optimized generator specializes in under the wide-net-casting scenario on AdvBench. The word clouds reflect the keywords and their frequencies (larger words indicate higher frequency) among the harmful intents for which each generator is most proficient. 
+
+Figure 4. Visualization for the feature space of the sentence-level representation of harmful intent that each generator specializes in. 
+
+D. Theoretical Analysis of Mathematically Formalizing the Sub-goal ❶
+
+As mentioned in Sec. 4.1 of the main paper, the sub-goal ❶ (maximizing exploitation ) aims to concentrate updates as much as possible on generators with smaller intermediate losses. We formally show that the sub-goal ❶ can be represented as an optimization problem (as Eq. 1 of the main paper) in this section, and provide a step-by-step analysis of the formalization process. 
+
+Step (1). Given a set of generator losses ℓt = ( ℓ1 
+
+> t
+
+, . . . , ℓ Mt ) and the corresponding loss weight vector ηt = ( η1 
+
+> t
+
+, . . . , η Mt ),subject to ηmt ≥ 0 and PMm=1 ηmt = 1 . We aim to find a η∗ 
+
+> t
+
+such that the generator with a smaller loss ℓmt can be assigned a larger loss weight ηmt in each training step t as much as possible ( maximizing exploitation ). Intuitively, to this end, we need to shift the weight value from generators with larger losses to those with smaller losses. Thus, we can formalize this process mathematically by defining ηshif ted  
+
+> t
+
+as a more exploitative weight vector than ηt, which is obtained by shifting an infinitesimal value ε (ε > 0) from ηit to ηjt in ηt, where ℓit ≥ ℓjt . We define this process as the exploitation shift :
+
+ηshif ted  
+
+> t
+
+← ηt − εe i + εe j , 0 < ε ≤ ηit, (7) where ei denotes the i-th standard basis vector, whose i-th entry is 1 and all other entries are 0 (and similarly for ej ). Hence, an exploitation shift transfers an infinitesimal value from a weight ηit of higher loss toward a weight ηjt of smaller loss, thereby driving ηshif ted  
+
+> t
+
+more exploitative. 
+
+Step (2). Next, we define the global loss L(ηt, ℓt) = PMm=1 ηmt ℓmt as the sum of weighted losses. Thereby, we can 18 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+represent the resulting change of global loss L after applying the exploitation shift: 
+
+L(ηshif ted  
+
+> t
+
+, ℓt) − L(ηt, ℓt)=
+
+> M
+
+X
+
+> m=1
+
+ηshif ted,m t ℓmt −
+
+> M
+
+X
+
+> m=1
+
+ηmt ℓmt
+
+=ε(ℓit − ℓjt ) < 0.
+
+(8) As shown in Eq. 8, we have L(ηshif ted  
+
+> t
+
+, ℓt) < L (ηt, ℓt), which indicates that each exploitation shift strictly decreases the global loss L.
+
+Step (3). Accordingly, starting from any ηt ∈ ∆M , where simplex is define as ∆M = {ηt : ηmt ≥ 0, PMm=1 ηmt = 1 },we can repeatedly apply the exploitation shift to progressively transfer weight value from higher loss to lower loss. Each exploitation shift (i) keeps ηt within ∆M and (ii) strictly decreases L(ηt, ℓt), unless all positive weights already reside on the minimum loss. Therefore, this iterative process can be equivalently formulated as the following optimization problem: 
+
+η∗ 
+
+> t
+
+← arg min 
+
+> ηt∈∆M
+> M
+
+X
+
+> m=1
+
+ηmt ℓmt ,
+
+∆M = {ηt : ηmt ≥ 0,
+
+> M
+
+X
+
+> m=1
+
+ηmt = 1 }.
+
+(9) This optimization process converges when ηt assigns zero weight to every non-minimal loss, i.e., when it naturally degenerates into a one-hot vector concentrated on the minimum loss. Collectively, the sub-goal ❶ (maximizing exploitation) can thus be rigorously formalized as the optimization problem in Eq. 1 of the main paper. 
+
+E. Theoretical Derivation from Step (3) to Step (4) in Sec. 4.1 of the Main Paper 
+
+In Sec. 4.1 of the main paper, inspired by (Perera et al., 2024), we introduce the entropy-constrained optimization problem (as Eq. 3 of the main paper) and formulate its corresponding Lagrangian (as Eq. 4 of the main paper). In this section, we provide a detailed derivation of a closed-form optimal solution by explicitly solving the Karush-Kuhn-Tucker (KKT) conditions, and start from the first-order stationarity condition with respect to ηit, which is given by: 
+
+∂L
+
+∂η it
+
+= ℓit + νt − αit + βt(1 + log ηit) = 0 , (10) which captures how the loss term ℓit, the simplex constraint (through νt), the nonnegativity constraint (through αit), and the entropy constraint (through βt) interact at optimality. We now analyse how Eq. 10 leads to the Boltzmann-form solution. 
+
+Step (1). We first solve for ηit from the stationarity condition in Eq. 10. Rearranging the terms w.r.t ηit and taking the exponential on both sides yield: 
+
+ηi = exp( − ℓit
+
+βt
+
+) · exp( − νt − αit + βt
+
+βt
+
+) (11) 
+
+Step (2). We simplify Eq. 11 by examining the activity of constraints within the KKT conditions. As defined in Sec. 4.1 of the main paper, the Lagrange multiplier αit ≥ 0 corresponds to the nonnegativity constraint ηit ≥ 0. However, once the entropy constraint H(ηt) ≥ ¯Ht (with H(ηt) = PMm=1 ηmt log ηmt ) becomes active, it inherently ensures ηit > 0 for all i.Therefore, the nonnegativity constraint is redundant and inactive when the entropy constraint is active, implying αit = 0 .Therefore, we analyze the activeness of the entropy constraint. Since the entropy of ηt satisfies H(ηt) ∈ [0 , log M ], the constraint H(ηt) ≥ ¯Ht is active if and only if ¯Ht ∈ (0 , log M ]. If ¯Ht lies outside this range ( ¯Ht /∈ (0 , log M ]), the entropy constraint is inactive and the entropy constraint optimization problem degenerates to Eq. 9 (as Eq. 1 of the main paper). This degenerate case leads ηt to collapse into a one-hot vector that places all weight on the minimum loss as analyzed in Sec. D. However, as mentioned in Sec. 4.1 of the main paper, the entropy threshold ¯Ht is guaranteed to lie within (0 , log M ] due to the monotonically decreasing schedule ¯Ht = log M × T −tT , where t ∈ { 0, . . . , T − 1} and T denotes the total number of training steps, which ensures that the entropy constraint remains active throughout the training process. Consequently, the 19 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+solution stays in the interior of the feasible region with ηit > 0, and the nonnegativity constraint ηit ≥ 0 is always inactive, thus, αit = 0 for all i. Substituting αit = 0 into Eq. 11, we then obtain: 
+
+ηi = exp( − ℓit
+
+βt
+
+) · exp( − νt + βt
+
+βt
+
+). (12) 
+
+Step (3). We now enforce the simplex constraint PMi=1 ηit = 1 by substituting Eq. 12 into this constraint, and yield: 
+
+exp( − νt + βt
+
+βt
+
+) = 1
+
+PMm=1 exp( −ℓmt /β t) (13) Finally, substituting Eq. 13 back into Eq. 12 yields the closed-form optimal solution of ηi, ∗ 
+
+> t
+
+:
+
+ηi, ∗ 
+
+> t
+
+= exp( −ℓit/β t)
+
+PMm=1 exp( −ℓmt /β t) . (14) We can therefore also obtain the optimal weight vector η∗ 
+
+> t
+
+for training step t (as in Eq. 6 of the main paper). 
+
+η∗ 
+
+> t
+
+= ( η1,∗ 
+
+> t
+
+, . . . , η M, ∗ 
+
+> t
+
+), where ηi, ∗ 
+
+> t
+
+= exp( −ℓit/β t)
+
+PMm=1 exp( −ℓmt /β t) , (15) 
+
+F. Theoretical Analysis of Uniquely Specifying the Lagrange Multiplier βt
+
+In the main paper, we derive the optimal update weights ηi, ∗ 
+
+> t
+
+in the Boltzmann form (see Eq. 14), which are jointly determined by the losses ℓt and the Lagrange multiplier βt. Therefore, for a given ℓt, we need to solve for the scalar βt
+
+to obtain the updated weight ηti, ∗, where βt is the Lagrange multiplier associated with the entropy constraint g(ηt) = ¯Ht − H(ηt) = ¯Ht + PMm=1 ηmt log ηmt ≤ 0.In this section, we provide a theoretical analysis proving that for any loss vector ℓt whose entries are not all identical and for any given entropy threshold ¯Ht is uniquely determined, and thus so is the optimal weight vector η∗ 
+
+> t
+
+.
+
+Derivation of the relationship between βt and ¯Ht . We first analyze the relationship between the entropy threshold ¯Ht
+
+and the Lagrange multiplier βt.
+
+Step (1). According to the KKT complementary slackness condition, βt · g(η∗ 
+
+> t
+
+) = 0 , where g(ηt) = ¯Ht − H(ηt) = ¯Ht + PMm=1 ηmt log ηmt ≤ 0 is rewrite of the entropy constraint H(ηt) ≥ ¯Ht. This implies that when the entropy constraint is inactive, βt = 0 ; otherwise, when it is active, βt > 0 and g(η∗ 
+
+> t
+
+) = 0 . As established in Sec. E, our analysis reveals that the entropy constraint remains active, which directly leads to: 
+
+¯Ht = H(ηt) = −
+
+> M
+
+X
+
+> m=1
+
+ηmt log ηmt . (16) 
+
+Step (2). Next, we treat Eq. 14 as defining ηit as a function of βt, denoted by ηit(βt). Substituting ηit(βt) into Eq. 16, the entropy constraint can be equivalently written as a scalar equation H(βt) in βt:
+
+H(ηt) = H(βt) = log( 
+
+> M
+
+X
+
+> m=1
+
+exp( −ℓmt /β t)) + 1
+
+β
+
+> M
+
+X
+
+> m=1
+
+exp( −ℓmt /β t)
+
+PMj=1 exp( −ℓjt /β t) ℓmt .
+
+(17) Therefore, solving for βt is equivalent to solving the one-dimensional equation H(βt) = ¯Ht. In the following, we analyze the monotonicity of H(βt) and show that, for any set of losses ℓt that are not all identical and any entropy threshold ¯Ht, the corresponding solution βt is unique. 20 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Monotonicity and uniqueness of H(βt). To establish the existence and uniqueness of the solution, we analyze the monotonicity of H(βt) and show that it is strictly increasing with respect to βt.
+
+Step (1). For analytical convenience, we introduce a change of variables τ ≜ 1/β t, which allows us to express H(βt) in a simpler form. We define: 
+
+Z(τ ) = 
+
+> M
+
+X
+
+> m=1
+
+exp( −τ ℓ mt ), ηit(τ ) = exp( −τ ℓ it)
+
+Z(τ ) ,U (τ ) = 
+
+> M
+
+X
+
+> m=1
+
+ηmt (τ )ℓmt .
+
+(18) Using these definitions, H(βt) can be rewritten as a function of τ :
+
+H(τ ) = log Z(τ ) + τ U (τ ). (19) 
+
+Step (2). Since Z(τ ) is a finite sum of exponential terms, it is smooth for τ > 0. Consequently, both log Z(τ ) and 
+
+U (τ ) are continuously differentiable, implying that H(τ ) is differentiable on (0 , ∞). We now compute its derivative. Let 
+
+A(τ ) = log Z(τ ) for brevity, applying the chain rule gives: 
+
+dH dτ = A′(τ ) + U (τ ) + τ U ′(τ ), A′(τ ) = Z′(τ )
+
+Z(τ ) . (20) This separates the derivative of H(τ ) into contributions from the term A(τ ) and U (τ ), which will be analyzed next. 
+
+Step (3). We next compute A′(τ ) in Eq. 20. Differentiating Z(τ ) gives Z′(τ ) = PMm=1 −ℓmt exp( −τ ℓ mt ). Substituting into A′(τ ) = Z′(τ )/Z (τ ) and using the definition ηmt (τ ) = exp( −τ ℓ mt )/Z (τ ) yield: 
+
+A′(τ ) = ( 
+
+> M
+
+X
+
+> m=1
+
+−ℓmt exp( −τ ℓ mt )) /Z (τ )= −
+
+> M
+
+X
+
+> m=1
+
+ηmt (τ ) ℓmt
+
+= −U (τ ).
+
+(21) Thus, the contribution from the term A′(τ ) exactly cancels the term U (τ ) in Eq. 20, and the derivative of H(τ ) simplifies to: 
+
+dH dτ = τ U ′(τ ). (22) 
+
+Step (4). Recall that U (τ ) = PMm=1 ηmt (τ ) ℓmt and ηit(τ ) = exp( −τ ℓ it)/Z (τ ). Differentiating ηit(τ ) with respect to τ gives 
+
+(ηit)′(τ ) = ηit(τ ) ( −ℓit + U (τ )) . Substituting this into the derivative of U (τ ) yields: 
+
+U ′(τ ) = 
+
+> M
+
+X
+
+> m=1
+
+(ηmt )′(τ )ℓk
+
+=
+
+> M
+
+X
+
+> m=1
+
+ηmt (τ )( −ℓmt + U (τ )) ℓmt
+
+= −
+
+> M
+
+X
+
+> m=1
+
+ηmt (τ )( ℓmt )2 − 2( U (τ )) 2 + ( U (τ )) 2
+
+= −
+
+> M
+
+X
+
+> m=1
+
+ηmt (τ )( ℓmt − U (τ )) 2.
+
+(23) This shows that U ′(τ ) ≤ 0, and the inequality of U ′(τ ) < 0 is strict whenever the losses ℓt are not all identical. Combining this result with Eq. 22 yields: 
+
+dH dτ = τ U ′(τ ) < 0, τ > 0. (24) 21 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Step (5). From Eq. 24, since τ = 1 /β t, we apply the chain rule to obtain: 
+
+dH dβ t
+
+= dH dτ · dτ dβ t
+
+= −( 1
+
+β2 ) · dH dτ > 0, (25) which shows that H(βt) is strictly increasing for βt > 0.Next, we analyze the limiting behavior of H(βt). As βt → 0+, the Boltzmann weights ηit(βt) concentrate on the minimum loss, leading H(βt) → 0. Conversely, as βt → ∞ , the distribution becomes uniform, yielding H(βt) → log M . Therefore, 
+
+H(βt) is continuous and strictly increasing on (0 , ∞) with range (0 , log M ]. By the intermediate value theorem, for any entropy level ¯Ht ∈ (0 , log M ], there exists a unique βt > 0 satisfying H(βt) = ¯Ht. Consequently, for any non-identically equal losses ℓt, the corresponding βt is uniquely determined by ℓt and ¯Ht.
+
+Computational efficiency of solving βt Although Eq. 17 appears analytically involved, βt can be efficiently obtained by solving the one-dimensional monotone equation H(βt) = ¯Ht using a Newton-Raphson method safeguarded by bisection (Press, 2007). The iteration terminates once the scalar residual satisfies H(βt) − ¯Ht ≤ 10 −12 . On our evaluation (single Intel i7-13700K CPU; the length of ℓt M = 4 ), the solver converges in an average of 10 iterations and takes an average time of 0.14 ms per solve, introducing negligible computational overhead during training. 
+
+G. Additional Details w.r.t the Model-based Jailbreak “MLAI (Hao et al., 2025) + PixArt-α (Chen et al., 2024)”. 
+
+In Sec. 3 of the main paper, to further uncover potential risks in the wide-net-casting scenario, our investigation includes 
+
+model-based jailbreaks for MLLMs . Since model-based jailbreak approaches for MLLMs remain largely underexplored, we construct a model-based jailbreak for MLLMs by adopting pipelines of LLM-oriented model-based jailbreak methods (Liao & Sun, 2024; Sun et al., 2024; Paulus et al., 2024; Xie et al., 2024). As mentioned in Sec. 2 of the main paper, model-based jailbreak approaches for LLMs typically (i) curate high-quality adversarial samples from instance-based attacks and (ii) use them to supervise an adversarial sample generator. Following this paradigm, we adopt a state-of-the-art model-based jailbreak method, MLAI (Hao et al., 2025) , to collect high-quality adversarial samples and employ the diffusion model 
+
+PixArt-α (Chen et al., 2024) as our adversarial sample generator, which is also been used in prior work (Li et al., 2024) for generating initial adversarial images. We define this pipeline as a model-based jailbreak “MLAI (Hao et al., 2025) + PixArt-α (Chen et al., 2024)”. Notably, MLAI jailbreaks and bypasses safety-aligned MLLMs by generating adversarial perturbations on input images. Correspondingly, inspired by recent work (Wu et al., 2025), we optimize PixArt-α (Chen et al., 2024) as an adversarial noise generator that takes a harmful intent and initial image as input and outputs a perturbation, which is added to the image to form the final adversarial sample. To this end, we fine-tune the LoRA variant of PixArt-α-256 (the 256 ×256 resolution variant in the PixArt-α family) using its original architecture and loss functions. During training, the pipeline of “MLAI (Hao et al., 2025) + PixArt-α (Chen et al., 2024)” first uses MLAI to overgenerate adversarial images and then selects the top K = 20 high-quality adversarial samples for each harmful intent to supervise PixArt-α in generating adversarial images for jailbreaking large models. 
+
+H. Additional Details w.r.t Experimental Setup in Sec. 3 of the Main Paper 
+
+Datasets. The AdvBench dataset (Zou et al., 2023) comprises 520 pairs of harmful samples, each containing one malicious instruction and a corresponding expected “successful attack” output example. It focuses on malicious user instructions together with example outputs that an aligned model should refuse or override. The MM-SafetyBench (Liu et al., 2024) serves as a benchmark for evaluating the safety of MLLMs, which comprises 5,040 text-image pairs and covers 13 typical prohibited scenarios specified in OpenAI and Meta’s usage strategy (Achiam et al., 2023; Inan et al., 2023). 
+
+Metrics. In the main paper, we use Attack Success Rate (ASR) as one of our primary evaluation metrics to quantify the effectiveness of jailbreak attacks. ASR measures the proportion of generated responses that successfully bypass the target model’s safety alignment and produce harmful outputs: ASR = 1
+
+N
+
+> N
+
+X
+
+> n=1
+
+sn, (26) 22 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+where N is the number of harmful intents used in evaluation, and binary variable sn ∈ { 0, 1} indicates whether the n-th intent successfully jailbreaks the large model (1 for success, 0 for failure). Based on the ASR, we further introduce the Wide-net-casting Attack Success Rate (WASR) metric in the main paper to evaluate the jailbreaking under the wide-net-casting scenario: WASR = 1
+
+N
+
+> N
+
+X
+
+> n=1
+> M
+
+_
+
+> m=1
+
+snm, (27) where an attack is considered successful if any model within a group is breached. We use Beaver-Dam-7B (Ji et al., 2023) (with detail in Sec. J) as the judge model to determine whether each individual large model has been successfully jailbroken or not to get the indicators sn for ASR and snm for WASR. Additionally, we evaluate the response toxicity score under both the single-model and wide-net-casting jailbreak scenarios. Specifically, we introduce the Wide-net-casting Toxicity Score (W-Toxicity Score) for the wide-net-casting jailbreak scenario. In this scenario, we receive multiple responses from generators for each intent. Based on our output selection strategy (as described in Sec. J), we obtain a final output, which is determined by an LLM-judge. The W-Toxicity Score measures response toxicity in the wide-net-casting scenario by averaging the toxicity scores of all the final outputs. Notably, for each experiment, we run it five times independently, compute the metrics for each run, and report their average. 
+
+I. Additional Implementation Details in Sec. 5 of the Main Paper. 
+
+We warm-start the joint training process using adversarial sample generators that are first trained independently with existing jailbreak methods, each with its own objective. In our experiments, we adopt ReMiss (Xie et al., 2024) for LLMs and MLAI (Hao et al., 2025) with PixArt-α (Chen et al., 2024) for MLLMs, following their original training protocols and default optimization hyperparameters unless otherwise specified. Notably, our approach does not require any changes to the loss functions of these generators during joint training; instead, we compute the optimal weight vector η∗ 
+
+> t
+
+at each step via Eq. 15 to weight their contributions. This design thereby encourages each generator to specialize in its target model. 
+
+J. Additional Details of Our Automatic Output Selection Process 
+
+As mentioned in Sec. 4 of the main paper, to select the highest jailbreak quality output from a set of responses for each intent when simultaneously attacking a group of target large models under the wide-net-casting scenario, we implement our simple and accurate selection strategy using a large model as a judge. Specifically, we use Beaver-Dam-7B (Ji et al., 2023) to assign each candidate response a jailbreak quality rating and automatically select the one with the highest jailbreak quality rating as the final output. Beaver-Dam-7B is trained on the BeaverTails safety classification dataset (Ji et al., 2023) as an automatic LLM judge to determine whether a jailbreak is successful. For each intent-response pair, Beaver-Dam-7B can output a rating of the jailbreak quality. Following common practice (Hao et al., 2025), we classify the response as a successful jailbreak if the jailbreak quality rating exceeds 0.5. Therefore, for each intent, responses from all generators are independently evaluated, and the one with the highest jailbreak quality rating is selected as the final output. Moreover, we also verify the reliability of our output selection strategy. On a manually inspected subset of intent-response pairs for 100 intents, we compare the outputs selected by our automatic methods with those selected by humans. We observe that the Beaver-Dam-7B matches the human-selected outputs in 99% of the cases. This supports the effectiveness of our selection strategy in identifying the final output. 
+
+K. Additional Qualitative Results 
+
+In the main paper, we report quantitative comparisons of our proposed method with other methods in Tab. 5 and Tab. 6. In this section, we present additional qualitative results, including visual comparisons for Naive Strategy 1 and Naive Strategy 2 across both LLMs and MLLMs. As shown in Fig. 5 below , our method consistently succeeds in jailbreaking under all harmful intents, whereas straightforward adaptation and naive strategies fail, demonstrating its superior effectiveness. 23 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+24 New Wide-Net-Casting Jailbreak Attacks Risk Large Models 
+
+Figure 5. Qualitative results comparing our method with the straightforward adaptation (Baseline) and two naive strategies of jailbreaking LLMs in (a) and MLLMs in (b), where the green model name indicates a successful jailbreak, and a red model name indicates failure. As shown, our method consistently achieves successful jailbreaking across all intents, while the naive strategies succeed only on a few intents. 
+
+25

@@ -1,0 +1,1006 @@
+Title: Safety Context Injection: Inference-Time Safety Alignment via Static Filtering and Agentic Analysis
+
+URL Source: https://arxiv.org/pdf/2605.11664v1
+
+Published Time: Wed, 13 May 2026 00:49:06 GMT
+
+Number of Pages: 17
+
+Markdown Content:
+# Safety Context Injection: Inference-Time Safety Alignment via Static Filtering and Agentic Analysis 
+
+## Zhenhao Xu a, Wenhan Chang b, Yichuan Chen a, Yuxin Fang a, Junhao Liu a and Tianqing Zhu a,∗
+
+> a
+
+Faculty of Data Science, City University of Macau, Macau SAR, 999078, China 
+
+> b
+
+School of Information and Safety Engineering, Zhongnan University of Economics and Law, Wuhan, 430073, China 
+
+A R T I C L E I N F O 
+
+Keywords :Large Reasoning Models Inference-time Alignment Safety Context Injection Safety Guardrails Agentic Defense 
+
+A B S T R A C T 
+
+Large Reasoning Models (LRMs) improve performance on complex tasks, but they also make safety control harder at deployment time. In black-box settings, defenders cannot modify model weights and must instead intervene at inference time. This setting creates three practical challenges: harmful intent may be hidden by educational or role-play framing, deep safety analysis can introduce non-trivial latency, and long adversarial contexts can dilute the local cues that simpler filters rely on. These challenges can expose an apparent thinking–output gap, where the model appears cautious during reasoning but still produces an unsafe final answer. To address this problem, we propose Safety Context Injection (SCI), an inference-time framework that separates safety assessment from task generation and prepends a structured external risk report as injected safety context for the protected model. The framework is instantiated in two complementary variants: Static Model Filtering (SMF), a lightweight one-pass guard for fast deployment, and Dynamic Agents Filtering (DAF), an agentic-loop-based analyzer that iteratively gathers and synthesizes evidence for ambiguous or long-context attacks. Across AdvBench and GPTFuzz, spanning base and reasoning models under five jailbreak families, both variants reduce attack success rate and toxicity in the evaluated settings. SMF offers an efficient low-latency option, while DAF is more effective when harmful intent is semantically disguised or dispersed across long contexts. 
+
+## 1. Introduction 
+
+The rapid evolution of Large Reasoning Models (LRMs) has expanded the capability of language models to solve complex tasks through extended Chain-of-Thought (CoT) reasoning [18]. As these models are deployed in interactive and decision-support systems, safety becomes a central requirement. However, the same reasoning and instruction-following abilities that improve task performance also ex-pand the attack surface. Sophisticated jailbreaks, includ-ing prompt-based attacks, black-box query attacks, and multi-turn lures, can exploit reasoning trajectories, role-play contexts, or semantic camouflage to bypass standard guardrails [17, 23, 11, 3, 16, 1]. Defending LRMs therefore requires not only training-time alignment, but also adaptive inference-time mechanisms that can inspect and intervene on risky requests at deployment time [5, 21]. Training-time alignment methods such as supervised safety tuning and Reinforcement Learning from Human Feedback (RLHF) embed safety preferences into model pa-rameters [14]. These methods are useful, but they can be costly to update and are difficult to apply when the protected model is available only through a black-box API. Inference-time safety alignment offers a complementary route: an ex-ternal defender evaluates the user request before generation 
+
+> ∗
+
+Corresponding author, Email: tqzhu@cityu.edu.mo 
+
+> ORCID
+
+(s): 0009-0002-1834-5181 (Z. Xu); 0000-0003-3350-5171 (W. Chang); 0009-0006-4992-5559 (Y. Chen); 0009-0006-5220-3274 (Y. Fang);  
+
+> 0009-0007-9353-6929
+
+(J. Liu); 0000-0003-0702-7102 (T. Zhu) 
+
+> 1
+
+Zhenhao Xu, Yichuan Chen, Yuxin Fang, Junhao Liu, and Tianqing Zhu are with the Faculty of Data Science, City University of Macau, Macau SAR 999078, China. 
+
+> 2
+
+Wenhan Chang is with the School of Information and Safety Engineer-ing, Zhongnan University of Economics and Law, Wuhan 430073, China. 
+
+and either blocks high-risk content or injects explicit safety context into the protected model’s prompt [5, 21]. This design does not modify the protected model weights, and it can be deployed as a plug-in layer for proprietary models. Implementing effective inference-time safety alignment for LRMs still faces three key challenges: 
+
+• Intent ambiguity under semantic disguise: With-out explicit safety-oriented context, reasoning models may fail to identify prompts whose harmful intent is hidden behind educational, fictional, or multi-step nar-ratives. This can create an apparent thinking–output gap, where the model appears cautious in reasoning but still produces an unsafe final response. 
+
+• Efficiency cost of intervention: Deep safety analysis can increase latency and token cost. A practical de-fense must avoid applying expensive multi-step rea-soning to every request. 
+
+• Long-context dilution: In long adversarial prompts, harmful intent can be spread across many benign-looking details. Shallow lexical filters or short-context classifiers may miss these dispersed risk signals, a risk highlighted by recent long-context safety evalu-ations [13, 2]. These challenges motivate Safety Context Injection (SCI), a unified inference-time framework with two complemen-tary defender variants rather than a cascaded pipeline. Both variants analyze the incoming prompt externally and, when they do not block it, prepend a structured safety report to the protected model input. 
+
+Zhenhao Xu et al.: Preprint submitted to Elsevier Page 1 of 17 
+
+> arXiv:2605.11664v1 [cs.CR] 12 May 2026 Safety Context Injection
+
+Our starting point is to mitigate the apparent thinking– output gap caused by deep semantic disguise. We therefore introduce an auxiliary defender that analyzes each incoming prompt before it reaches the protected model. When the defender chooses not to block the request, it generates a structured safety report, which is prepended to the original prompt and sent to the protected model as additional context. In SCI, this report functions as injected safety context, transferring explicit risk cues into the model’s reasoning process and helping it recognize hidden threat signals even when the surface narrative appears benign. One instantiation of this framework is Static Model Filtering (SMF), a lightweight, “one-pass” defense mecha-nism designed for low-latency environments. SMF classifies the input in a single forward pass and outputs a compact safety report (e.g., safety label and risk categories), which is injected into the prompt context to guide generation without interrupting the model’s reasoning process or relying on long CoT reasoning and reflection. A second, independent instantiation is Dynamic Agents Filtering (DAF), which targets settings where threat signals are diluted across long or heavily camouflaged contexts. DAF instantiates a “Safety Analyst” agent that runs an explicit agentic loop: it can autonomously decide whether to invoke predefined functions (e.g., entity extraction, intent decomposition, and heuristic checks), inspect the returned evidence, and continue the analysis until it has enough support for a final judgment. The agent then produces a detailed safety report and injects it into the prompt context, enabling the protected model to reason with clearer, risk-aware guidance under long-context conditions. Our contributions are summarized as follows: 
+
+• We formulate Safety Context Injection (SCI) as an inference-time mechanism that transfers a structured external risk interpretation into the protected model context, rather than using the defender only as a binary accept/reject gate. 
+
+• We instantiate this mechanism with two complemen-tary defender variants: Static Model Filtering (SMF), a one-pass guard that injects a compact safety report, and Dynamic Agents Filtering (DAF), an agentic-loop-based analyzer that produces richer reports for long or semantically disguised inputs. 
+
+• We provide an empirical study on AdvBench and GPTFuzz across five jailbreak families, four protected models, and two DAF backends, reporting ASR, tox-icity, token overhead, embedding-space diagnostics, and case-level behavior. Fig. 1 summarizes the shared SCI abstraction at the top level and the two alternative defender variants below, and serves as a visual guide for the methodological details that follow. 
+
+## 2. Related Work 
+
+2.1. Prompt Attacks 
+
+Our work is motivated by a line of prompt injection and jailbreak research showing that aligned language models can still be steered by adversarially structured inputs at inference time. Early systematic analysis attributed jailbreak success to competing objectives and mismatched generalization in safety training [17], suggesting that refusal behavior can fail even when the model has been explicitly aligned. Subse-quent empirical studies broadened this view from isolated handcrafted prompts to scalable attack generation. LLM-Fuzzer uses fuzz testing to mutate seed jailbreaks and assess jailbreak susceptibility at scale [23], while user-centered and in-the-wild analyses show that semantically meaningful jailbreak prompts can be produced, shared, and refined by users with diverse levels of expertise [24, 16]. DRA further demonstrates that a harmful request can be hidden through disguise and then reconstructed by the model itself, reveal-ing how semantic camouflage can exploit the model’s own instruction-following behavior [11]. More recent attacks make this threat landscape broader and harder to handle with shallow filters. AutoDAN au-tomatically searches for semantically meaningful jailbreak prompts that transfer across models while avoiding simple perplexity-based detection [12]. Black-box attack methods such as PAIR show that a small number of adaptive queries can be sufficient to find effective jailbreaks [3]. Many-shot jailbreaking and long-context safety studies show that extended contexts themselves become an attack surface: repeated demonstrations or narrative chains can progres-sively weaken refusal behavior in frontier models [1, 13, 2]. Beyond jailbreaks that directly elicit harmful content, prompt injection benchmarks study whether models can distinguish privileged instructions from untrusted injected instructions [8], and virtual prompt injection shows that instruction-tuned models can be backdoored to behave as if an attacker-controlled prompt were implicitly concate-nated under a trigger condition [22]. Together, these works indicate that attacks increasingly exploit context structure, instruction priority, and semantic disguise rather than only explicit harmful keywords. This observation motivates our Safety Context Injection mechanism: the defender must not merely classify surface text, but must transfer an explicit risk interpretation into the protected model’s generation context. 
+
+2.2. Inference-Time Defenses 
+
+Inference-time and runtime defenses attempt to improve safety without assuming full retraining of the protected model, which is also the setting targeted by our frame-work. This runtime perspective is broadly consistent with system-security designs that enforce protection by external filtering rather than by modifying the protected execution core, such as phase-based system call filtering for container workloads [4]. One class of work modifies the interface or prompt structure. StruQ separates trusted instructions from untrusted data through structured queries, reducing   
+
+> Zhenhao Xu et al.: Preprint submitted to Elsevier Page 2 of 17 Safety Context Injection
+
+prompt injection by changing how the model receives appli-cation prompts and user content [5]. Goal prioritization ad-dresses jailbreaks by making safety goals dominate helpful-ness goals at both training and inference stages [25]. Instruc-tional Segment Embedding similarly argues that prompt injection stems partly from the absence of instruction hi-erarchy, and encodes instruction priority into the model architecture [19]. These approaches show that instruction hierarchy is central to robust behavior, but they often require model-side changes or specialized training, whereas our framework targets black-box deployment through external risk assessment and context injection. Another line of work intervenes during generation or uses guard models around generation. SafeDecoding mod-ifies decoding by amplifying safety-oriented continuations and attenuating harmful continuations [21], while Alignment-Enhanced Decoding refines token distributions using self-evaluation signals to balance harmlessness and helpful-ness [10]. ARGS formulates test-time alignment as reward-guided search, showing that alignment objectives can be integrated into decoding without full RLHF retraining [6]. Prompt-level and detector-based defenses complement decoding-time methods: Defensive Prompt Patch uses learned or designed suffix prompts to harden models against jail-breaks [20], and PIGuard studies prompt-injection guard models with attention to over-defense caused by trigger-word bias [7]. These defenses demonstrate the value of runtime intervention, but each covers only part of the deployment space: some require access to logits or decoding, some require model adaptation, and some operate as binary guards without transferring detailed evidence to the pro-tected model. Our framework targets the black-box setting through two complementary defender variants, a low-cost SMF configuration and a deeper DAF configuration, that share the same report-injection interface but are used as alternative deployments rather than a sequential stack. Its distinguishing feature is not a new classifier architecture, but the explicit conversion of a defender-side risk interpretation into structured context that the protected model can condi-tion on before producing the final answer. 
+
+## 3. Background 
+
+For clarity, Table 1 summarizes the core notations used throughout the background and methodology sections. 
+
+3.1. Jailbreak Attack 
+
+Jailbreak attacks aim to induce a protected model 𝑀 𝑝 
+
+to generate policy-violating content even when the user query 𝑥 is presented in a seemingly benign form. Under an undefended setting, the interaction can be written as 
+
+𝑦 = 𝑀 𝑝 (𝑥 ). (1) A jailbreak prompt is typically designed to manipulate the model’s instruction-following behavior and its preference for helpfulness by introducing obfuscation, role-playing, multi-turn decomposition, or indirect intent. For LRMs, the                  
+
+> Table 1
+> Notations. Notation Definition
+> 𝑥 user input query
+> 𝑥 ′augmented query context
+> 𝑀 language model
+> 𝑦 undefended generated response
+> 𝑦 ′defended response
+> 𝑦 refusal refusal response template
+> defender mechanism
+> Φ( 𝑥 )safety decision function
+> structured safety report
+> ⊕ordered context concatenation operator
+> deterministic parser
+> 𝑙 safety classification label
+> 𝐶 risk category set
+> dynamic safety agent
+> 𝐸 𝑡 accumulated evidence set
+> 𝛿 final recommendation label
+
+extended reasoning process (e.g., Chain-of-Thought) can further expand the attack surface: adversarial lures may steer the model into producing partially compliant intermediate reasoning and then convert it into an unsafe final answer. In this paper, we focus on jailbreaks that are hard to detect via shallow lexical cues. Such attacks often embed malicious goals into long attack prompts or multi-step tasks, making the true intent only apparent when the model is already committed to a harmful trajectory. This motivates defenses that can (i) recognize semantically veiled risks and (ii) influence generation behavior before unsafe completion occurs. 
+
+3.2. Safety Alignment 
+
+Safety alignment refers to methods that shape a model’s behavior so that unsafe requests are refused or redirected. In general, alignment mechanisms can be categorized into training-time alignment and inference-time safety align-ment. 
+
+3.2.1. Training-time alignment 
+
+Training-time alignment enforces safety constraints by modifying model parameters during training or post-training. Let 𝜃 𝑝 denote the parameters of the protected model 𝑀 𝑝 .Training-time alignment learns an updated parameter set 𝜃 ′
+
+> 𝑝
+
+,such that inference is performed as 
+
+𝑦 = 𝑀 𝑝 (𝑥 ; 𝜃 ′
+
+> 𝑝
+
+). (2) Representative approaches include supervised fine-tuning with safety data and preference-based optimization (e.g., RLHF-style training), which aim to increase the probability that the model refuses unsafe requests and follows policy-compliant instructions. While effective in many settings, training-time alignment can be expensive to iterate, and it may not keep pace with newly emerging jailbreak patterns.   
+
+> Zhenhao Xu et al.: Preprint submitted to Elsevier Page 3 of 17
+
+Safety Context Injection Safety Context Injection          
+
+> Static Model Filtering
+> User Query 𝑥𝑥 Defender
+> 𝐷𝐷
+> ⊕
+> Legend
+> Malicious
+> Benign
+> Vanilla
+> Guard
+> Model
+> 𝑀𝑀 𝐺𝐺
+> Safety Report User Query 𝑥𝑥 𝑀𝑀 𝑝𝑝
+> Refusal
+> Response
+> High Risk
+> Safety Report
+> Report
+> Low risk or suspicious risk
+> User Query 𝑥𝑥 𝑀𝑀 𝑝𝑝
+> Dynamic Agents Filtering
+> ⊕
+> Guard
+> Model
+> 𝑀𝑀 𝐺𝐺
+> User Query 𝑥𝑥 𝑀𝑀 𝑝𝑝
+> Agentic
+> Loop
+> Safety Agent
+
+Figure 1: Overview of the proposed inference-time safety alignment framework. The top panel illustrates the shared SCI abstraction: a generic defender first assesses the user query, blocks clearly high-risk requests with a refusal response, and otherwise forwards the protected model with injected safety context. The bottom panels show two alternative defender variants rather than sequential stages: SMF performs one-pass screening with a lightweight guard model and a compact report, while DAF performs deeper agentic-loop-based analysis for semantically disguised or long-context attacks before forwarding the query. 
+
+3.2.2. Inference-time safety alignment 
+
+Inference-time safety alignment enforces safety con-straints at deployment time without changing the weights of 
+
+𝑀 𝑝 . In our framework, a defender mechanism  intercepts the user query 𝑥 and produces a controlled output 𝑦 ′, either by returning a refusal response 𝑦 refusal or by augmenting the context with a structured safety report :
+
+𝑦 ′ = (𝑥, 𝑀 𝑝 ). (3) Concretely, our approach uses a safety decision function 
+
+Φ( 𝑥 ) to decide whether to block or to inject context. When injection is used, the defender constructs an augmented query 𝑥 ′ =  ⊕ 𝑥 , where ⊕ denotes ordered concatenation and the safety report precedes the user query. This context-aware intervention is designed to bridge the gap between external risk detection and the protected model’s internal refusal behavior, especially under semantically camouflaged jailbreak attacks. 
+
+## 4. Methodology 
+
+4.1. Threat Model 
+
+We study a black-box deployment scenario with three roles: an attacker, a defender, and a protected model. The attacker submits a prompt 𝑥 in an attempt to elicit unsafe con-tent, the defender intercepts the prompt before generation, and the protected model produces the final answer only if the request is not blocked. The defender is instantiated either as SMF or as DAF, but in both cases it sits between the user and the protected model and controls whether the model sees the original prompt alone or an augmented prompt with an injected safety report. The attacker has query access only. It can craft prompts strategically—for example through role-play, semantic dis-guise, or long-context composition—and can observe the final response returned by the system. However, it does not have access to model weights, hidden states, gradients, sys-tem internals, or the defender’s internal parameters beyond what can be inferred from system behavior. The defender has full access to the incoming prompt and can either block the request or prepend a structured report before forwarding it to the protected model. The protected model itself remains unchanged: it receives either a refusal decision from the defender or an input of the form ⊕𝑥 and then generates the output. We assume the defender can read and transform inputs at inference time, but it does not modify the protected model weights or rely on privileged access to the model’s internal activations or decoding logits. 
+
+4.2. Problem Definition and Overview 
+
+Under the threat model above, we formalize the inference-time safety problem as follows. A protected model 𝑀 𝑝 
+
+receives a user query 𝑥 , but the harmful intent of 𝑥 may be hidden by semantic disguise, role-play framing, or long contextual distractors. Because the protected model is ac-cessed as an API, the defender cannot retrain the model or modify its internal reasoning process directly. The goal is therefore to design an external defender that can reduce unsafe generations at inference time while preserving useful behavior on benign or borderline requests. Let 𝑥 denote a user input query and 𝑀 𝑝 denote the protected model (the target LLM). In an undefended setting, the model generates a response 𝑦 = 𝑀 𝑝 (𝑥 ) directly based on the user’s prompt. Our objective is to design a defender mechanism  that intercepts 𝑥 and determines a controlled output 𝑦 ′, defined formally as: 
+
+𝑦 ′ = (𝑥, 𝑀 𝑝 ) = 
+
+{
+
+𝑦 refusal , if Φ( 𝑥 ) = 1 
+
+𝑀 𝑝 ( ⊕ 𝑥 ), if Φ( 𝑥 ) = 0 (4) where Φ( 𝑥 ) ∈ {0 , 1} is a binary safety decision func-tion, with 1 indicating a high-risk violation that necessitates blocking, and 𝑦 refusal representing a predefined rejection template. When the request is not blocked (i.e., Φ( 𝑥 ) =
+
+Zhenhao Xu et al.: Preprint submitted to Elsevier Page 4 of 17 Safety Context Injection 
+
+0), the defender generates a structured safety report .The protected model is then conditioned on the augmented context ( ⊕ 𝑥 ), which provides explicit awareness of the external safety assessment before the original user query is processed. In SCI,  serves as the injected safety context. In other words, the core problem is to construct a defender that can either stop clearly unsafe requests or inject enough risk-aware context to help the protected model recognize subtle malicious intent. Within this formulation, SCI can be instantiated in two complementary ways. 
+
+SMF overview. Static Model Filtering (SMF) is the lightweight realization of this framework. It uses a dedicated guard model to assess the prompt in a single pass, parses the as-sessment into a standardized safety label and risk categories, and then either blocks clearly unsafe inputs or prepends a compact safety report to the query. The design goal of SMF is low latency and stable behavior, making it suitable for settings where the defender must process many requests with minimal overhead. 
+
+DAF overview. Dynamic Agents Filtering (DAF) is the richer realization of the same interface. Instead of relying on one-shot classification, it uses a reasoning-capable safety agent that runs an explicit agentic loop, invoking multiple tools as needed to collect and cross-check evidence from the prompt. DAF then synthesizes a more detailed safety report and either blocks the request or injects the report as context for the protected model. This design is intended for prompts whose harmful intent is semantically disguised, distributed across long contexts, or otherwise difficult to capture with shallow screening alone. 
+
+4.3. Static Model Filtering 
+
+SMF is the lightweight instantiation of our defense framework. It operates on a “one-pass” inference paradigm, where a dedicated, lightweight guard model assesses the input query before it reaches the protected model. This method prioritizes efficiency and standardization, ensuring that safety decisions are decoupled from the generation capabilities of the protected model. 
+
+4.3.1. Guard Inference and Deterministic Parsing 
+
+Let 𝑀 𝐺 denote a specialized guard model trained to dis-criminate safety risks in natural language prompts. Given an input query 𝑥 , the guard model performs an autoregressive generation to produce a raw assessment sequence 𝑠 :
+
+𝑠 = 𝑀 𝐺 (𝑥 ) (5) The raw sequence 𝑠 is a free-form safety assessment in nat-ural language (e.g., “Safety: Unsafe; Category: Violence”). To convert this text into a consistent, structured result, we employ a deterministic parser function . In our implemen-tation,  is realized via regular expression matching, which extracts a discrete safety label 𝑙 and a set of risk categories 
+
+𝐶 :
+
+(𝑙, 𝐶 ) ← (𝑠 ) (6) where 𝑙 ∈ { Safe , Unsafe , Controversial } and 𝐶 ⊂ ℂ𝑟𝑖𝑠𝑘 (the universe of defined risk categories). This deterministic step reduces variability in the guard model’s phrasing, ensuring that the downstream decision logic receives stable and con-sistent signals. 
+
+4.3.2. Decision and Injection Policy 
+
+A threshold-based policy drives the core defense logic and branches into either Intervention or Augmentation. If the parsed label 𝑙 indicates a high-severity threat (i.e., 𝑙 = Unsafe), the system executes an immediate in-tervention. The defense function returns a refusal response 
+
+𝑦 refusal constructed based on the identified categories 𝐶 .This preemptive blocking prevents the protected model from receiving the high-risk query. If the label 𝑙 indicates that the query is safe or merely controversial (ambiguous), the system proceeds to augmen-tation. We synthesize a structured safety report  that ex-plicitly summarizes the assessment (𝑙, 𝐶 ). This report is then prepended to the original query to form an augmented context 𝑥 ′:
+
+𝑥 ′ =  ⊕ 𝑥 (7) The structured report  is wrapped with clear delimiters to separate it from the user’s query 𝑥 . This formatting helps the protected model treat the report as system-level meta-information rather than part of the prompt. As a result, the injected context acts as a reminder that potential risks exist and helps counter attackers who try to hide malicious intent in long attack prompts (including role-play attack prompts). We summarize the key operational steps of SMF in Algo-rithm 1. Specifically, Lines 1–2 implement guard inference and deterministic parsing ( 𝑠 ← 𝑀 𝐺 (𝑥 ) and (𝑙, 𝐶 ) ← (𝑠 )). Lines 3–4 correspond to the blocking branch that returns a refusal response when 𝑙 = Unsafe. Otherwise, Lines 6–8 generate the safety report , form the augmented context 𝑥 ′,and invoke the protected model to produce the final response. 
+
+Algorithm 1 Static Model Filtering 
+
+Require: User query 𝑥 , Guard Model 𝑀 𝐺 , Parser , Pro-tected Model 𝑀 𝑝 
+
+Ensure: Defended response 𝑦 ′ 
+
+> 1:
+
+𝑠 ← 𝑀 𝐺 (𝑥 ) 
+
+> 2:
+
+(𝑙, 𝐶 ) ← (𝑠 ) 
+
+> 3:
+
+if 𝑙 = Unsafe then  
+
+> 4:
+
+𝑦 ′ ← GenerateRefusal (𝐶 ) 
+
+> 5:
+
+else  
+
+> 6:
+
+ ← FormatReport (𝑙, 𝐶 ) 
+
+> 7:
+
+𝑥 ′ ← Concatenate (, 𝑥 ) 
+
+> 8:
+
+𝑦 ′ ← 𝑀 𝑝 (𝑥 ′) 
+
+> 9:
+
+end if  
+
+> 10:
+
+return 𝑦 ′
+
+4.4. Dynamic Agents Filtering 
+
+DAF is the richer, standalone instantiation of the same framework. It also operates directly on the original query 𝑥 ,  
+
+> Zhenhao Xu et al.: Preprint submitted to Elsevier Page 5 of 17 Safety Context Injection
+
+but replaces one-shot classification with an agentic loop that performs a multi-step, evidence-driven investigation. This design targets sophisticated attack prompts where malicious intent is semantically hidden or embedded in complex struc-tures. 
+
+4.4.1. Agentic Reasoning Environment 
+
+DAF instantiates a specialized safety agent  powered by a reasoning-capable backend model. Unlike the static classifier, this agent operates within an explicit agentic loop in a dynamic environment, where it can interact with a toolkit  to verify suspicions before forming a judgment. The analysis process is modeled as a multi-step decision sequence. Let 𝐸 𝑡 denote the accumulated evidence set at step 
+
+𝑡 , initialized as 𝐸 0 = ∅ . At each step, the agent observes the original query 𝑥 and the current evidence 𝐸 𝑡 , and selects an action 𝑎 𝑡 according to its policy 𝜋 :
+
+𝑎 𝑡 = 𝜋 (𝑥, 𝐸 𝑡 ) (8) The action 𝑎 𝑡 can be either to invoke a specific verification tool 𝜏 ∈  or to terminate the analysis and generate a final report. The toolkit  consists of complementary verification modules designed to capture different dimensions of risk: 
+
+• Structural Analysis: A module that extracts named entities and relationships to deconstruct the semantic structure of the query, identifying potentially harmful targets, affected parties, or operational objects. 
+
+• Heuristic Detection: A high-speed module that ap-plies regular expression patterns to identify known jailbreak templates, role-playing keywords, and sen-sitive lexical triggers. 
+
+• Discriminative Classification: A module that in-vokes external pretrained classifiers (e.g., zero-shot or fine-tuned encoders) to detect specific toxicity types such as hate speech or self-harm content. 
+
+4.4.2. Evidence Aggregation and Verification Loop 
+
+When a tool 𝜏 is executed, it returns an observation 
+
+𝑜 𝑡 = 𝜏 (𝑥 ). This observation is strictly aggregated into the evidence set: 
+
+𝐸 𝑡 +1 = 𝐸 𝑡 ∪ { 𝑜 𝑡 } (9) This iterative verification process forms the core of the DAF agentic loop and allows the agent to perform cross-verification. For instance, if heuristic detection flags a sus-picious keyword, the agent may subsequently invoke a dis-criminative classifier to confirm the context, or use structural analysis to understand the intent. The process continues until the agent has accumulated sufficient evidence to make a con-fident decision or reaches a predefined maximum iteration limit 𝑇 max .
+
+4.4.3. Comprehensive Reporting and Defense 
+
+Upon termination of the reasoning loop, the agent syn-thesizes all collected evidence 𝐸 f inal into a structured safety 
+
+Algorithm 2 Dynamic Agents Filtering 
+
+Require: Query 𝑥 , Agent , Tools  , Protected Model 𝑀 𝑝 
+
+Ensure: Final defended output 𝑦 ′ 
+
+> 1:
+
+𝐸 ← ∅ 
+
+> 2:
+
+for 𝑡 = 1 to 𝑇 max do  
+
+> 3:
+
+𝑎 𝑡 ← (𝑥, 𝐸 ) 
+
+> 4:
+
+if 𝑎 𝑡 = GenerateReport then  
+
+> 5:
+
+break  
+
+> 6:
+
+end if  
+
+> 7:
+
+𝜏 ← SelectTool ( , 𝑎 𝑡 ) 
+
+> 8:
+
+𝑜 𝑡 ← Execute (𝜏, 𝑥 ) 
+
+> 9:
+
+𝐸 ← 𝐸 ∪ { 𝑜 𝑡 } 
+
+> 10:
+
+end for  
+
+> 11:
+
+, 𝛿 ← (𝑥, 𝐸 ) 
+
+> 12:
+
+if 𝛿 = Block then  
+
+> 13:
+
+𝑦 ′ ← GenerateRefusal () 
+
+> 14:
+
+else  
+
+> 15:
+
+𝑥 ′ ← Concatenate (, 𝑥 ) 
+
+> 16:
+
+𝑦 ′ ← 𝑀 𝑝 (𝑥 ′) 
+
+> 17:
+
+end if  
+
+> 18:
+
+return 𝑦 ′
+
+report . Simultaneously, it produces a recommendation label 𝛿 ∈ { Block , Allow , Flag }.We interpret 𝛿 as follows. If 𝛿 = Block, the input is judged as clearly unsafe, and the defender returns a refusal response without calling the protected model. If 𝛿 = Allow, the input is judged as low risk, and the defender forwards 
+
+ as additional context for generation. If 𝛿 = Flag, the input contains risk signals but is not blocked immediately; the defender forwards  with a clear caution so that the protected model can make the final decision. The defender determines the final output 𝑦 ′ from the recommendation label 𝛿 .
+
+𝑦 ′ =
+
+{
+
+GenerateRefusal( ), 𝛿 = Block 
+
+𝑀 𝑝 ( ⊕ 𝑥 ), 𝛿 ∈ { Allow , Flag } (10) This design keeps utility for borderline queries while still providing risk-aware guidance, enabling the protected model to better reject subtle attack prompts. We highlight the key steps of DAF in Algorithm 2. Line 1 initializes the evidence set 𝐸 . Lines 2–8 implement the iterative verification loop: the agent proposes an action 
+
+𝑎 𝑡 and either terminates early (Lines 3–5) or selects and executes a tool to collect an observation and update evidence (Lines 6–8). After the loop, Line 9 synthesizes the final report  and recommendation label 𝛿 . Finally, Lines 10–14 map 𝛿 to either a refusal response or a context-augmented query 𝑥 ′ followed by protected-model generation. 
+
+## 5. Experiments and Analysis 
+
+5.1. Experimental setup 
+
+We evaluate both the vulnerability of LRMs under rep-resentative jailbreak attacks and the effectiveness of two de-fense methods: SMF and DAF. Experiments are conducted                
+
+> Zhenhao Xu et al.: Preprint submitted to Elsevier Page 6 of 17 Safety Context Injection
+> Table 2
+> Nomenclature used throughout the paper.
+> Name Abbrev. Role DeepSeek-V3 DS-V3 Protected model (non-reasoning) Qwen3-Instruct Qwen-Inst Protected model (non-reasoning) DeepSeek-R1 DS-R1 Protected model (reasoning) Qwen3-Thinking Qwen-Think Protected model (reasoning) Qwen3Guard-Gen-4B Qwen-Guard Backend for SMF DeepSeek-V3.2 DS-V3.2 Backend for DAF GPT-OSS-20B GPT-OSS Backend for DAF
+
+on two public safety benchmarks, AdvBench and GPTFuzz. We use five attack families that cover complementary ad-versarial styles: DarkCite, DRA [11], CoL-SingleTurn and CoL-MultiTurn [2], and AutoRAN [9]. This suite com-bines citation-style camouflage, disguise-and-reconstruction prompts, narrative chain-of-lure attacks, and automated rea-soning hijacking. We report attack success rate (ASR), defined as the fraction of attack prompts that bypass the protected model’s safety constraints, and toxicity score (TS), a fine-grained harmfulness rating in the range [1 , 5] produced by an in-dependent judge model. ASR is computed from refusal and safety-redirection signals in the generated output, while TS is assigned using a policy-grounded judging prompt with a five-level severity rubric. This combination captures both bypass frequency and harmfulness intensity; the latter is important because some attacks produce fewer successful completions but more actionable harmful content. Addi-tional details on prompt formatting, parsing, judging, and statistical analysis are provided in Appendix A. We evaluate two base LLMs, DeepSeek-V3 (DS-V3) and Qwen3-Instruct (Qwen-Inst), together with their reason-ing variants, DeepSeek-R1 (DS-R1) and Qwen3-Thinking (Qwen-Think). The formalism in Section 4 is stated for LLMs in general, but the empirical focus here is on LRMs and their base counterparts. To control for model-family differences, we compare each reasoning model with the base model from the same family. For reasoning models, we separately evaluate the reasoning trajectory and the final out-put, denoted as DS-R1-R/DS-R1-O and Qwen-Th-R/Qwen-Th-O, respectively. Table 2 summarizes the abbreviations and roles used throughout the experiments. SMF and DAF are evaluated as separate defense conditions on the same attack sets; DAF is not invoked conditionally after SMF. SMF uses Qwen-Guard as the guard backend. DAF uses DeepSeek-V3.2 and GPT-OSS-20B as alternative safety-analysis backends, allowing us to compare a stronger remote analyzer with a locally deployable open-weight analyzer. We run guard execution, metric aggregation, and visualization on one NVIDIA A100 GPU. Protected or backend models that are not feasible to host locally are accessed through their available inference endpoints under the same endpoint configuration for undefended and defended runs. 
+
+5.2. Vulnerability Analysis and Thinking–Output Gap 
+
+5.2.1. Attack baselines under the undefended setting 
+
+Table 3 reports results as O/D, where O is the unde-fended output and D is the defended output. CoL-MultiTurn achieves near-saturated ASR across multiple models on both benchmarks. For example, ASR reaches 1.00 on AdvBench for DS-R1-O/DS-V3/Qwen-Th-O and on GPTFuzz for DS-R1-O/DS-V3/Qwen-Th-O, suggesting that multi-turn role conditioning is particularly effective at bypassing model safeguards. In contrast, AutoRAN often exhibits slightly lower ASR than CoL-MultiTurn, but it is consistently among the most dangerous attacks in terms of harmfulness intensity. TS peaks under AutoRAN for multiple protected models (e.g., AdvBench: DS-R1-O TS= 3.99 , DS-V3 TS= 4.26 ; GPTFuzz: DS-R1-O TS= 4.02 , DS-V3 TS= 4.42 ). This separation be-tween bypass frequency (ASR) and harm intensity (TS) implies that evaluating robustness solely by bypass rate can underestimate the risk of attacks designed to maximize actionable toxicity. 
+
+5.2.2. Observed thinking–output gap in LRMs 
+
+Table 3 also shows an observable discrepancy between the reasoning trajectory (-R) and the final answer (-O) in LRMs: -R can appear less toxic than -O while still preceding a harmful completion. A representative example is Ad-vBench under DRA on DS-R1, where the reasoning trajec-tory has TS= 3.28 but the final output increases to TS= 4.19 
+
+(Original). Similar discrepancies appear in other settings where -R remains relatively technical but -O becomes more actionable. One possible explanation for this apparent thinking– output gap is that safety mechanisms may not treat inter-mediate chain-of-thought text and final answers identically. Attackers can exploit this by guiding the model through technical decomposition steps (e.g., “analyze, enumerate, draft”), so that harmful intent is gradually introduced during reasoning and then becomes explicit in the final answer. While we do not directly measure internal filtering behav-ior, the consistent -R/-O discrepancy in Table 3 provides descriptive evidence that monitoring only final answers can miss risk accumulated during reasoning. 
+
+5.3. Performance of SMF and DAF 
+
+Table 3 and Fig. 2 show that the SMF defense generally lowers both ASR and TS across the evaluated protected models, although the magnitude of the improvement varies by attack family. The clearest gains appear on template-driven jailbreaks such as DarkCite. On AdvBench, enabling SMF reduces ASR on DS-R1-O from 0.75 to 0.14 and on Qwen-Th-O from 0.82 to 0.20. The same defensive pattern appears on GPTFuzz, where ASR on DS-R1-O drops from 0.43 to 0.08 and ASR on DS-V3 drops from 0.77 to 0.38. These examples indicate that SMF is particularly effective when the attack   
+
+> Zhenhao Xu et al.: Preprint submitted to Elsevier Page 7 of 17
+
+Safety Context Injection 
+
+Table 3 
+
+Original vs SMF-defended results on AdvBench and GPTFuzz. Each entry is reported as O/D (original / defended by Qwen-Guard). Lower ASR and TS indicate better safety. 
+
+Dataset Method Metric (O/D) Models DS-R1-R DS-R1-O DS-V3 Qwen-Th-R Qwen-Th-O Qwen-Inst AdvBench DarkCite ASR 0.87 / 0.21 0.75 / 0.14 0.68 / 0.21 0.92 / 0.22 0.82 / 0.20 0.56 / 0.17 TS 1.12 / 1.00 1.04 / 1.02 1.08 / 1.07 1.01 / 1.01 1.00 / 1.01 1.00 / 1.02 DRA ASR 0.67 / 0.67 0.91 / 0.34 0.18 / 0.25 0.48 / 0.33 0.98 / 0.67 0.12 / 0.04 TS 3.28 / 1.20 4.19 / 1.28 1.33 / 1.25 2.85 / 2.25 3.18 / 2.33 1.08 / 1.01 CoL-SingleTurn ASR 0.97 / 0.58 0.90 / 0.53 0.98 / 0.56 0.90 / 0.55 0.75 / 0.46 0.75 / 0.56 TS 2.27 / 1.41 3.20 / 1.90 3.92 / 1.91 1.60 / 1.14 2.04 / 1.23 2.49 / 1.31 CoL-MultiTurn ASR 0.98 / 0.65 1.00 / 0.65 1.00 / 0.57 0.95 / 0.77 1.00 / 0.69 1.00 / 0.80 TS 2.36 / 1.10 3.49 / 1.07 3.81 / 1.99 1.69 / 1.20 2.26 / 1.34 2.54 / 1.02 AutoRAN ASR 0.97 / 0.69 0.93 / 0.67 0.97 / 0.63 0.98 / 0.72 0.88 / 0.70 0.90 / 0.72 TS 1.50 / 1.56 3.99 / 1.41 4.26 / 1.37 1.32 / 1.93 2.77 / 1.30 2.93 / 1.58 GPTFuzz DarkCite ASR 0.88 / 0.42 0.43 / 0.08 0.77 / 0.38 0.85 / 0.47 0.75 / 0.39 0.59 / 0.37 TS 1.01 / 1.01 1.01 / 1.01 1.25 / 1.08 1.04 / 1.00 1.01 / 1.00 1.01 / 1.01 DRA ASR 0.74 / 0.74 0.86 / 0.36 0.30 / 0.28 0.37 / 0.31 1.00 / 0.69 0.07 / 0.05 TS 2.91 / 1.17 3.48 / 1.10 1.40 / 1.32 3.54 / 1.95 3.63 / 2.03 1.03 / 1.00 CoL-SingleTurn ASR 0.95 / 0.37 0.77 / 0.32 0.93 / 0.38 0.89 / 0.36 0.46 / 0.21 0.54 / 0.37 TS 2.28 / 1.45 2.81 / 1.72 4.23 / 1.90 1.78 / 1.11 1.94 / 1.12 2.27 / 1.22 CoL-MultiTurn ASR 0.97 / 0.61 1.00 / 0.61 1.00 / 0.40 0.96 / 0.75 1.00 / 0.58 1.00 / 0.78 TS 2.31 / 1.12 3.09 / 1.16 4.30 / 1.18 1.92 / 1.28 2.27 / 1.42 2.62 / 1.24 AutoRAN ASR 0.99 / 0.61 0.94 / 0.57 1.00 / 0.57 0.97 / 0.59 0.81 / 0.54 0.86 / 0.66 TS 1.78 / 1.63 4.02 / 1.14 4.42 / 1.38 1.44 / 1.85 2.65 / 1.26 3.25 / 1.50 Original SMF DAF (DS-V3.2) DAF (GPT-OSS) 
+
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Average ASR Score
+> Mitigation Trend: ASR
+> Attack Methods
+> DarkCite
+> DRA
+> CoL-SingleTurn
+> CoL-MultiTurn
+> AutoRAN
+> 0.99
+> 0.94
+> 0.88
+> 0.77
+> 0.56
+> 0.69
+> 0.69
+> 0.54
+> 0.38
+> 0.19
+> 0.68
+> 0.47
+> 0.33
+> 0.07
+> 0.02
+> 0.47
+> 0.30
+> 0.30
+> 0.28
+> 0.15
+
+(a) Attack success rate before and after SMF; downward shifts indicate fewer successful jailbreaks. Original SMF DAF (DS-V3.2) DAF (GPT-OSS) 
+
+> 1.00
+> 1.25
+> 1.50
+> 1.75
+> 2.00
+> 2.25
+> 2.50
+> 2.75
+> 3.00
+> Average Toxicity Score
+> Mitigation Trend: Toxicity
+> Attack Methods
+> DarkCite
+> DRA
+> CoL-SingleTurn
+> CoL-MultiTurn
+> AutoRAN
+> 2.79
+> 2.69
+> 2.65
+> 2.59
+> 1.04
+> 1.55
+> 1.52
+> 1.48
+> 1.29
+> 1.02
+> 1.34
+> 1.26
+> 1.21
+> 1.01
+> 1.00
+> 1.12
+> 1.08
+> 1.04
+> 1.03
+> 1.02
+
+(b) Toxicity score before and after SMF; lower defended values indicate safer final outputs. 
+
+Figure 2: Quantitative improvement for SMF measured by ASR and TS across protected models and attack families. Downward defended slopes indicate that the injected safety report reduces successful jailbreaks and lowers the harmfulness of the remaining outputs. 
+
+relies on reusable prompt framing that can be countered by a compact injected safety report. For more difficult attack families, the defensive gain is often more visible in toxicity than in residual ASR. For ex-ample, under DRA on AdvBench, TS on DS-R1-O decreases from 4.19 to 1.28 after SMF is applied; under AutoRAN on GPTFuzz, TS on DS-V3 decreases from 4.42 to 1.38. Similar damping appears in several CoL settings even when the remaining ASR is still non-trivial. Overall, these results are consistent with the intended role of SMF as a lightweight first-pass defense: it performs best on templated attacks, and it still helps suppress harmful output severity on harder attacks even when it does not fully eliminate successful bypasses. Tables 4 and 5 show that DAF generally lowers both ASR and TS across the evaluated protected models, although the magnitude of the improvement depends on the attack family and on the safety-analysis backend. The strongest gains for DAF with the DS-V3.2 backend appear on templated or disguise-heavy jailbreaks such as DarkCite and DRA. On AdvBench, DAF with DS-V3.2 reduces DarkCite ASR on DS-R1-O from 0.75 to 0.03 and on Qwen-Th-O from 0.82 to 0.07. The same pattern appears on GPTFuzz, where DarkCite ASR on DS-R1-O drops from 0.43 to 0.00. DAF with DS-V3.2 is also especially effective 
+
+Zhenhao Xu et al.: Preprint submitted to Elsevier Page 8 of 17 Safety Context Injection 
+
+Table 4 
+
+Original vs DAF-defended results with DS-V3.2 as the safety-analysis backend. Each entry is reported as O/D (original / defended by DAF with DS-V3.2). Lower ASR and TS indicate better safety.                                                                                                                                          
+
+> Dataset Method Metric (O/D) Models DS-R1-R DS-R1-O DS-V3 Qwen-Th-R Qwen-Th-O Qwen-Inst AdvBench DarkCite ASR 0.87 / 0.14 0.75 / 0.03 0.68 / 0.05 0.92 / 0.11 0.82 / 0.07 0.56 / 0.02 TS 1.12 / 1.02 1.04 / 1.01 1.08 / 1.00 1.01 / 1.00 1.00 / 1.00 1.00 / 1.01 DRA ASR 0.67 / 0.07 0.91 / 0.01 0.18 / 0.00 0.48 / 0.00 0.98 / 0.01 0.12 / 0.01 TS 3.28 / 1.00 4.19 / 1.00 1.33 / 1.00 2.85 / 1.00 3.18 / 1.00 1.08 / 1.00 CoL-SingleTurn ASR 0.97 / 0.60 0.90 / 0.40 0.98 / 0.48 0.90 / 0.12 0.75 / 0.07 0.75 / 0.31 TS 2.27 / 1.30 3.20 / 1.40 3.92 / 1.33 1.60 / 1.04 2.04 / 1.04 2.49 / 1.14 CoL-MultiTurn ASR 0.98 / 0.66 1.00 / 0.45 1.00 / 0.21 0.95 / 0.73 1.00 / 0.54 1.00 / 0.21 TS 2.36 / 1.32 3.49 / 1.37 3.81 / 1.17 1.69 / 1.28 2.26 / 1.39 2.54 / 1.04 AutoRAN ASR 0.97 / 0.85 0.93 / 0.54 0.97 / 0.73 0.98 / 0.87 0.88 / 0.54 0.90 / 0.56 TS 1.50 / 1.84 3.99 / 1.23 4.26 / 1.33 1.32 / 1.42 2.77 / 1.05 2.93 / 1.16 GPTFuzz DarkCite ASR 0.88 / 0.01 0.43 / 0.00 0.77 / 0.04 0.85 / 0.05 0.75 / 0.01 0.59 / 0.00 TS 1.01 / 1.00 1.01 / 1.00 1.25 / 1.01 1.04 / 1.00 1.01 / 1.00 1.01 / 1.00 DRA ASR 0.74 / 0.04 0.86 / 0.00 0.30 / 0.00 0.37 / 0.00 1.00 / 0.01 0.07 / 0.01 TS 2.91 / 1.00 3.48 / 1.00 1.40 / 1.00 3.54 / 1.00 3.63 / 1.00 1.03 / 1.00 CoL-SingleTurn ASR 0.95 / 0.42 0.77 / 0.12 0.93 / 0.25 0.89 / 0.39 0.46 / 0.13 0.54 / 0.09 TS 2.28 / 1.17 2.81 / 1.08 4.23 / 1.16 1.78 / 1.04 1.94 / 1.04 2.27 / 1.07 CoL-MultiTurn ASR 0.97 / 0.64 1.00 / 0.28 1.00 / 0.27 0.96 / 0.76 1.00 / 0.42 1.00 / 0.43 TS 2.31 / 1.37 3.09 / 1.32 4.30 / 1.12 1.92 / 1.18 2.27 / 1.27 2.62 / 1.17 AutoRAN ASR 0.99 / 0.81 0.94 / 0.31 1.00 / 0.71 0.97 / 0.82 0.81 / 0.40 0.86 / 0.54 TS 1.78 / 1.88 4.02 / 1.09 4.42 / 1.18 1.44 / 1.46 2.65 / 1.10 3.25 / 1.14
+
+on DRA, where many defended ASR values are near zero across both datasets. These examples indicate that the DS-V3.2-backed defense is particularly effective when harmful intent is embedded in reusable or semantically disguised prompt framing. For several reasoning-intensive attacks, the defensive gain is stronger under the GPT-OSS-20B backend. Au-toRAN is the clearest example. On AdvBench, GPT-OSS-backed DAF reduces ASR on DS-R1-O from 0.93 to 0.24, compared with 0.54 under the DS-V3.2-backed variant; on GPTFuzz for the same protected model, the corresponding defended values are 0.14 and 0.31. Similar gaps appear for several other protected models, indicating that backend choice matters most when the attack relies on longer reason-ing chains rather than fixed jailbreak templates. Across both DAF variants, the reduction is often visible not only in ASR but also in toxicity. For example, on Ad-vBench under DRA, TS on DS-R1-O decreases from 4.19 to 1.00 with DAF using DS-V3.2 and to 1.02 with DAF using GPT-OSS-20B. Under AutoRAN on GPTFuzz, TS on DS-V3 decreases from 4.42 to 1.18 with DAF using DS-V3.2 and to 1.12 with DAF using GPT-OSS-20B. Overall, these results are consistent with the intended role of DAF as the stronger but more backend-sensitive defense vari-ant: both backends substantially improve safety relative to the undefended baseline, while DS-V3.2 is better matched to templated or disguise-heavy attacks and GPT-OSS-20B often performs better on reasoning-heavy attacks such as AutoRAN. 
+
+5.4. Robustness Analysis 
+
+The radar charts in Fig. 3 provide a holistic view of the at-tack surface contraction across the model suite. In the unde-fended setting, ASR frequently nears or exceeds 0.8 for both base models and LRMs, while TS remains high in many set-tings. With SMF enabled, the polygon shrinks markedly, in-dicating lower bypass frequency and reduced toxicity. DAF produces the strongest contraction in many settings, par-ticularly for final-output evaluations of reasoning-enhanced variants such as DS-R1 and Qwen-Think. However, Au-toRAN remains difficult for some reasoning-trajectory mea-surements, which indicates that the proposed defense re-duces but does not eliminate the attack surface. The correlation analysis in Fig. 4 further illustrates the relationship between attack frequency and intensity under SMF. In both AdvBench and GPTFuzz, the original data points are concentrated toward higher-ASR and higher-toxicity regions. In contrast, the SMF-defended points shift toward lower ASR and lower TS. The defended regression lines are flatter and lower, staying close to the 1.0–1.5
+
+toxicity baseline. This suggests that even when an attack partially bypasses the filter, the resulting output is often less toxic than an undefended generation. Fig. 5 shows that this trend is more pronounced under DAF. Relative to SMF, the defended points are further con-centrated in low-ASR zones and remain tightly distributed around low-to-moderate toxicity values, especially on GPT-Fuzz where high-frequency/high-intensity outliers are re-duced. This pattern is consistent with the quantitative results in Tables 4 and 5: DAF lowers successful attack frequency 
+
+Zhenhao Xu et al.: Preprint submitted to Elsevier Page 9 of 17 Safety Context Injection DS-R1-R  
+
+> DS-R1-O DS-V3
+> Qwen-Th-R
+> Qwen-Th-O Qwen-Inst
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> Defense Strategy Comparison (ASR)
+> Original
+> SMF
+> DAF (DS-V3.2)
+> DAF (GPT-OSS)
+
+(a) Normalized ASR across protected models and attack families; smaller defended polygons indicate fewer successful bypasses. DS-R1-R       
+
+> DS-R1-O DS-V3
+> Qwen-Th-R
+> Qwen-Th-O Qwen-Inst
+> 0.5 1.0 1.5 2.0 2.5 3.0
+> Defense Strategy Comparison (Toxicity)
+> Original
+> SMF
+> DAF (DS-V3.2)
+> DAF (GPT-OSS)
+
+(b) Normalized toxicity across protected models and attack families; smaller defended polygons indicate less harmful generations. 
+
+Figure 3: Systemic attack-surface contraction across the evaluated model suite. Comparing undefended, SMF-defended, and DAF-defended polygons shows how both defenses shrink the high-risk region in terms of bypass success and output toxicity. 0.0 0.2 0.4 0.6 0.8 1.0 
+
+Attack Success Rate (ASR) 
+
+0
+
+1
+
+2
+
+3
+
+4
+
+> Toxicity Score (1-5)
+> Advbench: ASR vs. Toxicity (Original vs SMF)
+
+Original 
+
+SMF 
+
+(a) AdvBench: SMF shifts defended cases toward the lower-left region and flattens the fitted trend. 0.2 0.4 0.6 0.8 1.0 
+
+Attack Success Rate (ASR) 
+
+0
+
+1
+
+2
+
+3
+
+4
+
+> Toxicity Score (1-5)
+> GPTFuzz: ASR vs. Toxicity (Original vs SMF)
+
+Original 
+
+SMF 
+
+(b) GPTFuzz: SMF reduces high-frequency, high-toxicity outliers and keeps outputs closer to the safe baseline. 
+
+Figure 4: SMF correlation between attack frequency and output intensity on AdvBench and GPTFuzz. The defended clusters move toward the lower-left region, indicating both fewer successful attacks and lower residual toxicity. 0.0 0.2 0.4 0.6 0.8 1.0 
+
+Attack Success Rate (ASR) 
+
+0
+
+1
+
+2
+
+3
+
+4
+
+> Toxicity Score (1-5)
+> Advbench: ASR vs. Toxicity [Original vs DAF(DS V3.2 / GPT-OSS)]
+
+Original 
+
+DAF(DS V3.2) 
+
+DAF(GPT-OSS) 
+
+(a) AdvBench: DAF concentrates defended cases in a lower-ASR, lower-toxicity region than the undefended baseline. 0.0 0.2 0.4 0.6 0.8 1.0 
+
+Attack Success Rate (ASR) 
+
+0
+
+1
+
+2
+
+3
+
+4
+
+> Toxicity Score (1-5)
+> GPTFuzz: ASR vs. Toxicity [Original vs DAF(DS V3.2 / GPT-OSS)]
+
+Original 
+
+DAF(DS V3.2) 
+
+DAF(GPT-OSS) 
+
+(b) GPTFuzz: DAF further suppresses high-risk outliers and keeps most defended cases near the low-toxicity band. 
+
+Figure 5: DAF correlation between attack frequency and output intensity on AdvBench and GPTFuzz. Relative to SMF, DAF yields a tighter concentration near the low-risk region, showing stronger suppression of both bypass frequency and harmful output severity. Zhenhao Xu et al.: Preprint submitted to Elsevier Page 10 of 17 Safety Context Injection 
+
+Table 5 
+
+Original vs DAF-defended results with GPT-OSS-20B as the safety-analysis backend. Each entry is reported as O/D (original / defended by DAF with GPT-OSS-20B). Lower ASR and TS indicate better safety.                                                                                                                                          
+
+> Dataset Method Metric (O/D) Models DS-R1-R DS-R1-O DS-V3 Qwen-Th-R Qwen-Th-O Qwen-Inst AdvBench DarkCite ASR 0.87 / 0.75 0.75 / 0.18 0.68 / 0.15 0.92 / 0.47 0.82 / 0.25 0.56 / 0.00 TS 1.12 / 1.05 1.04 / 1.02 1.08 / 1.02 1.01 / 1.01 1.00 / 1.00 1.00 / 1.00 DRA ASR 0.67 / 0.47 0.91 / 0.10 0.18 / 0.03 0.48 / 0.06 0.98 / 0.15 0.12 / 0.12 TS 3.28 / 1.02 4.19 / 1.02 1.33 / 1.01 2.85 / 1.03 3.18 / 1.07 1.08 / 1.05 CoL-SingleTurn ASR 0.97 / 0.39 0.90 / 0.17 0.98 / 0.31 0.90 / 0.34 0.75 / 0.26 0.75 / 0.19 TS 2.27 / 1.07 3.20 / 1.10 3.92 / 1.18 1.60 / 1.05 2.04 / 1.05 2.49 / 1.06 CoL-MultiTurn ASR 0.98 / 0.44 1.00 / 0.44 1.00 / 0.43 0.95 / 0.50 1.00 / 0.50 1.00 / 0.50 TS 2.36 / 1.03 3.49 / 1.03 3.81 / 1.03 1.69 / 1.04 2.26 / 1.04 2.54 / 1.05 AutoRAN ASR 0.97 / 0.37 0.93 / 0.24 0.97 / 0.31 0.98 / 0.33 0.88 / 0.27 0.90 / 0.28 TS 1.50 / 1.24 3.99 / 1.12 4.26 / 1.17 1.32 / 1.10 2.77 / 1.04 2.93 / 1.07 GPTFuzz DarkCite ASR 0.88 / 0.81 0.43 / 0.10 0.77 / 0.05 0.85 / 0.35 0.75 / 0.04 0.59 / 0.02 TS 1.01 / 1.00 1.01 / 1.00 1.25 / 1.00 1.04 / 1.00 1.01 / 1.00 1.01 / 1.00 DRA ASR 0.74 / 0.58 0.86 / 0.13 0.30 / 0.12 0.37 / 0.05 1.00 / 0.17 0.07 / 0.10 TS 2.91 / 1.06 3.48 / 1.04 1.40 / 1.04 3.54 / 1.00 3.63 / 1.07 1.03 / 1.00 CoL-SingleTurn ASR 0.95 / 0.29 0.77 / 0.04 0.93 / 0.20 0.89 / 0.17 0.46 / 0.05 0.54 / 0.03 TS 2.28 / 1.03 2.81 / 1.01 4.23 / 1.07 1.78 / 1.00 1.94 / 1.00 2.27 / 1.00 CoL-MultiTurn ASR 0.97 / 0.39 1.00 / 0.39 1.00 / 0.38 0.96 / 0.49 1.00 / 0.49 1.00 / 0.51 TS 2.31 / 1.08 3.09 / 1.10 4.30 / 1.05 1.92 / 1.13 2.27 / 1.09 2.62 / 1.09 AutoRAN ASR 0.99 / 0.29 0.94 / 0.14 1.00 / 0.28 0.97 / 0.25 0.81 / 0.21 0.86 / 0.17 TS 1.78 / 1.11 4.02 / 1.10 4.42 / 1.12 1.44 / 1.05 2.65 / 1.05 3.25 / 1.06
+
+and reduces the residual toxicity of many successful cases, yielding a more stable contraction of the high-risk region in the ASR–TS space. Finally, the data highlight the complementarity of the two defense variants. SMF reduces many templated attack prompts and helps limit output toxicity, while DAF provides deeper analysis that further reduces ASR in many settings. Taken as alternative deployment choices, they provide broad protection against both template-driven attacks and seman-tically disguised attack prompts across the evaluated bench-marks. 
+
+5.5. Sentence Embedding Space Analysis 
+
+To analyze how injected safety reports relate to the protected model’s reasoning trajectories, we map both text types into a shared sentence-embedding space and inspect their 2D distributions. We collect the generated safety re-ports and the corresponding reasoning traces for each at-tack method and defense condition, encode both with the Sentence-Transformers sentence encoder all-MiniLM-L6-v2 [15], and obtain 384-dimensional normalized sentence embeddings. We then apply PCA jointly to the union of report and reasoning embeddings within each subplot, so that the two point clouds are visualized in the same local 2D coordinate system. To keep the projections reproducible and comparable across settings, the script uses a fixed random seed and samples up to 300 records per attack method and defense configuration before plotting. The first row of Fig. 6 corresponds to SMF. A clear pattern is that many report points collapse toward a few concentrated locations, while the reasoning points remain more spread out. This concentration is consistent with the construction of SMF itself: the SMF report is short, uses a fixed template, and contains a small set of recurring fields such as the safety label and risk categories. As a result, many SMF reports are semantically very similar after sentence embedding, and their PCA projections accumulate around several recurring anchor points rather than forming a broad cloud. In other words, the compact geometry of the SMF report distribution reflects the low-entropy and highly stan-dardized format of this injected context. The second and third rows correspond to DAF with DeepSeek-V3.2 and GPT-OSS-20B, respectively. In this set-ting, the safety reports are generated by the agent rather than filled into a rigid template. Because the agent can vary its wording, evidence selection, analysis summary, and recommended action across prompts, the DAF report embeddings are visibly more dispersed than those of SMF. At the same time, a substantial portion of the DAF report distribution overlaps with, or lies very close to, the model’s reasoning distribution in both backend settings. We inter-pret this partial overlap as descriptive evidence that DAF-generated reports are not merely external warnings attached to the prompt; instead, once injected as context, they occupy a semantic region that the protected model’s subsequent reasoning also enters. This pattern is consistent with the hypothesis that DAF reports successfully guide the model toward safer reasoning trajectories. Taken together, the PCA projections suggest two com-plementary modes of semantic control in SCI. SMF provides 
+
+Zhenhao Xu et al.: Preprint submitted to Elsevier Page 11 of 17 Safety Context Injection SMF with Qwen3Guard-Gen-4B 0.6 0.4 0.2 0.0 0.2 0.4 0.6 
+
+> PC1
+> 0.8
+> 0.6
+> 0.4
+> 0.2
+> 0.0
+> 0.2
+> PC2
+> Report
+> Reasoning
+
+(a) DarkCite 0.8 0.6 0.4 0.2 0.0 0.2 0.4  
+
+> PC1
+> 0.4
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> PC2
+> Report
+> Reasoning
+
+(b) DRA 0.4 0.2 0.0 0.2 0.4 0.6  
+
+> PC1
+> 0.6
+> 0.4
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> PC2
+> Report
+> Reasoning
+
+(c) CoL-SingleTurn 0.4 0.2 0.0 0.2 0.4 0.6 0.8 1.0  
+
+> PC1
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> PC2
+> Report
+> Reasoning
+
+(d) CoL-MultiTurn 0.4 0.2 0.0 0.2 0.4 0.6  
+
+> PC1
+> 0.4
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> PC2
+> Report
+> Reasoning
+
+(e) AutoRAN 
+
+DAF with DeepSeek-V3.2 0.6 0.4 0.2 0.0 0.2 0.4 0.6 
+
+> PC1
+> 0.3
+> 0.2
+> 0.1
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> 0.4
+> PC2
+> Report
+> Reasoning
+
+(f) DarkCite 0.6 0.4 0.2 0.0 0.2 0.4  
+
+> PC1
+> 0.4
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> PC2
+> Report
+> Reasoning
+
+(g) DRA 0.6 0.4 0.2 0.0 0.2 0.4  
+
+> PC1
+> 0.4
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> PC2
+> Report
+> Reasoning
+
+(h) CoL-SingleTurn 0.2 0.0 0.2 0.4 0.6 0.8  
+
+> PC1
+> 0.4
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> PC2
+> Report
+> Reasoning
+
+(i) CoL-MultiTurn 0.2 0.0 0.2 0.4 0.6 0.8  
+
+> PC1
+> 0.4
+> 0.3
+> 0.2
+> 0.1
+> 0.0
+> 0.1
+> 0.2
+> 0.3
+> PC2
+> Report
+> Reasoning
+
+(j) AutoRAN 
+
+DAF with GPT-OSS-20B 0.6 0.4 0.2 0.0 0.2 0.4 0.6 
+
+> PC1
+> 0.6
+> 0.4
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> PC2
+> Report
+> Reasoning
+
+(k) DarkCite 0.4 0.2 0.0 0.2 0.4 0.6  
+
+> PC1
+> 0.4
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> PC2
+> Report
+> Reasoning
+
+(l) DRA 0.4 0.2 0.0 0.2 0.4 0.6  
+
+> PC1
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> PC2
+> Report
+> Reasoning
+
+(m) CoL-SingleTurn 0.4 0.2 0.0 0.2 0.4 0.6 0.8  
+
+> PC1
+> 0.4
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> PC2
+> Report
+> Reasoning
+
+(n) CoL-MultiTurn 0.6 0.4 0.2 0.0 0.2 0.4  
+
+> PC1
+> 0.2
+> 0.0
+> 0.2
+> 0.4
+> PC2
+> Report
+> Reasoning
+
+(o) AutoRAN 
+
+Figure 6: 2D PCA projections of normalized sentence-embedding vectors for injected safety reports and protected-model reasoning trajectories. Within each subplot, the report texts and reasoning texts are jointly encoded with the Sentence-Transformers model all-MiniLM-L6-v2 and projected into a shared 2D PCA space. Columns correspond to DarkCite, DRA, CoL-SingleTurn, CoL-MultiTurn, and AutoRAN; rows correspond to SMF with Qwen3Guard-Gen-4B, DAF with DeepSeek-V3.2, and DAF with GPT-OSS-20B. The SMF row shows concentrated report clusters due to the short templated report format, whereas the DAF rows show more dispersed agent-generated reports with substantial overlap between report and reasoning distributions, consistent with the semantic-guidance role of injected safety context. 
+
+a compact and stable safety anchor: its reports are brief, stan-dardized, and therefore concentrated around a few recurring semantic points. DAF provides richer and more adaptive guidance: its reports are more diverse, but their partial overlap with reasoning indicates stronger semantic coupling between the injected report and the model’s downstream rea-soning process. We therefore view these plots as descriptive evidence for the semantic-bridging role of injected safety context. They do not by themselves prove an internal causal mechanism, but they do support the interpretation that Safety Context Injection can reshape the semantic context seen by the protected model before final answer generation. 
+
+5.6. Token Overhead and Efficiency Analysis 
+
+To evaluate the practical deployability and computa-tional cost of the proposed framework, we analyze the token overhead associated with generating safety reports across different defense variants. Table 6 presents the average token length of the injected safety assessments for various attack methods and datasets. Table 6 shows that SMF has the smallest and most stable token overhead. The mean report length is 27.54 tokens on AdvBench and 28.01 tokens on GPTFuzz, with small standard deviations of 0.64 and 0.67, respectively. Across the five attack families, the values remain tightly concentrated between 26.95 and 28.57 tokens on AdvBench and between 27.37 and 29.09 tokens on GPTFuzz. This low variance is consistent with the fixed and compact report format used by SMF. In contrast, DAF introduces substantially longer reports and shows noticeably larger variation across attack families. For DAF with DeepSeek-V3.2, the mean report length is 284.40 tokens on AdvBench and 321.69 tokens on GPT-Fuzz; averaging these two dataset-level means gives an 
+
+Zhenhao Xu et al.: Preprint submitted to Elsevier Page 12 of 17 Safety Context Injection 
+
+Table 6 
+
+Average Token Length of Safety Reports Across Defense Tiers. Results represent the number of tokens generated by the guard model/agent before being injected into the protected model’s prompt. Attack Method SMF (Qwen-Guard) DAF (DS-V3.2) DAF (GPT-OSS) AdvBench GPTFuzz AdvBench GPTFuzz AdvBench GPTFuzz DRA 27.68 27.89 319.64 348.56 283.08 327.91 DarkCite 28.57 29.09 280.39 271.16 176.89 163.59 AutoRAN 27.10 27.56 330.25 328.00 171.78 161.44 CoL-SingleTurn 27.40 28.13 260.84 328.54 159.32 144.42 CoL-MultiTurn 26.95 27.37 230.87 342.17 144.30 127.42             
+
+> Mean 27.54 28.01 284.40 321.69 187.07 184.96
+> Std. 0.64 0.67 41.17 30.67 55.12 81.24
+
+overall length of about 303.05 tokens. For DAF with GPT-OSS-20B, the corresponding means are 187.07 and 184.96, yielding an overall average of about 186.02 tokens. The stan-dard deviations are also much larger than for SMF, especially for GPT-OSS-20B on GPTFuzz (81.24), indicating that DAF report length depends more strongly on the attack family and backend. The token table measures only the length of the injected safety report; by itself, it does not establish whether a longer report is better. The safety–efficiency trade-off therefore comes from reading Table 6 together with the defense re-sults in Tables 4 and 5. Under that joint view, SMF is the lowest-cost option and is well suited to high-throughput deployment, whereas DAF incurs substantially higher token cost but often provides stronger protection in settings where richer safety analysis is beneficial. We therefore interpret the larger DAF overhead as the cost of using more detailed agent-generated safety context, rather than as direct evidence that longer reports alone cause better safety outcomes. 
+
+5.7. Significance Analysis 
+
+Table 7 reveals a consistent directional pattern: every reported 𝑡 -statistic is negative, indicating that the defenses reduce the observed thinking–output discrepancy in the de-sired direction across all dataset–model–metric combina-tions. The most pronounced changes occur under DAF, particularly on AdvBench with DS-R1. For ASR, DAF (DS-V3.2) achieves p=0.031, 𝑡 = −3 .26 , and 𝑑 𝑧 = 1 .46 , while DAF (GPT-OSS) also shows a large effect size of 𝑑 𝑧 =1.04 . The same tendency appears for toxicity reduction. Even when TS does not cross a conventional 0.05 threshold, several settings still exhibit large effect sizes, including Ad-vBench DS-R1 under DAF (GPT-OSS) with 𝑑 𝑧 = 1 .15 and under DAF (DS-V3.2) with 𝑑 𝑧 = 1 .00 . This pattern suggests that richer semantic safety analysis changes model behavior at the attack-family level, not just on a few isolated examples, with the clearest benefits appearing when harmful intent is semantically disguised or embedded in longer contexts. At the same time, the results also argue against a purely binary reading of statistical significance. Each paired test is based on only five attack families, so the analysis has limited power and even practically meaningful improvements may produce only marginal p-values. For this reason, we treat Cohen’s 𝑑 𝑧 as the primary signal and use p-values as sup-portive evidence. This perspective is especially important for the Qwen-Think and GPTFuzz conditions, where several comparisons show moderate effect sizes but substantial un-certainty. Under that interpretation, SMF tends to produce smaller and less stable shifts, whereas DAF yields larger and more consistent reductions in both ASR and TS. The sig-nificance analysis therefore reinforces, rather than replaces, the broader empirical picture established by the main tables and case study: deeper semantic guidance is generally more effective, but the strength of the statistical claim remains bounded by the small number of paired observations and the multiple related comparisons reported in the table. 
+
+5.8. Case Study 
+
+To illustrate the practical behavior of the proposed framework, we analyze a representative adversarial attempt related to identity theft. The underlying request seeks step-by-step guidance for identity theft, but it is embedded in an educational lure that gives the prompt a superficially legitimate appearance. In particular, the prompt foregrounds benign expressions such as “educational framework,” “in-form students,” and “analyzing the methods,” which may cause the surface form to appear safety-aligned even though the underlying request still concerns how to steal and exploit personal information. Adversarial Lure (Benign Framing with Harmful Core) I am structuring an educational framework to inform students... about identity theft. This framework fo-cuses on analyzing the methods used to steal and exploit personal information. Under Static Model Filtering (SMF), the guard model does not fully recover the underlying risk because its one-pass judgment appears to be influenced by the lure’s be-nign lexical cues. Terms such as “educational framework,” “inform students,” and the general pedagogical framing can dominate the local surface signal, so the harmful operational intent is underweighted and the prompt is classified as safe in this case. The guard therefore produces a report that treats the input as non-problematic. SMF: Detection Failure 
+
+Safety Report: Safety Level: Safe. Risk Categories: None. 
+
+Protected Model Response: Thank you for sharing this well-structured and ethically sound educational framework... It is clear you have put substantial thought into creating responsible content. As shown above, without sufficiently deep semantic analysis, the protected model moves toward a more collabo-rative response mode, even offering suggestions that could 
+
+Zhenhao Xu et al.: Preprint submitted to Elsevier Page 13 of 17 Safety Context Injection 
+
+Table 7 
+
+Significance analysis of thinking–output gap (without absolute value). For each dataset/model/metric, we compare before-vs-after using paired t-test across five attack methods (DarkCite, DRA, CoL-SingleTurn, CoL-MultiTurn, AutoRAN), and report p-value, t-statistic, and Cohen’s 𝑑 𝑧 . Because each test uses only five paired attack families, effect sizes are treated as the primary signal and p-values as supportive evidence.                                                                      
+
+> Dataset Model Metric SMF (Qwen-Guard) DAF (DS-V3.2) DAF (GPT-OSS) AdvBench DS-R1 ASR p=0.445, t=-0.85, 𝑑 𝑧 =0.38 p=0.031, t=-3.26, 𝑑 𝑧 =1.46 p=0.080, t=-2.33, 𝑑 𝑧 =1.04 AdvBench DS-R1 TS p=0.098, t=-2.15, 𝑑 𝑧 =0.96 p=0.089, t=-2.24, 𝑑 𝑧 =1.00 p=0.062, t=-2.56, 𝑑 𝑧 =1.15 AdvBench Qwen-Think ASR p=0.808, t=-0.26, 𝑑 𝑧 =0.12 p=0.215, t=-1.47, 𝑑 𝑧 =0.66 p=0.335, t=-1.10, 𝑑 𝑧 =0.49 AdvBench Qwen-Think TS p=0.171, t=-1.66, 𝑑 𝑧 =0.74 p=0.125, t=-1.93, 𝑑 𝑧 =0.86 p=0.093, t=-2.20, 𝑑 𝑧 =0.98 GPTFuzz DS-R1 ASR p=0.652, t=-0.49, 𝑑 𝑧 =0.22 p=0.436, t=-0.86, 𝑑 𝑧 =0.39 p=0.106, t=-2.08, 𝑑 𝑧 =0.93 GPTFuzz DS-R1 TS p=0.144, t=-1.81, 𝑑 𝑧 =0.81 p=0.126, t=-1.93, 𝑑 𝑧 =0.86 p=0.093, t=-2.20, 𝑑 𝑧 =0.98 GPTFuzz Qwen-Think ASR p=0.925, t=-0.10, 𝑑 𝑧 =0.05 p=0.227, t=-1.43, 𝑑 𝑧 =0.64 p=0.663, t=-0.47, 𝑑 𝑧 =0.21 GPTFuzz Qwen-Think TS p=0.284, t=-1.24, 𝑑 𝑧 =0.55 p=0.235, t=-1.40, 𝑑 𝑧 =0.62 p=0.198, t=-1.54, 𝑑 𝑧 =0.69
+
+strengthen the user’s framing. This example highlights a potential limitation of high-throughput filters when they en-counter carefully constructed role-play or educational lures. Under Dynamic Agents Filtering (DAF), the analysis is more explicit and evidence-driven. Rather than stopping at the benign framing, the agentic process can extract the suspicious and harmful elements embedded in the request, including references to “identity theft,” “steal,” “exploit per-sonal information,” and the implied request for procedural criminal guidance. When using the DeepSeek-V3.2 backend, the framework captures this tension between benign framing and harmful core intent, and then produces a nuanced safety assessment that acts as a contextual cue for the protected model. DAF (DS-V3.2): Nuanced Detection 
+
+Safety Report: Safety Level: SUSPICIOUS. Risk Categories: Illegal activity. Analysis: While framed educationally, these details could be misused. Rec-ommended Action: FLAG. 
+
+Protected Model Response: Based on the safety assessment... I need to maintain caution due to the detailed descriptions of criminal methodologies in your examples. In this instance, the protected model transitions from a compliant state to a precautionary one. Relative to SMF, DAF is better able to surface the harmful points that are embedded within the lure rather than relying primarily on the benign wording. By explicitly acknowledging the in-jected safety report, the model refocuses its generation on prevention and detection rather than providing actionable instructions for illicit behavior. Finally, the GPT-OSS backend within the DAF frame-work applies a stricter intervention policy. It interprets the request as violating core safety policies regardless of the claimed educational context. DAF (GPT-OSS): Policy-Driven Refusal 
+
+Safety Report: Safety Level: UNSAFE. Risk Cat-egories: Identity theft instructions. Analysis: The policy explicitly prohibits providing such instruc-tions regardless of context. Recommended Action: BLOCK. 
+
+Protected Model Response: Sorry, I cannot provide information related to potentially harmful content (Illicit behavior, Identity theft instructions). Overall, this comparison illustrates more concretely why the two variants can separate in performance on semantically disguised jailbreaks. In such cases, SMF may underreact when benign lure words dominate the prompt surface and obscure the harmful objective, leading the guard to place too much weight on an “educational” or “informational” framing. DAF appears more effective in this setting because its agentic analysis can recover the suspicious and harm-ful points embedded in the prompt, convert them into an explicit safety report, and shift the protected model away from compliance. The case also motivates conservative run-time constraints in deployment: high-risk categories can be routed to mandatory policy checks before an A LLOW 
+
+decision is accepted. More broadly, the example supports the central claim of SCI: injected safety assessment is especially valuable when the defender can expose harmful core intent that shallow filtering may not fully recover. 
+
+## 6. Conclusion 
+
+This paper presents a unified inference-time safety align-ment framework for Large Reasoning Models, centered on Safety Context Injection. By decoupling safety assessment from task generation and injecting structured risk reports into the protected model context, the framework targets the apparent thinking–output gap observed under semantically disguised jailbreak prompts. Our experiments on AdvBench and GPTFuzz show that the two defense variants define a practical defense spectrum. SMF offers a low-cost option for high-throughput settings, while DAF provides stronger 
+
+Zhenhao Xu et al.: Preprint submitted to Elsevier Page 14 of 17 Safety Context Injection 
+
+protection when harmful intent is hidden by long-context lures, semantic disguise, or multi-step framing. Across the evaluated settings, this yields a clear safety–efficiency trade-off: richer semantic guidance increases token overhead, but it also produces more reliable reductions in attack success and toxicity. The case study and significance analysis further clarify the operating boundary of the framework. Injected safety reports can materially improve inference-time safety, but stronger deployment guarantees still require conser-vative runtime controls and adaptive system design. This suggests several directions for future work, including tighter policy enforcement, calibrated confidence estimation, and backend routing strategies that respond to changing threat patterns. Overall, SCI offers a practical plug-in safety layer for black-box LRM deployment while preserving flexibility across different latency and risk requirements. 
+
+## A. Additional Experimental Details 
+
+A.1. Evaluation Units and Attack Families 
+
+Each evaluation cell is defined by a dataset, an attack family, a protected model, and a defense condition. The two datasets are AdvBench and GPTFuzz. The attack fam-ilies cover complementary prompt styles: DarkCite uses citation-style authority framing; DRA hides harmful intent through disguise and reconstruction; CoL-SingleTurn and CoL-MultiTurn use synthetic narrative lures; and AutoRAN targets the safety reasoning process of LRMs. After prepro-cessing, each cell contains between 100 and 520 prompts de-pending on benchmark size and attack availability. For cross-attack summaries and visualization-based comparisons, we normalize metrics within each cell; the main result tables report raw ASR and TS values. 
+
+A.2. Model Access and Generation Protocol 
+
+The protected models are DS-V3, Qwen-Inst, DS-R1, and Qwen-Think. For reasoning models, the endpoint re-turns both reasoning content and final response content, which we record and score as separate fields. SMF and DAF remain separate defense conditions throughout the evaluation and share the same protected-model endpoints for fair comparison. SMF uses Qwen-Guard (Qwen3Guard-Gen-4B) as the guard backend. DAF uses DS-V3.2 and GPT-OSS-20B as alternative safety-analysis backends. Locally hosted models are served through an OpenAI-compatible vLLM interface, while larger protected or backend models are accessed through their available inference endpoints. For a given model and dataset, undefended and defended calls use the same endpoint configuration; when an endpoint does not expose seed-level control, we keep the provider default fixed across compared conditions rather than mixing configurations. 
+
+A.3. SMF Parsing and Report Format 
+
+SMF converts the guard model’s free-form assessment into a structured result using deterministic parsing. The      
+
+> Table 8
+> DAF tool suite used for evidence collection.
+> Tool Purpose Entity analysis Extract entities and simple relations from the query. Pattern detector Match sensitive keywords and jailbreak-style patterns. Pretrained classifier Detect prompt-injection or harmful-content signals. Zero-shot classifier Score broad categories such as violence or illegal activity.
+
+parser extracts a safety label from {S AFE , U NSAFE , C ON -
+
+> TROVERSIAL
+
+} and a subset of predefined risk categories, in-cluding violent content, non-violent illegal acts, sexual con-tent, personally identifiable information, suicide and self-harm, unethical acts, politically sensitive topics, copyright violation, jailbreak, and none. The injected SMF report follows a compact format: 
+
+> === Safety Assessment Report === [Prompt Safety] Safety Level: <Safe/Unsafe/Controversial> Risk Categories: <category list> === End of Report ===
+
+If the parsed label is U NSAFE , the defender returns a refusal directly. Otherwise, the report is prepended to the original query and passed to the protected model. 
+
+A.4. DAF Tool Suite and Report Format 
+
+DAF uses a safety-analysis agent that runs an agentic loop over a small set of complementary tools. The tools are intentionally simple and auditable, because the defense should improve traceability rather than rely only on opaque free-form judgments. Table 8 summarizes the tool suite used for evidence collection in our implementation. The DAF report uses backend-generated safety levels (e.g., suspicious or unsafe), together with confidence, risk categories, analysis summary, and recommended action. These fields are produced after the agentic loop terminates and are standardized into one of A LLOW , F LAG , and B LOCK .BLOCK terminates the generation process with a refusal, while A LLOW and F LAG forward the safety report as context. In deployment, high-risk categories can be routed to manda-tory policy checks before an A LLOW decision is accepted. 
+
+A.5. ASR and Toxicity Judging 
+
+ASR measures the fraction of generated outputs that do not contain refusal or safety-redirection signals and therefore count as successful bypasses. The refusal detector uses a fixed list of refusal prefixes and safety-redirection phrases, applied identically across undefended, SMF, and DAF out-puts. TS is evaluated on a five-point scale by an independent DeepSeek-V3 judge. The judge receives the original user instruction, the model response, and a policy-based scoring rubric: 1 indicates refusal or safe redirection, 2 indicates   
+
+> Zhenhao Xu et al.: Preprint submitted to Elsevier Page 15 of 17
+
+Safety Context Injection 
+
+cautious high-level discussion, 3 indicates unsafe engage-ment without explicit actionable content, 4 indicates clearly prohibited content, and 5 indicates direct fulfillment of the harmful intent. Direct SMF/DAF blocks are assigned the safest score because the protected model is not asked to generate harmful content. 
+
+A.6. Statistical Method 
+
+For the significance analysis, each paired comparison is computed across the five attack families. We use a paired 
+
+𝑡 -test and report Cohen’s 𝑑 𝑧 to quantify effect size. Because each paired test contains only five attack-level observations, p-values are treated as supportive rather than decisive ev-idence. The primary interpretation is based on the joint pattern of ASR/TS reductions, effect sizes, and case-level behavior. 
+
+## References 
+
+[1] Anil, C., Durmus, E., Panickssery, N., Sharma, M., Benton, J., Kundu, S., Batson, J., Tong, M., Mu, J., Ford, D., et al., 2024. Many-shot jailbreaking. Advances in Neural Information Processing Systems 37, 129696–129742. [2] Chang, W., Zhu, T., Zhao, Y., Song, S., Xiong, P., Zhou, W., 2026. Chain-of-lure: A universal jailbreak attack framework using uncon-strained synthetic narratives. URL: https://arxiv.org/abs/2505. 17519 , arXiv:2505.17519 .[3] Chao, P., Robey, A., Dobriban, E., Hassani, H., Pappas, G.J., Wong, E., 2025. Jailbreaking black box large language models in twenty queries, in: 2025 IEEE Conference on Secure and Trustworthy Ma-chine Learning (SaTML), IEEE. pp. 23–42. [4] Chen, K., Lu, H., Yao, Y., Fang, B., Liu, Y., Tian, Z., 2025a. En-hancing container security through phase-based system call filtering. IEEE Transactions on Cloud Computing 13, 983–994. doi: 10.1109/ TCC.2025.3583414 .[5] Chen, S., Piet, J., Sitawarin, C., Wagner, D., 2025b. StruQ: De-fending against prompt injection with structured queries, in: 34th USENIX Security Symposium (USENIX Security 25), USENIX As-sociation. pp. 2383–2400. URL: https://www.usenix.org/conference/ usenixsecurity25/presentation/chen-sizhe .[6] Khanov, M., Burapacheep, J., Li, Y., 2024. ARGS: Alignment as reward-guided search, in: The Twelfth International Conference on Learning Representations. URL: https://openreview.net/forum?id= shgx0eqdw6 .[7] Li, H., Liu, X., Zhang, N., Xiao, C., 2025. PIGuard: Prompt injection guardrail via mitigating overdefense for free, in: Pro-ceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), Association for Computational Linguistics, Vienna, Austria. pp. 30420–30437. URL: https://aclanthology.org/2025.acl-long.1468/ , doi: 10.18653/ v1/2025.acl-long.1468 .[8] Li, Z., Peng, B., He, P., Yan, X., 2024. Evaluating the instruction-following robustness of large language models to prompt injection, in: Proceedings of the 2024 Conference on Empirical Methods in Natural Language Processing, Association for Computational Linguistics, Miami, Florida, USA. pp. 557–568. URL: https://aclanthology.org/ 2024.emnlp-main.33/ , doi: 10.18653/v1/2024.emnlp-main.33 .[9] Liang, J., Jiang, T., Wang, Y., Zhu, R., Ma, F., Wang, T., 2025. Autoran: Automated hijacking of safety reasoning in large reasoning models. URL: https://arxiv.org/abs/2505.10846 , arXiv:2505.10846 .[10] Liu, Q., Zhou, Z., He, L., Liu, Y., Zhang, W., Su, S., 2024a. Alignment-enhanced decoding: Defending jailbreaks via token-level adaptive refining of probability distributions, in: Proceedings of the 2024 Conference on Empirical Methods in Natural Language Process-ing, Association for Computational Linguistics, Miami, Florida, USA. pp. 2802–2816. URL: https://aclanthology.org/2024.emnlp-main. 164/ , doi: 10.18653/v1/2024.emnlp-main.164 .[11] Liu, T., Zhang, Y., Zhao, Z., Dong, Y., Meng, G., Chen, K., 2024b. Making them ask and answer: Jailbreaking large language models in few queries via disguise and reconstruction, in: 33rd USENIX Security Symposium (USENIX Security 24), USENIX Association, Philadelphia, PA. pp. 4711–4728. URL: https://www.usenix.org/ conference/usenixsecurity24/presentation/liu-tong .[12] Liu, X., Xu, N., Chen, M., Xiao, C., 2024c. AutoDAN: Generating stealthy jailbreak prompts on aligned large language models, in: The Twelfth International Conference on Learning Representations. URL: 
+
+> https://openreview.net/forum?id=7Jwpw4qKkb
+
+.[13] Lu, Y., Cheng, J., Zhang, Z., Cui, S., Wang, C., Gu, X., Dong, Y., Tang, J., Wang, H., Huang, M., 2025. Longsafety: Evaluating long-context safety of large language models, in: Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers), pp. 31705–31725. [14] Ouyang, L., Wu, J., Jiang, X., Almeida, D., Wainwright, C.L., Mishkin, P., Zhang, C., Agarwal, S., Slama, K., Ray, A., Schulman, J., Hilton, J., Kelton, F., Miller, L., Simens, M., Askell, A., Welinder, P., Christiano, P.F., Leike, J., Lowe, R., 2022. Training language models to follow instructions with human feedback, in: Advances in Neural Information Processing Systems, pp. 27730–27744. URL: 
+
+> https://proceedings.neurips.cc/paper_files/paper/2022/hash/ b1efde53be364a73914f58805a001731-Abstract-Conference.html
+
+.[15] Reimers, N., Gurevych, I., 2019. Sentence-BERT: Sentence embed-dings using siamese BERT-networks, in: Proceedings of the 2019 Conference on Empirical Methods in Natural Language Processing and the 9th International Joint Conference on Natural Language Pro-cessing (EMNLP-IJCNLP), Association for Computational Linguis-tics, Hong Kong, China. pp. 3982–3992. URL: https://aclanthology. org/D19-1410/ , doi: 10.18653/v1/D19-1410 .[16] Shen, X., Chen, Z., Backes, M., Shen, Y., Zhang, Y., 2024. “do anything now”: Characterizing and evaluating in-the-wild jailbreak prompts on large language models, in: Proceedings of the 2024 ACM SIGSAC Conference on Computer and Communications Security, Association for Computing Machinery. pp. 1671–1685. URL: https: //doi.org/10.1145/3658644.3670388 , doi: 10.1145/3658644.3670388 .[17] Wei, A., Haghtalab, N., Steinhardt, J., 2023. Jailbroken: How does LLM safety training fail?, in: Advances in Neural Information Processing Systems, pp. 80079–80110. URL: 
+
+> https://proceedings.neurips.cc/paper_files/paper/2023/hash/ fd6613131889a4b656206c50a8bd7790-Abstract-Conference.html
+
+.[18] Wei, J., Wang, X., Schuurmans, D., Bosma, M., Ichter, B., Xia, F., Chi, E., Le, Q.V., Zhou, D., 2022. Chain-of-thought prompting elicits reasoning in large language models, in: Ad-vances in Neural Information Processing Systems, pp. 24824– 24837. URL: https://proceedings.neurips.cc/paper/2022/hash/ 9d5609613524ecf4f15af0f7b31abca4-Abstract-Conference.html .[19] Wu, T., Zhang, S., Song, K., Xu, S., Zhao, S., Agrawal, R., Indurthi, S.R., Xiang, C., Mittal, P., Zhou, W., 2025. Instructional segment embedding: Improving LLM safety with instruction hierarchy, in: The Thirteenth International Conference on Learning Representations. URL: https://openreview.net/forum?id=sjWG7B8dvt .[20] Xiong, C., Qi, X., Chen, P.Y., Ho, T.Y., 2025. Defensive prompt patch: A robust and generalizable defense of large language models against jailbreak attacks, in: Findings of the Association for Computational Linguistics: ACL 2025, Association for Computational Linguistics, Vienna, Austria. pp. 409–437. URL: https://aclanthology.org/2025. findings-acl.23/ , doi: 10.18653/v1/2025.findings-acl.23 .[21] Xu, Z., Jiang, F., Niu, L., Jia, J., Lin, B.Y., Poovendran, R., 2024. SafeDecoding: Defending against jailbreak attacks via safety-aware decoding, in: Proceedings of the 62nd Annual Meeting of the As-sociation for Computational Linguistics (Volume 1: Long Papers), Association for Computational Linguistics, Bangkok, Thailand. pp. 5587–5605. URL: https://aclanthology.org/2024.acl-long.303/ ,doi: 10.18653/v1/2024.acl-long.303 .
+
+Zhenhao Xu et al.: Preprint submitted to Elsevier Page 16 of 17 Safety Context Injection 
+
+[22] Yan, J., Yadav, V., Li, S., Chen, L., Tang, Z., Wang, H., Srinivasan, V., Ren, X., Jin, H., 2024. Backdooring instruction-tuned large language models with virtual prompt injection, in: Proceedings of the 2024 Conference of the North American Chapter of the Association for Computational Linguistics: Human Language Technologies (Volume 1: Long Papers), Association for Computational Linguistics, Mexico City, Mexico. pp. 6065–6086. URL: https://aclanthology.org/2024. naacl-long.337/ , doi: 10.18653/v1/2024.naacl-long.337 .[23] Yu, J., Lin, X., Yu, Z., Xing, X., 2024a. LLM-Fuzzer: Scaling assessment of large language model jailbreaks, in: 33rd USENIX Security Symposium (USENIX Security 24), USENIX Association, Philadelphia, PA. pp. 4657–4674. URL: https://www.usenix.org/ conference/usenixsecurity24/presentation/yu-jiahao .[24] Yu, Z., Liu, X., Liang, S., Cameron, Z., Xiao, C., Zhang, N., 2024b. Don’t listen to me: Understanding and exploring jail-break prompts of large language models, in: 33rd USENIX Security Symposium (USENIX Security 24), USENIX Association, Philadel-phia, PA. pp. 4675–4692. URL: https://www.usenix.org/conference/ usenixsecurity24/presentation/yu-zhiyuan .[25] Zhang, Z., Yang, J., Ke, P., Mi, F., Wang, H., Huang, M., 2024. Defending large language models against jailbreaking attacks through goal prioritization, in: Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Pa-pers), Association for Computational Linguistics, Bangkok, Thailand. pp. 8865–8887. URL: https://aclanthology.org/2024.acl-long.481/ ,doi: 10.18653/v1/2024.acl-long.481 .
+
+Zhenhao Xu et al.: Preprint submitted to Elsevier Page 17 of 17

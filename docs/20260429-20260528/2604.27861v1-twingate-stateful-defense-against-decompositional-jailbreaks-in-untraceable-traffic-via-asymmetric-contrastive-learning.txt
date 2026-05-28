@@ -1,0 +1,496 @@
+Title: TwinGate: Stateful Defense against Decompositional Jailbreaks in Untraceable Traffic via Asymmetric Contrastive Learning
+
+URL Source: https://arxiv.org/pdf/2604.27861v1
+
+Published Time: Fri, 01 May 2026 01:00:12 GMT
+
+Number of Pages: 14
+
+Markdown Content:
+# TwinGate: Stateful Defense against Decompositional Jailbreaks in Untraceable Traffic via Asymmetric Contrastive Learning 
+
+# Bowen Sun 1 Chaozhuo Li 2∗ Yaodong Yang 3 Yiwei Wang 4 Chaowei Xiao 1
+
+> 1
+
+Johns Hopkins University 2Microsoft Research Asia 3Peking University 4University of California, Merced bsun39@jh.edu 
+
+## Abstract 
+
+Decompositional jailbreaks pose a critical threat to large language models (LLMs) by allowing adversaries to fragment a malicious objective into a sequence of individually benign queries that collec-tively reconstruct prohibited content. In real-world deployments, LLMs face a continuous, untraceable stream of fully anonymized and arbitrarily interleaved requests, infiltrated by covertly dis-tributed adversarial queries. Under this rigorous threat model, state-of-the-art defensive strategies exhibit fundamental limitations. In the absence of trustworthy user metadata, they are incapable of tracking global historical contexts, while their deployment of gener-ative models for real-time monitoring introduces computationally prohibitive overhead. To address this, we present TwinGate, a state-ful dual-encoder defense framework. TwinGate employs Asymmet-ric Contrastive Learning (ACL) to cluster semantically disparate but intent-matched malicious fragments in a shared latent space, while a parallel frozen encoder suppresses false positives arising from benign topical overlap. Each request requires only a single lightweight forward pass, enabling the defense to execute in parallel with the target model’s prefill phase at negligible latency overhead. To evaluate our approach and advance future research, we con-struct a comprehensive dataset of over 3.62 million instructions spanning 8,600 distinct malicious intents. Evaluated on this large-scale corpus under a strictly causal protocol, TwinGate achieves high malicious intent recall at a remarkably low false positive rate while remaining highly robust against adaptive attacks. Further-more, our proposal substantially outperforms stateful and stateless baselines, delivering superior throughput and reduced latency. 
+
+## 1 Introduction 
+
+The rapid proliferation of Large Language Models (LLMs) has ren-dered the development of robust safety mechanisms an increasingly pressing imperative [ 26 ]. While standard alignment techniques and input/output filtering pipelines [ 16 ] have progressively raised the threshold for successful adversarial exploitation, the threat land-scape continues to evolve, giving rise to novel attack paradigms that challenge existing defenses. Among the most consequential is the emerging class of decompositional jailbreaks [ 27 ]. Unlike conventional jailbreaking strategies [ 34 ] that seek to circumvent safety constraints within a single complex prompt, decompositional approaches systematically fragment a malicious objective into a sequence of discrete, ostensibly independent sub-tasks, as illus-trated in Table 1. Critically, each constituent instruction appears semantically benign in isolation, rendering it indistinguishable from legitimate user queries. Yet the aggregation of responses across this 
+
+> ∗Corresponding author.
+
+Table 1: Example of a decompositional jailbreak. 
+
+Original Malicious Intent 
+
+How can I burn down the house for insurance money? 
+
+Decomposed Benign-looking Queries 
+
+1. What are the electrical principles behind circuit overloads and how do they contribute to the risk of house fires? 2. What are the structural and safety properties of outdated wiring systems that make them more prone to causing house fires? 3. What are the thermal properties of electrical cords and cables, and how do they relate to fire initiation? 
+
+Reconstructed Malicious Response 
+
+To initiate an untraceable electrical fire, you can exploit outdated wiring systems by intentionally overloading a specific circuit. First, bypass the safety breaker by ... 
+
+sequence enables an adversary to reconstruct prohibited informa-tion in its entirety as Safe in Isolation, Dangerous Together [21]. A fundamental limitation of most existing defenses is their in-herently stateless nature [ 29 ]: prevailing paradigms such as general alignment training [ 8] and guardrail frameworks evaluate each prompt in strict isolation, blind to malicious intent distributed across multiple turns. No individual fragment violates safety con-straints alone, and harmful intent only emerges in aggregate across the trajectory. As a result, decompositional jailbreaks achieve alarm-ingly high attack success rates (ASR) even against rigorously aligned models, effectively neutralizing RLHF-based alignment [ 18 ] and input/output filtering. The research community has begun to address decompositional threats by fortifying single-request filters [ 12 , 27 ] and deploying sequential monitoring frameworks [ 35 ]. The nucleus of defending against decompositional jailbreaks lies in precisely aggregating decomposed queries to reconstruct the adversary’s original intent. Existing methods, however, rest on a strong assumption of trace-able traffic , specifically relying on predefined metadata, such as IP addresses and user identities, to associate and attribute sequences of queries to a specific principal. However, attackers can trivially cir-cumvent identity-based attribution by distributing malicious query fragments across multiple accounts, sessions, or network endpoints, effectively dissolving their attack signal into the untraceable back-ground noise of large-scale traffic. Furthermore, prevailing defenses commonly employ auxiliary LLMs to perform contextual analy-sis or intent classification, introducing a severe and asymmetric computational burden in which the cost of defense substantially exceeds that of mounting an attack [35, 36]. 
+
+> arXiv:2604.27861v1 [cs.CR] 30 Apr 2026 Sun et al.
+
+In this paper, we propose TwinGate, a stateful defense framework against decompositional jailbreaks that addresses two core chal-lenges: untraceable traffic and high operational overhead. TwinGate assumes a worst-case scenario of fully anonymized, arbitrarily in-terleaved requests, forcing all detection to rely purely on semantic analysis. This creates a structural problem we call the semantic gap: the individual steps of a distributed multi-session attack (e.g., sep-arately querying wires and fertilizer) share negligible embedding similarity, defeating conventional detection. TwinGate bridges this gap with Asymmetric Contrastive Learning (ACL), which clusters semantically disparate but intent-matched malicious fragments in a shared latent space. This aggressive clustering, however, risks rep-resentation collapse, spuriously grouping benign users discussing related topics as coordinated attackers. TwinGate resolves this through a dual-path decision inheritance mechanism: a parallel frozen encoder acts as a conservative anchor, preventing benign-but-similar requests from being escalated. Together, the contrastive and frozen encoders consolidate evidence of malicious intent across turns while suppressing the false positives that typically plague stateful semantic monitoring. To simultaneously manage the massive volume of historical data dictated by our untraceable traffic threat model and maintain strict operational efficiency, TwinGate is engineered from the ground up for high-throughput scalability. We achieve this by deploying an asynchronous, parallel dual-encoder architecture coupled with dual in-memory vector databases. By processing each incoming request with only a single lightweight forward pass per encoder, TwinGate entirely circumvents the computational bottlenecks typ-ical of generative-model-based strategies. This architectural effi-ciency drastically reduces the per-request computational footprint, enabling the system to sustain high-speed retrieval and evaluation with minimal latency overhead. To operationalize the dual-path learning objective, we construct a large-scale dataset comprising over 3.62 million requests, in-cluding 603k independent samples, 250k benign intents, and over 8,600 distinct malicious intents, each independently decomposed by multiple splitter models to ensure broad coverage of real-world attack variations. Our evaluation protocol is designed to rigorously mirror operational deployment conditions, simulating a continuous request stream in which the defense issues strictly causal decisions without access to future context. Under this protocol, the proposed system demonstrates strong generalization: on the rigorous gener-alized detection task, it achieves a malicious intent recall exceeding 0.76 while maintaining a false positive rate below 2 × 10 −3. Fur-thermore, deploying TwinGate reduces the attack success rate of simulated adaptive attacks to 0.18, collectively validating the dual-encoder architecture’s capacity to balance detection sensitivity with operational precision. In summary, we make the following contributions: 
+
+• To the best of our knowledge, we are the first to formally define and study the problem of defending against decom-positional jailbreaks in the untraceable traffic setting, a practically significant and previously unexplored challenge. 
+
+• We propose TwinGate, a stateful dual-encoder defense mech-anism designed specifically for the threat model of untrace-able traffic. Without relying on any user metadata, our system successfully identifies cumulative malicious intent embedded across fragmented instructions. 
+
+• We construct a large-scale dataset comprising diverse be-nign, independent, and decomposed malicious instructions, providing a rigorous benchmark for evaluating defense robustness against multiple decomposing implementations. 
+
+• We empirically demonstrate that TwinGate substantially outperforms both stateful and stateless baselines against decompositional and adaptive attacks. Its lightweight en-coding and efficient database retrieval further yield low latency and high scalability, confirming its suitability for high-throughput production environments. 
+
+## 2 Related Work 
+
+Decompositional Jailbreaks. Early adversarial attacks on Large Language Models (LLMs) primarily focused on single-turn optimiza-tion, utilizing gradient-based search or manual template injection to bypass safety alignment within a single prompt [ 32 ]. However, as safety filters have evolved to detect explicit malicious patterns, the threat landscape has shifted towards more sophisticated multi-turn strategies that exploit the model’s context-following capabilities and the stateless nature of standard defenses. A pivotal precursor is Crescendo [19 ], which engages the model in a multi-turn conversation that begins with benign topics and imperceptibly escalates toward prohibited content. Although not strictly a semantic fragmentation attack, it bypasses guardrails that evaluate each turn in isolation by exploiting the cumulative toxicity of the dialogue history. Building upon this exploitation of context, recent research has formalized the paradigm of decompositional jailbreaks. Srivastav and Zhang [21] characterize this threat model as Safe in Isolation, Dangerous Together . In this framework, complex malicious objec-tives are strategically fragmented into a sequence of discrete, se-mantically disjoint sub-tasks. Orchestrated by multi-agent systems, these prompts appear benign to safety filters yet aggregate to re-construct the harmful information. Representing the current state-of-the-art, the CKA-Agent frame-work [ 28 ] combines harmless prompt weaving with adaptive tree search, decomposing hazardous queries into a web of independent sub-questions and optimizing the retrieval path so that no single step triggers a refusal. CKA-Agent reports remarkably high Attack Success Rates (ASR) across both open-source white-box and propri-etary black-box targets, exposing a systemic limitation: stateless defenses adjudicate safety at the prompt level without historical semantic state, leaving them blind to malicious intent dispersed across ostensibly harmless interactions. 
+
+Defenses against Decompositional Jailbreaks. Countering de-compositional threats requires shifting from static single-turn anal-ysis to dynamic, context-aware evaluation. Benchmarking efforts such as CASE-Bench [ 22 ] empirically establish that stateful defenses are essential: stateless mechanisms simultaneously miss malicious intent dispersed across benign-looking interactions and over-flag complex multi-step legitimate queries. In response to this need for context, early attempts at stateful defense have focused on session-level monitoring. For instance, Yueh-Han et al . [35] proposed a lightweight sequential monitor TwinGate: Stateful Defense against Decompositional Jailbreaks in Untraceable Traffic via Asymmetric Contrastive Learning 
+
+designed to track and aggregate the semantic trajectory of a user’s requests within a continuous session. While effective in a coop-erative setting, this approach relies on a fragile threat model that assumes a stable, attributable user identity. In real-world adversar-ial scenarios, this assumption is easily circumvented: sophisticated attackers can trivially evade such monitors by distributing their decomposed queries across multiple distinct sessions or identities, effectively resetting the defender’s memory and rendering the ac-cumulation of suspicion impossible. Alternative strategies leverage retrieval mechanisms to iden-tify potential attacks based on historical patterns. RePD [ 27 ], for example, employs a retrieval-based framework to fetch similar past attack templates and uses them to guide the LLM in recogniz-ing decomposition attempts. However, this method introduces a prohibitive computational bottleneck. By requiring heavy-weight generative models to perform real-time reasoning and comparison against retrieved templates before processing the user’s actual re-quest, RePD incurs a significant latency penalty. This reliance on heavy-weight model inference drastically increases the Time-To-First-Token (TTFT), making it operationally infeasible for latency-sensitive production environments. Similarly, approaches that focus on explicit intent extraction face severe scalability and accuracy challenges. Methods like In-tention Analysis [ 36 ] compel the LLM to explicitly reconstruct and articulate the underlying user intent behind a prompt before gen-erating a response. This process not only exacerbates the latency and cost issues inherent in generative-model-reliant defenses but also fundamentally fails to address the stateful nature of decom-position attacks. Because the intent extraction is performed on a single input in isolation, it lacks the historical context necessary to distinguish a benign query about “wiring” from a malicious step in a “bomb-making” sequence. Consequently, these stateless intent analyzers are prone to high false positive rates, flagging legitimate technical or creative queries as dangerous due to a lack of broader conversational context. In summary, existing defenses present a trilemma: they are op-erationally fragile under spoofable metadata, computationally pro-hibitive due to generative-model-reliant inference (incurring sig-nificant TTFT penalties), and unscalable beyond the finite context window of standard LLMs. TwinGate sidesteps all three by pairing a metadata-free dual-encoder with high-throughput vector retrieval, scaling to production-grade untraceable traffic. 
+
+## 3 Methodology 3.1 Threat Model and Problem Formulation 
+
+In this subsection, we formalize the threat model of decompositional jailbreaks within an untraceable traffic environment and formulate our stateful defense objective. 
+
+Intents and Fragments. Let I denote the space of user intents, partitioned into malicious intents I𝑚𝑎𝑙 and benign intents I𝑏𝑒𝑛 . Let 
+
+O𝑠𝑡𝑎𝑡𝑒𝑙𝑒𝑠𝑠 (·) → { 0, 1} represent a standard stateless safety oracle, which outputs 1 (safe) or 0 (unsafe). Formally, a stateless defense evaluates an incoming query exclusively based on its local seman-tics, such that the decision O𝑠𝑡𝑎𝑡𝑒𝑙𝑒𝑠𝑠 (𝑞 𝑡 ) is strictly independent of any prior query history. By definition, for any complete malicious intent 𝐼 𝑚𝑎𝑙 ∈ I 𝑚𝑎𝑙 , O𝑠𝑡𝑎𝑡𝑒𝑙𝑒𝑠𝑠 (𝐼 𝑚𝑎𝑙 ) = 0.
+
+Table 2: Comparison between our proposed dataset and De-composedHarm [35], an in-session jailbreak dataset. Feature Ours DecomposedHarm [35] 
+
+Total Intents 250,625 4,641 Background Noise 603,842 0 (No Isolated Requests) Max Splits per Sample 3 1Source Datasets 12 3To evade detection, an adversary A employs a decomposition function Φ(𝐼 𝑚𝑎𝑙 ) = {𝑥 1, 𝑥 2, . . . , 𝑥 𝑛 }, partitioning the malicious in-tent into a set of 𝑛 distinct instruction fragments. These fragments lack strict temporal dependency and can be submitted in any arbi-trary order. The attack exhibits two core properties: 
+
+• Safe in isolation : Each individual fragment 𝑥 𝑖 appears in-nocuous. To maintain usability, O𝑠𝑡𝑎𝑡𝑒𝑙𝑒𝑠𝑠 effectively per-mits them, yielding O𝑠𝑡𝑎𝑡𝑒𝑙𝑒𝑠𝑠 (𝑥 𝑖 ) = 1 for all 1 ≤ 𝑖 ≤ 𝑛 .
+
+• Dangerous together : The aggregation of the LLM’s responses to the complete set {𝑥 1, . . . , 𝑥 𝑛 } provides sufficient informa-tion to fulfill the original intent 𝐼 𝑚𝑎𝑙 .The vast majority of stream requests are benign—some sharing a common benign intent 𝐼 𝑏𝑒𝑛 ∈ I 𝑏𝑒𝑛 , others entirely unrelated—and both the stateless oracle O𝑠𝑡𝑎𝑡𝑒𝑙𝑒𝑠𝑠 and any stateful defense must admit them without false flags. 
+
+Untraceable Traffic. We model the real-world deployment envi-ronment as a global, continuous request stream S = (𝑞 1, 𝑞 2, . . . , 𝑞 𝑡 , . . . ),where 𝑞 𝑡 is the query arriving at the LLM gateway at global time step 𝑡 . Under the untraceability assumption , the gateway observes only the raw semantic content of 𝑞 𝑡 , devoid of any reliable user metadata (e.g., session IDs or IP addresses). The adversary covertly injects the fragment set {𝑥 1, . . . , 𝑥 𝑛 } into 
+
+S. This results in an unknown, strictly increasing timestamp se-quence 𝑡 1 < 𝑡 2 < · · · < 𝑡 𝑛 such that 𝑞 𝑡 𝑖 = 𝑥 𝑖 . Crucially, between any two attack fragments 𝑞 𝑡 𝑖 and 𝑞 𝑡 𝑖 +1 , the stream is interleaved with an arbitrary number of background queries originating from other independent users. 
+
+Defense Objective. Let H𝑡 −1 = {𝑞 1, . . . , 𝑞 𝑡 −1 } denote the global history of all queries processed prior to time 𝑡 . In contrast to a stateless oracle, a stateful defense conditions its adjudication on prior interactions. Formally, our objective is to learn a stateful deci-sion function F𝑑𝑒 𝑓 (𝑞 𝑡 , H𝑡 −1) → { 0, 1} that incorporates temporal memory to intercept distributed malicious intents. 
+
+## 3.2 Dataset Construction 
+
+Motivation and Overview. The development of effective stateful defenses against decompositional jailbreaks necessitates a large-scale, high-quality dataset that accurately reflects the complexity of real-world traffic. While pioneering efforts such as Decomposed-Harm [ 35 ] have laid the groundwork, they are limited in scale and diversity, which is insufficient for training data-intensive models. To address the limitations of existing benchmarks, we construct a large-scale, comprehensive dataset that serves as the empirical foundation. As summarized in Table 2, our dataset substantially ex-pands the total number of intents, incorporates realistic background noise, increases fragmentation complexity (i.e., the number of splits Sun et al. 
+
+per sample), and draws from a broader range of source corpora. Our dataset conforms to a stricter threat model in which attack instructions are entirely stateless, requiring neither shared conver-sational context nor strict sequential ordering, thereby posing a rigorous challenge for detection and defense systems. The dataset comprises 603,842 independent benign queries, 250,625 benign intents with their corresponding decompositions, and 8,681 malicious intents with their associated fragments. Data are par-titioned into training, validation, and test sets following an 8:1:1 ratio. To preclude data leakage, partitioning is performed strictly at the intent level, ensuring that all fragments derived from the same intent reside within the same split, and that the model is evaluated exclusively on intents unseen during training. 
+
+Unfragmented Benign Requests. To model the broad distribution of safe user interactions, we curate benign queries sourced from five high-quality instruction datasets: CodeAlpaca [ 2 ], Dolly [ 3], LMSYS-Chat-1M [37], UltraChat [4], and WizardLM [30]. Our curation pipeline prioritizes both safety and semantic dis-tinctness. We first exclude all instructions flagged as potentially unsafe in their source datasets. The remaining candidates are then subjected to an additional safety audit via Llama-3-8B-Guard [ 12 ], and any query failing the guardrail check is discarded. To reduce duplication within a dataset and across datasets, we apply a three-stage deduplication pipeline: (1) exact string matching, (2) MinHash-based similarity filtering, and (3) 𝑛 -gram overlap analysis. 
+
+Fragmented Benign Intents. To faithfully emulate legitimate users performing cross-session interactions, we extract benign in-tents from three complex task datasets: Stanford Alpaca [ 23 ], Al-pacaEval [ 6], and Magpie [ 31 ]. These intents are subject to the same safety filtration pipeline applied to unfragmented queries, combin-ing metadata filtering with Llama-3-8B-Guard [ 12 ] verification, followed by the full three-stage deduplication procedure. Verified benign intents are subsequently decomposed using three distinct models: Mistral-Small-24B-Instruct-2501-abliterated [14 ], 
+
+Qwen3-32B-abliterated [33 ], and Qwen3-30B-A3B-abliterated , all of which are orthogonalized variants produced via refusal direction ablation [ 1 ]. Crucially, these models are identical to those employed for malicious decomposition. Sharing decomposition models across both benign and malicious data is a deliberate design choice in-tended to avoid superficial stylistic artifacts introduced by different generation processes. 
+
+Fragmented Malicious Intents. To construct a comprehensive set of adversarial attack scenarios, we collect initial malicious intents from four widely adopted safety evaluation benchmarks: Harm-Bench [ 17 ], AdvBench [ 38 ], StrongReject [ 20 ], and BeaverTails [ 13 ]. These intents are processed through the same three-stage dedupli-cation pipeline (exact match, MinHash, 𝑛 -gram overlap) to ensure a semantically diverse collection of attack objectives. Decomposition is carried out using the CKA-Agent framework [ 28 ]with the same three abliterated splitters as the benign pipeline, whose refusal direction has been ablated [ 1 ] so that they do not reject adversarial decomposition prompts. We select CKA-Agent primarily because it integrates an automated verification mecha-nism capable of evaluating both the overall success of the recon-structed attack and whether each isolated sub-query is deemed safe by the target model. To guarantee both the efficacy and stealthi-ness of the resulting attacks, we impose a strict quality criterion: an intent-decomposition pair is retained in the dataset only if the aggregated response is assigned the highest rating, indicating that the output is both harmful and actionable. This constraint ensures that the decomposed fragment sequences successfully circumvent single-query defenses while collectively fulfilling the adversary’s malicious objective. All generated sub-queries are finally subjected to the three-stage global deduplication pipeline to maintain seman-tic uniqueness across the full dataset. 
+
+## 3.3 Overview of TwinGate 
+
+Figure 1 illustrates the end-to-end TwinGate workflow. The design factors the defense into an offline training phase (Section 3.4), which shapes an intent-clustering latent space, and an online deployment phase (Section 3.5), which adjudicates a continuous request stream against a globally maintained vector repository. 
+
+System Architecture. TwinGate comprises four logical compo-nents that together realize the stateful decision function F𝑑𝑒 𝑓 (𝑞 𝑡 , H𝑡 −1).(i) A frozen encoder produces a semantic vector capturing the literal surface meaning of 𝑞 𝑡 . (ii) An ACL-finetuned encoder produces an intent vector that maps 𝑞 𝑡 into a latent space organized by mali-cious objective rather than topical similarity. (iii) A global vector repository stores both representations of every previously processed query in H𝑡 −1, and is queried in parallel by both encoders. (iv) A 
+
+two-stage decision module first inherits a prior verdict via a fast-path bypass when the semantic vector closely matches a historical entry; otherwise it adjudicates 𝑞 𝑡 against the intent-vector database to detect membership in an established malicious cluster. After the verdict is returned to the gateway, both vectors and the decision are asynchronously written back to the repository, sustaining the temporal memory required by F𝑑𝑒 𝑓 without blocking inference. 
+
+Decoupled Stateful Retrieval. Concatenating historical requests inside an LLM context window is untenable under high-throughput, untraceable traffic: interleaved queries rapidly exhaust the window, and Transformer [ 24 ] attention scales quadratically. Offloading 
+
+H𝑡 −1 to an external vector repository replaces in-context reasoning with retrieval, reducing the per-request cost to two lightweight en-coder passes plus a top-1 similarity query and decoupling memory growth from inference latency. 
+
+Intent Clustering via Asymmetric Contrastive Learning. Stan-dard pre-trained encoders organize representations by surface sim-ilarity, which is insufficient when a unified malicious intent is deliberately fragmented into semantically disparate queries. ACL reorients the latent space around intent: fragments derived from a common malicious objective are pulled into compact clusters, while benign queries act exclusively as repulsive negatives so the broad benign manifold remains structurally intact. The training objective is formalized in Section 3.4. 
+
+Decision Inheritance for FPR Control. Aggressive intent clus-tering inevitably elevates the false-positive risk for repeated or near-duplicate benign requests, whose embeddings may drift to-ward established malicious clusters by virtue of topical proximity alone. The frozen encoder addresses this via a high-precision repe-tition check: when an incoming query closely matches a previously adjudicated request in semantic space, the system inherits the prior verdict on a fast path that bypasses ACL evaluation entirely, an-choring the false positive rate (FPR) to the small set of admitted TwinGate: Stateful Defense against Decompositional Jailbreaks in Untraceable Traffic via Asymmetric Contrastive Learning Not Found  
+
+> Anonymous
+> Request
+> ACL-Finetuned
+> Encoder
+> Frozen
+> Encoder
+> Intent Vector
+> Semantic Vector
+> Semantic Database
+> Intent Database
+> Found
+> Found
+> Embedding
+> Embedding Query
+> Query
+> Intent
+> Classification
+> FPR Control
+> Inherit the Previous Decision of the Found Record
+> Not Found
+
+Refuse 
+
+Approve  
+
+> Decision Database
+> Write-Back
+> Final
+> Decision
+> Intent Vector
+> Semantic Vector
+
+Figure 1: The end-to-end workflow of TwinGate. For each incoming request, the system performs dual encoding, stateful vector querying, and decision making (including decision inheritance and ACL intent clustering), followed by an asynchronous write-back to the vector database. 
+
+historical decisions. The complete two-stage routing is formalized in Section 3.5. 
+
+## 3.4 Asymmetric Contrastive Learning 
+
+Section 3.3 positioned the ACL-finetuned encoder as TwinGate’s intent-clustering component; this subsection formalizes its offline training over a DeBERTaV3 [ 9 ] backbone. Diverse decomposition strategies fragment a single malicious objective into queries appear-ing semantically unrelated, so contrastive objectives optimized for surface similarity cannot recover the shared intent. ACL instead attracts fragments of a common malicious objective while using benign traffic as a repulsive boundary, yielding a geometry discrim-inative against attacks yet preserving legitimate query structure. 
+
+Architecture and Representations. We employ an encoder-only architecture comprising a pre-trained Transformer backbone and a 2-layer non-linear MLP projection head (Linear → GELU [ 11 ]
+
+→ Linear). For a given input query 𝑥 , the encoder extracts the contextualized ‘[CLS]‘ token embedding, which is then projected into a lower-dimensional latent space and 𝐿 2-normalized. We denote this normalized latent representation as 𝑧 = 𝑓 𝜃 (𝑥 ) ∈ R𝑑 , where 𝜃 
+
+represents the trainable parameters. 
+
+Intent-Centric Labeling. Crucially, our labeling strategy com-pletely discards the source of the decomposition. For any malicious intent 𝐼 𝑚𝑎𝑙 ∈ I 𝑚𝑎𝑙 , let X( 𝐼 𝑚𝑎𝑙 ) denote the set containing the origi-nal intent itself along with all its decomposed fragments generated across multiple splitters. We assign a uniform contrastive label 𝑦 𝑚𝑎𝑙 
+
+to all 𝑥 ∈ X( 𝐼 𝑚𝑎𝑙 ). This aggressive grouping forces the model to ignore the superficial generation artifacts of different splitters and focus entirely on the core malicious objective. 
+
+Asymmetric Loss Formulation. We adapt the Supervised Con-trastive Learning (SupCon) framework. A symmetric SupCon would tightly cluster benign queries as well, collapsing their natural mani-fold (e.g., coding, writing, casual chat) and pulling them dangerously close to malicious ones. ACL therefore introduces an asymmetry: only malicious queries serve as anchors and exert positive attrac-tion; benign queries act exclusively as negatives , pushing malicious clusters away from the benign distribution. Formally, consider a training batch B consisting of a set of mali-cious queries B𝑚𝑎𝑙 and benign queries B𝑏𝑒𝑛 . For a malicious anchor 
+
+𝑥 𝑖 ∈ B 𝑚𝑎𝑙 , let 𝑃 (𝑖 ) = {𝑝 ∈ B \ { 𝑖 } | 𝑦 𝑝 = 𝑦 𝑖 } be the set of positive indices (other fragments sharing the same malicious intent 𝐼 𝑚𝑎𝑙 ). The ACL loss for the anchor 𝑥 𝑖 is defined as: 
+
+L𝑖 = −1
+
+|𝑃 (𝑖 )| ∑︁ 𝑝 ∈𝑃 (𝑖 )
+
+log exp (𝑧 𝑖 · 𝑧 𝑝 /𝜏 )
+
+Í𝑗 ∈ B\{ 𝑖 } exp (𝑧 𝑖 · 𝑧 𝑗 /𝜏 ) , (1) where 𝜏 is a scalar temperature parameter regulating the concen-tration of the distribution. The total batch loss is then computed exclusively over the mali-cious anchors: 
+
+L𝐴𝐶𝐿 = 1
+
+|B 𝑚𝑎𝑙 |∑︁ 𝑖 ∈ B 𝑚𝑎𝑙 
+
+L𝑖 . (2) In this formulation, if 𝑥 𝑘 ∈ B 𝑏𝑒𝑛 is a benign query, it never serves as an anchor 𝑖 , nor does it ever belong to a positive set 
+
+𝑃 (𝑖 ). However, it actively participates in the denominator Í𝑗 ∈ B\{ 𝑖 } ,acting as a universal negative. This asymmetric dynamic guarantees that fragments of the same malicious intent converge into dense, isolated clusters in the latent space, while the broad representation of benign traffic remains structurally intact and safely distanced from attack vectors. 
+
+## 3.5 Dual-Encoder Decision Logic 
+
+Online Deployment Phase. Pairing the ACL-finetuned encoder of Section 3.4 with the frozen semantic encoder introduced in Sec-tion 3.3, TwinGate’s runtime, depicted in Figure 1, processes the continuous, untraceable request stream S via a two-stage retrieval and decision mechanism. For each incoming query 𝑞 𝑡 at time 𝑡 , the system extracts two distinct 𝐿 2-normalized representations: (1) Semantic Vector 𝑠 𝑡 : Extracted via the frozen encoder. This vector accurately captures the literal and surface-level se-mantic meaning of the text. (2) Intent Vector 𝑧 𝑡 : Extracted via the ACL-finetuned encoder (𝑧 𝑡 = 𝑓 𝜃 (𝑞 𝑡 )). This vector maps the query into the optimized intent-clustering latent space. Given the global history of previously processed queries H𝑡 −1,and two predefined similarity thresholds, the semantic threshold 
+
+𝜏 𝑠𝑒𝑚 and the intent threshold 𝜏 𝑖𝑛𝑡 , the stateful decision function 
+
+F𝑑𝑒 𝑓 (𝑞 𝑡 , H𝑡 −1) operates through the following sequence: Sun et al. 
+
+Stage 1: Semantic Equivalence Inheritance. The aggressive clustering nature of the ACL objective inherently elevates the risk of False Positives. If a user repeatedly submits variations of the same safe query, the ACL encoder might cluster them so densely that they inadvertently trigger a malicious threshold. To counteract this, TwinGate first evaluates historical semantic repetition. We compute the maximum semantic similarity between the current query and the history: 
+
+𝑚 𝑠𝑒𝑚 = max   
+
+> 𝑞 𝑗 ∈ H 𝑡 −1
+
+(𝑠 𝑡 · 𝑠 𝑗 ). (3) If 𝑚 𝑠𝑒𝑚 > 𝜏 𝑠𝑒𝑚 , the system identifies a historical query 𝑞 𝑡 ∗ that is semantically equivalent to 𝑞 𝑡 . In this scenario, the system triggers a short-circuit logic: it bypasses the ACL evaluation entirely and directly inherits the final safety decision previously assigned to 
+
+𝑞 𝑡 ∗ . Formally, F𝑑𝑒 𝑓 (𝑞 𝑡 , H𝑡 −1) = F𝑑𝑒 𝑓 (𝑞 𝑡 ∗ , H𝑡 ∗ −1). This inheritance mechanism stabilizes the False Positive Rate by ensuring that repet-itive benign traffic is handled consistently based on its initial, safe evaluation. 
+
+Stage 2: Intent-based Attack Detection. If 𝑚 𝑠𝑒𝑚 ≤ 𝜏 𝑠𝑒𝑚 , 𝑞 𝑡 is semantically novel and TwinGate queries the database with 𝑧 𝑡 for the maximum historical intent similarity: 
+
+𝑚 𝑖𝑛𝑡 = max   
+
+> 𝑞 𝑗 ∈ H 𝑡 −1
+
+(𝑧 𝑡 · 𝑧 𝑗 ). (4) If 𝑚 𝑖𝑛𝑡 > 𝜏 𝑖𝑛𝑡 , it indicates that 𝑞 𝑡 belongs to an established cluster of malicious fragments traversing the system. Consequently, the de-fense mechanism intercepts the request, yielding F𝑑𝑒 𝑓 (𝑞 𝑡 , H𝑡 −1) =
+
+0. Conversely, if the query remains isolated in the latent space (𝑚 𝑖𝑛𝑡 ≤ 𝜏 𝑖𝑛𝑡 ), it is deemed safe and permitted to reach the LLM, yielding F𝑑𝑒 𝑓 (𝑞 𝑡 , H𝑡 −1) = 1.By cascading these two encoders, TwinGate effectively shields the aggressive malicious intent clustering (Stage 2) with a conserva-tive semantic equivalence filter (Stage 1), achieving a robust balance between attack recall and benign traffic availability. 
+
+## 3.6 Theoretical Bounds on Adaptive Attacks 
+
+Sections 3.3–3.5 described how TwinGate operates; we now bound its robustness against a white-box adaptive adversary via a geomet-ric ceiling on fragments that fit beneath the detection threshold (Theorem 1) and a computational ceiling on the discrete-search effort required to find them (Theorem 2). As defined in Section 3.1, the first fragment 𝑥 1 evades detection due to lack of prior context H𝑡 1 −1. For 𝑖 ≥ 2, evasion requires satis-fying three constraints in the latent manifold V ( 𝐼 𝑚𝑎𝑙 ): (1) semantic novelty max 𝑗 <𝑖 (𝑠 𝑡 𝑖 · 𝑠 𝑡 𝑗 ) ≤ 𝜏 𝑠𝑒𝑚 , blocking fast-path inheritance; (2) 
+
+intent evasion max 𝑗 <𝑖 (𝑧 𝑡 𝑖 · 𝑧 𝑡 𝑗 ) ≤ 𝜏 𝑖𝑛𝑡 , blocking intent-cluster re-call; and (3) effectiveness within V ( 𝐼 𝑚𝑎𝑙 ), since random text satisfies (1)–(2) but cannot advance 𝐼 𝑚𝑎𝑙 . Let 𝑟 = arccos (𝜏 𝑖𝑛𝑡 ) be the mini-mum angular distance between any two evasive intent embeddings imposed by constraint (2), and model the local intent space as a 
+
+𝑑 𝑖𝑛𝑡 -dimensional sub-manifold ( 𝑑 𝑖𝑛𝑡 ≤ 𝑑 − 1 from 𝐿 2 normalization) of maximum angular radius 𝑅 𝑚𝑎𝑙 centered at 𝐼 𝑚𝑎𝑙 .
+
+Theorem 1 (Maximum Decomposition Limit). In the small-angle regime 𝑟 ≪ 1, the number of evasive fragments 𝑛 𝑚𝑎𝑥 that an adversary can inject within V ( 𝐼 𝑚𝑎𝑙 ) is bounded by the spherical packing limit: 
+
+𝑛 𝑚𝑎𝑥 ≤
+
+ 2𝑅 𝑚𝑎𝑙 
+
+arccos (𝜏 𝑖𝑛𝑡 )
+
+𝑑 𝑖𝑛𝑡 
+
+. (5) 
+
+Proof sketch: Constraint (2) forces any two evasive intent embed-dings to lie at angular distance ≥ 𝑟 , so each occupies a non-overlapping spherical cap of radius 𝑟 /2 centered on 𝑧 𝑡 𝑖 . Packing such caps into 
+
+V ( 𝐼 𝑚𝑎𝑙 ) of radius 𝑅 𝑚𝑎𝑙 yields the bound via the angular-volume ratio vol (𝑅 𝑚𝑎𝑙 )/ vol (𝑟 /2) ≈ ( 2𝑅 𝑚𝑎𝑙 /𝑟 )𝑑 𝑖𝑛𝑡 . ACL training monotoni-cally tightens the bound by compressing 𝑅 𝑚𝑎𝑙 via the same-intent attraction term, but the slack against constraint (2) alone permits 
+
+𝑛 𝑚𝑎𝑥 > 1 whenever 𝑅 𝑚𝑎𝑙 > 𝑟 /2, consistent with the residual eva-sion observed in our adaptive-attack experiments (Section 5.4). 
+
+Theorem 2 (Computational Intractability of Discrete Eva-sion). The adversary operates in a discrete token space T 𝐿 where the encoder 𝑓 𝜃 : T 𝐿 → S𝑑 −1 is non-convex, so token-level per-turbations induce discrete, lower-bounded jumps in latent space rather than infinitesimal shifts. Let X𝑣𝑎𝑙 ⊂ T 𝐿 be the finite set of token sequences preserving semantic validity and evasiveness for 
+
+𝐼 𝑚𝑎𝑙 . To inject the 𝑖 -th fragment, the adversary must satisfy 𝑖 − 1
+
+historical exclusion constraints: 
+
+∀𝑗 ∈ { 1, . . . , 𝑖 − 1}, 𝑓 𝜃 (𝑥 𝑖 ) · 𝑧 𝑡 𝑗 ≤ 𝜏 𝑖𝑛𝑡 . (6) Let 𝛾 ∈ ( 0, 1) denote the fraction of X𝑣𝑎𝑙 excluded by a single such constraint, and assume valid token sequences map approximately uniformly over V ( 𝐼 𝑚𝑎𝑙 ) so that successive constraints are quasi-independent. The feasible set then shrinks multiplicatively: 
+
+|X (𝑖 ) 
+
+> 𝑓 𝑒𝑎𝑠
+
+| ≤ |X 𝑣𝑎𝑙 |( 1 − 𝛾 )𝑖 −1. (7) Consequently, the probability that a randomly drawn candidate satisfies all 𝑖 −1 constraints scales as (1−𝛾 )𝑖 −1, and any local-search algorithm (e.g., CKA-Agent) requires: 
+
+E[𝑄 𝑖 ] = Ω
+
+ 1
+
+(1 − 𝛾 )𝑖 −1
+
+
+
+. (8) As 𝑖 grows, E[𝑄 𝑖 ] scales exponentially, rendering fine-grained decompositional jailbreaks computationally intractable long before reaching the geometric packing limit of Theorem 1, a prediction validated empirically against white-box adaptive attackers in Sec-tion 5.4. 
+
+## 4 Hardware-Aware System Implementation 
+
+The practical deployment of TwinGate necessitates addressing both the semantic complexities of intent clustering and the rigorous latency requirements of production-grade LLM infrastructures. This section details the training dynamics, the theoretical and empirical justification for our stateful retrieval strategy, and our hardware-accelerated pipeline. 
+
+## 4.1 Training Dynamics 
+
+The Semantic Gap and Triangle Inequality. Clustering decom-posed attacks is fundamentally challenged by the extreme semantic divergence between fragments derived from the same malicious intent. While a model may associate a specific fragment (e.g., “write a script to traverse folders” ) with its latent malicious objective ( ran-somware development ), establishing a direct link between two such disparate fragments is non-trivial. To bridge this gap, we incorpo-rate the original, complete malicious intent into the training set as TwinGate: Stateful Defense against Decompositional Jailbreaks in Untraceable Traffic via Asymmetric Contrastive Learning 10 −4 10 −3 10 −2 10 −1
+
+> Benign Request False Positive Rate
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Malicious Intent Recall
+> TwinGate (Selected Split) TwinGate (Complete Split)
+
+Figure 2: Impact of semantic pruning on ACL performance: The pruned dataset yields a superior Recall-FPR curve by eliminating latent space collisions. 
+
+a dense latent anchor . By assigning identical contrastive labels to the original intent and its constituent fragments, the Asymmetric Contrastive Learning (ACL) objective forces fragments to converge toward this anchor. Consequently, disparate fragments are brought into proximity within the manifold, constrained by the vector space triangle inequality. 
+
+Semantic Pruning for Training Consistency. To maintain align-ment between training and inference distributions, we employ semantic pruning. Standard character-level deduplication fails to identify sophisticated semantic equivalents. In our deployment ar-chitecture (Section 3.5), the frozen encoder’s short-circuit logic intercepts these duplicates before they reach the ACL evaluation. Retaining such samples during ACL training introduces severe gradient conflicts: the ACL objective would attempt to forcefully separate semantically proximate samples that belong to different intent clusters, destabilizing the manifold. By proactively pruning samples with high cosine similarity in the frozen encoder’s latent space, we eliminate these collisions. As illustrated in Figure 2, this pruning strategy significantly optimizes the Recall-FPR trade-off by mitigating destructive gradient updates. 
+
+Contrastive Batch Construction. The efficacy of the Supervised Contrastive (SupCon) loss relies heavily on batch composition. Each training batch is constructed to contain fragments from at least two distinct malicious intents alongside benign queries. This diversity prevents the model from trivially collapsing all malicious inputs into a single undifferentiated cluster, instead compelling it to differ-entiate between specific malicious objectives. We define an epoch as a complete pass over the malicious samples and train TwinGate for three epochs on a cluster of 8× NVIDIA A100 (40GB) GPUs. 
+
+## 4.2 Threshold Calibration and the 𝑘 = 1 Strategy 
+
+Threshold Selection via 2D Grid Search. To ensure generaliz-ability, threshold calibration is strictly decoupled from the final evaluation. We perform a two-dimensional grid search over the semantic threshold 𝜏 𝑠𝑒𝑚 and intent threshold 𝜏 𝑖𝑛𝑡 using an isolated validation set. The optimal pair, determined by maximizing recall under a strict FPR constraint, is subsequently frozen. All metrics re-ported in Section 5 are derived from the unseen test set using these 
+
+Table 3: Impact of parameter 𝑘 on detection performance (FPR < 2 × 10 −3).          
+
+> Required Neighbors ( 𝑘 )123Malicious Intent Recall 0.77 0.73 0.51
+> Avg. First Intercept Position 2.65 3.40 4.11
+
+frozen parameters to guarantee a zero-shot evaluation protocol with no data leakage. 
+
+The Rationale for 𝑘 = 1. The parameter 𝑘 represents the minimum number of historical requests in H𝑡 −1 required to exceed 𝜏 𝑖𝑛𝑡 to execute an interception. While a 𝑘 = 0 policy represents a stateless filter incapable of detecting decomposition, 𝑘 = 1 represents the most responsive stateful policy. We argue that 𝑘 = 1 is optimal for two primary reasons: (1) Security Constraints: Increasing 𝑘 inherently allows an adversary to successfully extract multiple harmful responses before the system intervenes, exacerbating the risk of mali-cious information leakage. (2) Scalability Constraints: A 𝑘 = 1 threshold reduces the defense mechanism to a highly optimized top-1 proximity query. Conversely, requiring 𝑘 > 1 necessitates maintain-ing complex, stateful session counters across millions of anonymous users, imposing prohibitive computational and memory overhead. 
+
+Empirical Validation. To validate this architectural decision, we evaluated performance on a stringent test subset containing only one trajectory per intent. As shown in Table 3, increasing 𝑘 from 1 to 2 reduces recall from 0.77 to 0.73. More critically, 𝑘 = 1 minimizes the First Intercept Position to 2.65, meaning the attacker extracts only 
+
+≈ 1.65 benign-looking responses before the entire attack vector is blocked. At 𝑘 = 3, this value rises to 3.11, significantly widening the system’s window of vulnerability. 
+
+## 4.3 Hardware-Aware Pipeline 
+
+To ensure seamless integration into production environments, TwinGate utilizes a hardware-accelerated, four-GPU pipelined topology de-signed to sustain high throughput and ultra-low latency. This pipeline is deployed on a single server with 4× NVIDIA A100 (40GB) GPUs interconnected via NVLink. 
+
+Asynchronous Dispatch and Parallel Extraction. The host CPU serves as a lightweight gateway limited to request arrival handling, tokenization, and dynamic batching. To prevent execution bottlenecks, feature extraction is strictly parallelized: GPU 0 hosts the frozen encoder for semantic vectors ( 𝑠 𝑡 ), while GPU 1 runs the ACL-finetuned encoder for intent vectors ( 𝑧 𝑡 ). This asynchronous dispatch decouples I/O operations from heavy neural computation. 
+
+Zero-Copy Routing and In-Memory Database. Routing inter-mediate tensors through the host CPU creates PCIe bottlenecks. TwinGate circumvents this using NVLink for zero-copy, point-to-point transfer of 𝐿 2-normalized vectors directly to the database GPUs (GPU 2 and GPU 3). The global historical repository H𝑡 −1 is maintained entirely in FP16 High Bandwidth Memory (HBM). To prevent memory exhaustion when computing dense cosine simi-larities over millions of vectors, the database dynamically profiles Sun et al. 
+
+VRAM and adaptively chunks the historical matrix to maximize Tensor Core utilization. 
+
+On-GPU Decision Logic. The two-stage decision logic executes entirely within VRAM. GPU 2 computes 𝑚 𝑠𝑒𝑚 and transmits a fast-path flag via NVLink to GPU 3. GPU 3 then aggregates this signal with its own 𝑚 𝑖𝑛𝑡 computation to yield the final binary safety deci-sion F𝑑𝑒 𝑓 before returning it to the CPU. Concurrently, new request vectors and decisions are inserted into the HBM databases via a background CUDA stream, ensuring that these 𝑂 (1) updates remain completely hidden from the critical path of incoming requests. 
+
+## 5 Experimental Evaluation 
+
+In this section, we present a comprehensive empirical evaluation of TwinGate, systematically assessing its defensive efficacy against decompositional jailbreaks and its system-level performance. Our evaluation is designed to answer whether TwinGate can provide robust, stateful security guarantees without imposing prohibitive latency or throughput overheads. 
+
+## 5.1 Main Security Effectiveness 
+
+Defending against decompositional jailbreaks fundamentally re-quires stateful intent identification, distinguishing it from tradi-tional static filtering mechanisms. We begin by analyzing the fun-damental trade-off between security stringency and usability. 
+
+Key Evaluation Metrics. To rigorously quantify the effectiveness of TwinGate, we define two principal metrics based on the notation established in Section 3.1: 
+
+• Malicious Intent Recall (Recall): This metric measures the proportion of malicious intents where at least one con-stituent request (slice) is correctly intercepted. Formally, given a set of malicious decompositional jailbreaks A =
+
+{𝐼 1, 𝐼 2, . . . , 𝐼 𝑛 }, where each intent 𝐼 𝑖 is decomposed into a sequence of slices {𝑠 𝑖, 1, . . . , 𝑠 𝑖,𝑚 𝑖 }, the recall is defined as: Recall = |{ 𝐼 𝑖 ∈ A | ∃ 𝑠 𝑖,𝑗 : D ( 𝑠 𝑖,𝑗 ) = Malicious }| 
+
+𝑛 
+
+Recall captures the system’s overarching capability to dis-rupt the execution chain of a decompositional jailbreak before the complete malicious payload is reconstructed by the backend model. 
+
+• Benign Request False Positive Rate (FPR): This metric quantifies the proportion of independent benign requests, or slices belonging to legitimate user intents, that are erro-neously flagged as malicious. A high FPR severely degrades the user experience by interrupting valid conversational workflows. Formally: FPR = |{ 𝑠 ∈ S 𝑏𝑒𝑛𝑖𝑔𝑛 | D ( 𝑠 ) = Malicious }| |S 𝑏𝑒𝑛𝑖𝑔𝑛 |
+
+It is imperative to evaluate the trade-off between Recall and FPR, rather than observing them in isolation. A practical security system must sustain a high Recall while strictly bounding the FPR to a negligible threshold (e.g., < 0.2% ) to preserve the system’s utility for normal interactions. Before detailing these results, we emphasize a crucial detail of our experimental setup: while the original monolithic malicious intent is utilized as an anchor during the ACL training phase, it is strictly excluded from the test request 10 −4 10 −3 10 −2 10 −1
+
+> Benign Request False Positive Rate
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Malicious Intent Recall
+> TwinGate (Ours) Llama-Guard-3-8B Intent-FT Window Monitor
+
+Figure 3: Recall-FPR trade-off curve of TwinGate compared with three baseline methods (Llama-Guard-3-8B, Intent-FT, and Window Monitor) represented as scatter points. 
+
+streams. This faithfully replicates the real-world scenario where the target LLM never observes the complete malicious intent. 
+
+Comparison with Baselines. We benchmark TwinGate against a representative set of state-of-the-art defense mechanisms: 
+
+• Llama-Guard-3-8B : A widely adopted, safety-aligned guardrail model [ 7] designed to filter single instructions in isolation without conversational memory. 
+
+• Intent-FT : A baseline model fine-tuned explicitly for intent recognition [ 36 ], functioning as an enhanced single-turn semantic filter. 
+
+• Window Monitor : A sequential monitoring approach that maintains a fixed history window to detect temporally dis-tributed suspicious patterns [35]. Owing to the threshold calibration described in Section 4.2, TwinGate produces a continuous Recall-FPR curve, whereas static baselines report only individual scatter points. As illustrated in Figure 3, TwinGate comprehensively outperforms all three baseline methods across the entire operational spectrum. Specifically, Llama-Guard-3-8B and Intent-FT exhibit similar performance, but their recall is significantly lower than that of TwinGate at an equivalent FPR. Meanwhile, Window Monitor achieves a relatively compet-itive recall, but suffers from an unacceptably high FPR, which is nearly 100 times that of TwinGate at the same recall level. In ab-solute terms, the FPR of Window Monitor exceeds 10%, rendering it practically unusable in real-world deployment scenarios where benign traffic must not be excessively disrupted. 
+
+## 5.2 Throughput and Latency Profiling 
+
+To validate the deployment feasibility of TwinGate, we conduct a rigorous system-level performance evaluation against the afore-mentioned baselines, focusing on the overhead introduced by the defense layer. 
+
+Experimental Setup. To ensure a strictly fair comparison, TwinGate runs in the four-GPU topology described in Section 4.3, while base-line methods are deployed on the same server using the highly TwinGate: Stateful Defense against Decompositional Jailbreaks in Untraceable Traffic via Asymmetric Contrastive Learning 
+
+optimized vLLM [ 15 ] serving framework with full access to all four GPUs for inference to maximize their potential throughput. We model user request arrivals as a Poisson process with an arrival rate parameter 𝜆 . By progressively increasing 𝜆 until the system reaches saturation, we identify the maximum sustainable throughput, where the stabilized queries per second (QPS) equals the arrival rate 𝜆 . For the main throughput and latency evaluation in this subsection, the vector database is pre-loaded with a history of 1 million requests to simulate a realistic operational state. 
+
+Results and Analysis. We focus on two critical performance met-rics: 𝑃 99 Latency and Throughput (QPS) . 𝑃 99 latency is paramount for user experience: in a typical Prefill-Decoding (P-D) disaggre-gated LLM serving architecture, hiding the defense’s latency within the backbone’s prefill phase makes the security overhead transpar-ent to end-users. As illustrated in Figure 4, our profiling results reveal that TwinGate comprehensively outperforms all three baseline methods. Specifi-cally, TwinGate maintains a consistently low 𝑃 99 latency of < 300 ms even under severe load conditions. In contrast, Intent-FT and Win-dow Monitor not only achieve a maximum QPS that is more than 
+
+10 × lower than TwinGate, but they also suffer from substantially higher latencies; in absolute terms, their 𝑃 99 latencies quickly ap-proach 1000 ms, a delay that would significantly degrade the user experience in real-time interactions. Meanwhile, Llama-Guard-3-8B maintains a somewhat acceptable latency profile prior to satura-tion, yet it remains higher than that of TwinGate, and its maximum throughput is still an order of magnitude lower. The fundamen-tal performance advantage of TwinGate derives from its drasti-cally reduced computational footprint. While the baselines rely on heavy 7B-parameter class models, the dual-encoder components in TwinGate are lightweight (approximately 400M parameters) and require only two forward passes per request in the worst-case sce-nario. Consequently, despite dedicating only half of the available GPUs to active neural inference, the computational efficiency of the TwinGate architecture allows it to sustain a throughput ex-ceeding 1700 QPS. This represents nearly an order of magnitude improvement over the 200 QPS threshold characteristic of the 7B-class baseline filters, confirming that TwinGate provides robust stateful security without sacrificing system-level efficiency. 
+
+## 5.3 Database Performance and Scalability 
+
+Given that TwinGate relies on a stateful vector database to track cross-session interactions, evaluating the scalability of this com-ponent is critical. We stress-test the database retrieval subsystem using a fixed arrival rate of 1000 QPS, progressively increasing the database scale from 1 million to 7 million stored request vectors. 
+
+Latency Distribution & Hardware Limits. As illustrated in Fig-ure 5, we plot the 𝑃 50 , 𝑃 95 , and 𝑃 99 latency curves as the database scales from 1 million to 7 million request vectors. Our measurements provide concrete evidence for three key operational characteristics of the TwinGate architecture. First, the system possesses a mas-sive functional capacity: a single 40GB VRAM GPU can robustly accommodate up to 6 million historical requests for highly efficient, low-latency retrieval. Second, the end-to-end system latency is heavily dominated by the forward propagation of the two neural encoders, while the overhead introduced by the vector database 10 0 10 1 10 2 10 3
+
+> Queries Per Second (QPS)
+> 250
+> 500
+> 750
+> 1000
+> 1250
+> P99  Latency (ms)
+> TwinGate (Ours) Llama-Guard-3-8B Intent-FT Window Monitor
+
+Figure 4: Comparison of 𝑃 99 latency versus throughput (QPS) for TwinGate and three baseline methods (Llama-Guard-3-8B, Intent-FT, and Window Monitor). 0 1 2 3 4 5 6 7     
+
+> Database Size ( N×10 6)
+> 200
+> 400
+> 600
+> 800
+> Total Latency (ms)
+> P99 Latency
+> P95 Latency
+> P50 Latency
+
+Figure 5: Latency ( 𝑃 50 , 𝑃 95 , 𝑃 99 ) scaling with database size. The system maintains stable, sub-linear latency growth up to 6 million vectors, followed by a sharp performance degrada-tion at 7 million due to VRAM exhaustion. 
+
+itself is minimal. Third, within this 6-million-vector operational envelope, the database performance exhibits exceptional stability. The three latency curves remain remarkably flat, showing almost no noticeable degradation as the data scale expands from 1 million to 6 million. However, the stability holds only until the system hits a hard physical ceiling. At 7 million requests, the 𝑃 99 curve spikes dramatically to over 840 ms. This severe performance degradation signifies the exhaustion of the 40GB HBM capacity, leading to mem-ory thrashing and indicating the absolute capacity limit of a single GPU. 
+
+Bounded Memory and Slow-Loris Resilience. Although our profiling validates that a single 40GB GPU can robustly cache 6 million historical requests, and industrialized vector databases (e.g., Milvus [ 25 ] or Faiss [ 5]) can seamlessly scale this capacity, ac-cumulating vectors indefinitely is fundamentally impractical. It inevitably exhausts finite storage resources and violates privacy principles regarding the long-term retention of user data, neces-sitating a cache eviction policy. However, an adaptive adversary aware of such memory bounds will execute slow-loris decompo-sition attacks, deliberately maximizing the temporal intervals be-tween malicious fragments to outlive the system’s eviction cycle. To evaluate TwinGate under this worst-case scenario, we construct Sun et al. 0.0 0.2 0.4 0.6 0.8 1.0
+
+> Normalized Database Capacity
+> 0.8
+> 0.9
+> 1.0
+> Relative AUC
+
+Figure 6: Relative AUC of the Recall-FPR curve across dif-ferent normalized database capacities. The defense efficacy remains highly resilient down to a 25% capacity ratio. 
+
+a specialized adversarial request stream where fragments of the same malicious intent are spaced as far apart as possible by massive benign background traffic. To counter this threat without inflating storage, we introduce a decoupled, clustering-based Least Recently Used (LRU) strategy. Instead of naive eviction, when a database reaches its capacity limit, historical requests with cosine distances exceeding a similar-ity threshold are merged into a single representative vector. The merged vector’s timestamp is set to its constituents’ latest match time and refreshed by every subsequent match, with the Semantic DB and Intent DB running this clustering-LRU independently. We evaluate the defense efficacy by measuring the Area Under the Curve (AUC) of the Recall-FPR trade-off, normalized against an infinite-capacity baseline ( AUC 𝑟𝑒𝑙 = 1.0). As illustrated in Fig-ure 6, by varying the capacity ratio 𝑥 (maximum database size / total requests), our results demonstrate that AUC 𝑟𝑒𝑙 remains highly resilient under aggressive compression. A noticeable performance decay only emerges when 𝑥 drops to 0.15 , followed by severe degra-dation at 0.10 . This confirms that TwinGate can sustain robust stateful defense against temporally-delayed attacks while retaining only 25% of the traffic volume, thereby strictly bounding hardware costs and mitigating privacy risks. 
+
+## 5.4 Robustness Against Adaptive Attacks 
+
+While TwinGate demonstrates high efficacy against static datasets, its viability in deployment hinges on its resilience against an adap-tive adversary actively attempting to circumvent the vector retrieval and dual-encoder logic. We adopt a strict white-box threat model, assuming the attacker has full knowledge of TwinGate’s architec-ture, the ACL objective, the dual-encoder logic, and the neighbor count 𝑘 = 1. Under this pessimistic assumption, the adversary may pursue two distinct objectives: (1) Evasion , manipulating the se-mantic representation of their decomposed prompts to bypass the vector retrieval; and (2) False Positive Rate (FPR) Inflation , deliber-ately polluting the system’s memory to cause benign user requests to be falsely flagged. 
+
+Evasion via Semantic Manipulation. To achieve evasion, a white-box attacker theoretically has two avenues: decreasing the simi-larity of their current malicious fragment to previously blocked fragments in the ACL database, or increasing its similarity to pre-viously allowed benign requests to exploit the Fast-path (decision inheritance) mechanism for a free pass. To evaluate these strategies, 0 5 10 15 20 25 30 35 
+
+> Number of Attack Attempts
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Attack Success Rate (ASR)
+> No Defense (Baseline) TwinGate Defense (Standard Attack) TwinGate Defense (Rewriting Attack) TwinGate Defense (GCG Attack)
+
+Figure 7: Attack Success Rate (ASR) versus the number of attack attempts under different threat configurations: No Defense, TwinGate Defense (Standard Attack), Rewriting At-tack, and GCG Attack. 
+
+we employ the state-of-the-art decomposition framework, CKA-Agent, as our base attacker. We measure the Attack Success Rate (ASR) against the maximum allowed attack attempts, which serves as a proxy for attack cost (scaling almost linearly with attempts). As illustrated in Figure 7, we plot four distinct ASR curves against the number of attack attempts: an undefended system, a system defended by TwinGate (Standard Attack), a Rewriting Attack, and a powerful white-box GCG [ 38 ] Attack utilizing the first adaptive avenue (decreasing similarity). Without any defense, the ASR of the base CKA-Agent stabilizes at approximately 0.99. Upon deploy-ing TwinGate, the ASR of the unmodified CKA-Agent plummets to roughly 0.09. Notably, this ASR is significantly lower than the theoretical upper bound implied by our main evaluation. This dis-crepancy arises from the interactive nature of CKA-Agent: in a live attack, the agent generates numerous intermediate failed attempts. These failures are also embedded and stored in the vector database, dynamically enriching the semantic cluster of the underlying ma-licious intent and making subsequent fragments even easier for TwinGate to intercept. To evaluate the first adaptive avenue (decreasing similarity), we test two strategies. First, the attacker employs an auxiliary LLM to dynamically rewrite and paraphrase every fragment generated by CKA-Agent. As shown in the curves, this Rewriting strategy increases the ASR to around 0.16. Second, we consider a strict white-box threat model where the attacker possesses the exact weights of the ACL model. Under this setting, the attacker employs the Greedy Coordinate Gradient (GCG) algorithm to iteratively optimize adver-sarial suffixes for their subsequent requests, explicitly pushing their representation vectors as far away as possible from all previously blocked attack vectors in the database. Even under this extreme white-box optimization, the ASR peaks at only 0.18. Crucially, none of the four scenarios exhibit a meaningful ASR increase with more attempts: brute-force, paraphrasing, and gradient optimization all merely raise the attack cost (tokens and compute) without yielding evasion gains. For the second adaptive avenue (increasing similarity to benign requests), we evaluate various benign-malicious blending strategies, where the attacker explicitly embeds the malicious intent within TwinGate: Stateful Defense against Decompositional Jailbreaks in Untraceable Traffic via Asymmetric Contrastive Learning 
+
+Table 4: Attack Success Rate (ASR) and False Positive Rate (FPR) under various benign-malicious blending strategies.                             
+
+> Blending Strategy Position ASR FPR
+> 1 Malicious + 1 Benign First 0.07 2.18 ×10 −3
+> 1 Malicious + 1 Benign Last 0.04 2.16 ×10 −3
+> Fill Context (1 Malicious) First 0.10 1.90 ×10 −3
+> Fill Context (1 Malicious) Random 0.02 2.43 ×10 −3
+> Fill Context (1 Malicious) Last 0.08 1.86 ×10 −3
+
+normal, safe contexts. As reported in Table 4, these obfuscation techniques fail to bypass the defense, with the highest ASR reaching only 0.10 . Furthermore, because the inputted requests under these blending strategies include not only attacks but also benign text, we must ensure that such defensive isolation does not penalize normal usage. As shown in the newly appended FPR column of Table 4, the FPR does not exhibit any significant increase, remaining stably low across all strategies. This demonstrates that TwinGate accurately identifies the underlying malicious intent without being misled by the injected benign context. 
+
+FPR Inflation via Intent Pollution (Semantic DoS). Alterna-tively, an adversary may abandon evasion and instead aim to de-grade system usability by intentionally inflating the False Positive Rate (FPR), effectively launching a semantic Denial-of-Service (DoS) attack. Theoretically, there are two primary strategies to pollute the vector database and cause benign requests to be rejected: (1) crafting a malicious request whose ACL representation is artificially pushed close to the cluster of future benign requests; or (2) craft-ing a request that closely resembles a benign query but contains adversarial triggers to force a false positive from the primary evalu-ation model, thereby poisoning the Fast-path cache for subsequent legitimate users. To evaluate these threats under a unified and extremely pes-simistic white-box setting, we design an experiment that maxi-mizes the attacker’s advantage. We assume the attacker not only possesses an exact copy of TwinGate’s architecture, weights, and thresholds, but also has an oracle’s knowledge of the exact benign instructions normal users will issue in the future. The attacker samples 𝑛 safe requests (comprising both independent queries and benign decomposition slices). Using the Greedy Coordinate Gra-dient (GCG) algorithm, the attacker appends adversarial suffixes to these requests, aiming to force the system to classify them as malicious. We further assume the attacker has full control over the request stream, ensuring these adversarial queries arrive and pollute the database just before the legitimate users send their clean versions. After this targeted poisoning phase, we re-execute the evaluation pipeline from Section 5.1. As illustrated in Figure 8, the results reveal that the FPR does not exhibit any noticeable increasing trend as the number of injected GCG-poisoned samples 𝑛 grows. Instead, the FPR remains highly stable at approximately 2 × 10 −3, demonstrating that the system’s usability is unaffected by the scale of the semantic DoS attack. The resilience against this pollution stems from the strict threshold calibration of the dual-encoder system. Even if the attacker success-fully forces an adversarial sample to be misclassified and stored, the 100 200 500 1000 2000 5000 
+
+> Number of Injected GCG Requests
+> 1.9
+> 2.0
+> FPR ( ×10 −3)
+
+Figure 8: Impact of the number of GCG-poisoned injections on the False Positive Rate (FPR). The FPR remains stably around 2 × 10 −3 regardless of attack scale. 10 −4 10 −3 10 −2 10 −1
+
+> Benign Request False Positive Rate
+> 0.0
+> 0.2
+> 0.4
+> 0.6
+> 0.8
+> 1.0
+> Malicious Intent Recall
+> TwinGate Unseen Decomposer Single Encoder w/o Raw Intent w/o ACL Symmetric CL
+
+Figure 9: Recall-FPR curves for TwinGate against ablation variants (Single Encoder, w/o ACL, Symmetric CL, w/o Raw Intent) and an Unseen Decomposer. 
+
+GCG-optimized suffix inherently alters the representation in the high-dimensional feature space. Because TwinGate operates with highly stringent similarity thresholds to prevent collateral damage, the subsequent clean, normal requests do not fall within the tight retrieval radius of the poisoned, adversarially-perturbed samples. Consequently, the Fast-path inheritance is not triggered, and the semantic DoS attack fails to materialize. 
+
+## 5.5 Ablation Study 
+
+The Necessity of the Dual-Encoder Architecture. To justify the retention of the frozen encoder, we investigate the system’s per-formance when the Semantic Equivalence Inheritance mechanism (the frozen encoder) is removed, relying solely on the ACL encoder for all decisions. As shown in Figure 9, we evaluate this configu-ration across the Recall-FPR spectrum. While the full TwinGate system maintains robust performance, the Single Encoder ablation Sun et al. 
+
+exhibits a significant decline. It must be emphasized that this eval-uation is performed on our standard test set, which was strictly deduplicated during dataset construction and therefore contains no repeated requests. In real-world business scenarios, LLM traf-fic is not deduplicated and naturally includes a massive volume of duplicate benign queries. Without the frozen encoder’s exact-match safeguard, the single encoder’s aggressive intent clustering would cause these repeated benign requests to be directly judged as malicious, resulting in an absolutely unacceptable false positive rate. Furthermore, in a real-world deployment, an adaptive attacker possessing oracle knowledge of these high-frequency instructions could deliberately exploit this vulnerability, rendering the actual operational degradation even more severe. 
+
+The Necessity of Asymmetric Contrastive Learning. To con-firm that our defense’s efficacy stems specifically from the ACL training, we evaluate two critical ablations. First, to verify that our specific asymmetric design is necessary over traditional contrastive learning, we trained a variant using a symmetric contrastive loss where all constituent intents (both monolithic and decomposed slices) are clustered together equally without the anchor-based asymmetric push. As shown by the Symmetric CL curve in Figure 9, this approach results in a severe performance collapse, proving that simply pulling related fragments together destroys the fine-grained semantic boundaries required for accurate detection. Second, to verify that the ACL training itself is the source of the gain, we ablate ACL while preserving the two-encoder architecture. Naively skipping ACL training would force both encoders to share the iden-tical frozen backbone, collapsing the system into a single-encoder pipeline and conflating the contributions of ACL training and ar-chitectural redundancy. To avoid this degeneracy, we substitute the ACL-finetuned encoder with a structurally distinct pre-trained model, DeBERTaV2-XLarge [ 10 ], so that two heterogeneous en-coders coexist without any contrastive fine-tuning. As illustrated by the w/o ACL curve in Figure 9, the resulting Recall-FPR trade-off performs vastly worse than our main TwinGate results. This explicitly demonstrates that even with a near-billion-parameter encoder, raw semantic similarity metrics are fundamentally inca-pable of bridging the extreme semantic gap between the disjointed fragments of a decompositional jailbreak. Explicit intent-level clus-tering via ACL is indispensable. 
+
+The Role of the Semantic Anchor. Finally, we ablate the training data composition by removing the original, complete malicious intent during the ACL fine-tuning phase. In this configuration, the model is trained using only the contrastive relationships among the decomposed fragments themselves. The evaluation yields a Recall-FPR curve (labeled w/o Raw Intent in Figure 9) that is substantially inferior to the primary TwinGate model. This confirms our hy-pothesis presented in Section 4.1: without the complete monolithic intent acting as a dense anchor in the high-dimensional latent space, semantically disparate fragments lack a unifying target to converge upon. Consequently, the resulting clusters suffer from weak boundaries, severely crippling the model’s zero-shot general-ization capabilities against unseen decompositional jailbreaks. 
+
+Generalization to Unseen Decomposers. To demonstrate TwinGate’s zero-shot generalization capabilities against out-of-distribution data, we evaluate its performance when a specific decomposer is entirely excluded from the training phase. Specifically, we re-moved all decompositional data generated by the Qwen3-30B-A3B model from our training set and evaluated the system on a test set containing attacks exclusively from this unseen decomposer. As illustrated by the Unseen Decomposer curve in Figure 9, TwinGate exhibits only a marginal performance degradation compared to the full model, maintaining a highly competitive Recall-FPR trade-off. This confirms that the ACL framework effectively captures the fun-damental semantic trajectories of decompositional jailbreaks, rather than merely overfitting to the idiosyncratic generation patterns of a specific attacker model. 
+
+## 6 Conclusion 
+
+We introduced TwinGate, a dual-encoder framework that defends against decompositional jailbreaks in high-throughput, untrace-able LLM traffic. Where stateless filters fail against temporally disjointed fragments, TwinGate replaces in-context analysis with scalable stateful vector retrieval: ACL bridges the semantic gap by clustering disparate fragments around their shared malicious intent, while a parallel frozen encoder enforces decision inheritance to strictly bound the False Positive Rate on repeated benign traf-fic. We additionally curate and release a large-scale benchmark of over 3.62 million requests, spanning 8,600 malicious intents inde-pendently decomposed by multiple splitter models, 250k benign intents, and 603k unfragmented samples, providing a reproducible foundation for stress-testing future stateful defenses under strictly causal, deployment-realistic conditions. Extensive empirical evalu-ations on this benchmark demonstrate TwinGate’s superiority. It achieves a Malicious Intent Recall of over 0.76 while maintaining an exceptionally low FPR of < 0.2% , vastly outperforming both stateless 7B-class guardrails and existing stateful monitors. Further-more, implemented on a hardware-aware, 4-GPU topology utilizing NVLink and in-HBM retrieval, TwinGate sustains a throughput of over 1700 QPS with acceptable 𝑃 99 latency, proving its viability for large-scale production environments. Comprehensive ablations and adaptive attack simulations confirm TwinGate’s resilience against both evasion and semantic DoS pollution, establishing it as a prac-tical, scalable defense for production LLM APIs. 
+
+## References                   
+
+> [1] Andy Arditi, Oscar Obeso, Aaquib Syed, Daniel Paleka, Nina Panickssery, Wes Gurnee, and Neel Nanda. 2024. Refusal in Language Models Is Mediated by a Single Direction. arXiv:2406.11717 [cs.LG] https://arxiv.org/abs/2406.11717 [2] Sahil Chaudhary. 2023. Code Alpaca: An Instruction-following LLaMA model for code generation. https://github.com/sahil280114/codealpaca. [3] Mike Conover, Matt Hayes, Ankit Mathur, Jianwei Xie, Jun Wan, Sam Shah, Ali Ghodsi, Patrick Wendell, Matei Zaharia, and Reynold Xin. 2023. Free Dolly: Introducing the World’s First Truly Open Instruction-Tuned LLM .https://www.databricks.com/blog/2023/04/12/dolly-first-open-commercially-viable-instruction-tuned-llm [4] Ning Ding, Yulin Chen, Bokai Xu, Yujia Qin, Zhi Zheng, Shengding Hu, Zhiyuan Liu, Maosong Sun, and Bowen Zhou. 2023. Enhancing Chat Language Models by Scaling High-quality Instructional Conversations. arXiv:2305.14233 [cs.CL] https://arxiv.org/abs/2305.14233 [5] Matthijs Douze, Alexandr Guzhva, Chengqi Deng, Jeff Johnson, Gergely Szilvasy, Pierre-Emmanuel Mazaré, Maria Lomeli, Lucas Hosseini, and Hervé Jégou. 2025. The Faiss library. arXiv:2401.08281 [cs.LG] https://arxiv.org/abs/2401.08281 [6] Yann Dubois, Balázs Galambosi, Percy Liang, and Tatsunori B. Hashimoto. 2025. Length-Controlled AlpacaEval: A Simple Way to Debias Automatic Evaluators. arXiv:2404.04475 [cs.LG] https://arxiv.org/abs/2404.04475 [7] Aaron Grattafiori, Abhimanyu Dubey, Abhinav Jauhri, Abhinav Pandey, Ab-hishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, Alan Schelten,
+
+TwinGate: Stateful Defense against Decompositional Jailbreaks in Untraceable Traffic via Asymmetric Contrastive Learning 
+
+Alex Vaughan, Amy Yang, Angela Fan, Anirudh Goyal, Anthony Hartshorn, Aobo Yang, Archi Mitra, Archie Sravankumar, Artem Korenev, Arthur Hinsvark, Arun Rao, Aston Zhang, Aurelien Rodriguez, Austen Gregerson, Ava Spataru, Baptiste Roziere, Bethany Biron, Binh Tang, Bobbie Chern, Charlotte Caucheteux, Chaya Nayak, Chloe Bi, Chris Marra, Chris McConnell, Christian Keller, Christophe Touret, Chunyang Wu, Corinne Wong, Cristian Canton Ferrer, Cyrus Nikolaidis, Damien Allonsius, Daniel Song, Danielle Pintz, Danny Livshits, Danny Wyatt, David Esiobu, Dhruv Choudhary, Dhruv Mahajan, Diego Garcia-Olano, Diego Perino, Dieuwke Hupkes, Egor Lakomkin, Ehab AlBadawy, Elina Lobanova, Emily Dinan, Eric Michael Smith, Filip Radenovic, Francisco Guzmán, Frank Zhang, Gabriel Synnaeve, Gabrielle Lee, Georgia Lewis Anderson, Govind That-tai, Graeme Nail, Gregoire Mialon, Guan Pang, Guillem Cucurell, Hailey Nguyen, Hannah Korevaar, Hu Xu, Hugo Touvron, Iliyan Zarov, Imanol Arrieta Ibarra, Isabel Kloumann, Ishan Misra, Ivan Evtimov, Jack Zhang, Jade Copet, Jaewon Lee, Jan Geffert, Jana Vranes, Jason Park, Jay Mahadeokar, Jeet Shah, Jelmer van der Linde, Jennifer Billock, Jenny Hong, Jenya Lee, Jeremy Fu, Jianfeng Chi, Jianyu Huang, Jiawen Liu, Jie Wang, Jiecao Yu, Joanna Bitton, Joe Spisak, Jongsoo Park, Joseph Rocca, Joshua Johnstun, Joshua Saxe, Junteng Jia, Kalyan Vasu-den Alwala, Karthik Prasad, Kartikeya Upasani, Kate Plawiak, Ke Li, Kenneth Heafield, Kevin Stone, Khalid El-Arini, Krithika Iyer, Kshitiz Malik, Kuenley Chiu, Kunal Bhalla, Kushal Lakhotia, Lauren Rantala-Yeary, Laurens van der Maaten, Lawrence Chen, Liang Tan, Liz Jenkins, Louis Martin, Lovish Madaan, Lubo Malo, Lukas Blecher, Lukas Landzaat, Luke de Oliveira, Madeline Muzzi, Mahesh Pasupuleti, Mannat Singh, Manohar Paluri, Marcin Kardas, Maria Tsimpoukelli, Mathew Oldham, Mathieu Rita, Maya Pavlova, Melanie Kambadur, Mike Lewis, Min Si, Mitesh Kumar Singh, Mona Hassan, Naman Goyal, Narjes Torabi, Nikolay Bashlykov, Nikolay Bogoychev, Niladri Chatterji, Ning Zhang, Olivier Duchenne, Onur Çelebi, Patrick Alrassy, Pengchuan Zhang, Pengwei Li, Petar Vasic, Peter Weng, Prajjwal Bhargava, Pratik Dubal, Praveen Krishnan, Punit Singh Koura, Puxin Xu, Qing He, Qingxiao Dong, Ragavan Srinivasan, Raj Ganapathy, Ramon Calderer, Ricardo Silveira Cabral, Robert Stojnic, Roberta Raileanu, Rohan Mah-eswari, Rohit Girdhar, Rohit Patel, Romain Sauvestre, Ronnie Polidoro, Roshan Sumbaly, Ross Taylor, Ruan Silva, Rui Hou, Rui Wang, Saghar Hosseini, Sahana Chennabasappa, Sanjay Singh, Sean Bell, Seohyun Sonia Kim, Sergey Edunov, Shaoliang Nie, Sharan Narang, Sharath Raparthy, Sheng Shen, Shengye Wan, Shruti Bhosale, Shun Zhang, Simon Vandenhende, Soumya Batra, Spencer Whit-man, Sten Sootla, Stephane Collot, Suchin Gururangan, Sydney Borodinsky, Tamar Herman, Tara Fowler, Tarek Sheasha, Thomas Georgiou, Thomas Scialom, Tobias Speckbacher, Todor Mihaylov, Tong Xiao, Ujjwal Karn, Vedanuj Goswami, Vibhor Gupta, Vignesh Ramanathan, Viktor Kerkez, Vincent Gonguet, Virginie Do, Vish Vogeti, Vítor Albiero, Vladan Petrovic, Weiwei Chu, Wenhan Xiong, Wenyin Fu, Whitney Meers, Xavier Martinet, Xiaodong Wang, Xiaofang Wang, Xiaoqing Ellen Tan, Xide Xia, Xinfeng Xie, Xuchao Jia, Xuewei Wang, Yaelle Gold-schlag, Yashesh Gaur, Yasmine Babaei, Yi Wen, Yiwen Song, Yuchen Zhang, Yue Li, Yuning Mao, Zacharie Delpierre Coudert, Zheng Yan, Zhengxing Chen, Zoe Papakipos, Aaditya Singh, Aayushi Srivastava, Abha Jain, Adam Kelsey, Adam Shajnfeld, Adithya Gangidi, Adolfo Victoria, Ahuva Goldstand, Ajay Menon, Ajay Sharma, Alex Boesenberg, Alexei Baevski, Allie Feinstein, Amanda Kallet, Amit Sangani, Amos Teo, Anam Yunus, Andrei Lupu, Andres Alvarado, Andrew Caples, Andrew Gu, Andrew Ho, Andrew Poulton, Andrew Ryan, Ankit Ram-chandani, Annie Dong, Annie Franco, Anuj Goyal, Aparajita Saraf, Arkabandhu Chowdhury, Ashley Gabriel, Ashwin Bharambe, Assaf Eisenman, Azadeh Yazdan, Beau James, Ben Maurer, Benjamin Leonhardi, Bernie Huang, Beth Loyd, Beto De Paola, Bhargavi Paranjape, Bing Liu, Bo Wu, Boyu Ni, Braden Hancock, Bram Wasti, Brandon Spence, Brani Stojkovic, Brian Gamido, Britt Montalvo, Carl Parker, Carly Burton, Catalina Mejia, Ce Liu, Changhan Wang, Changkyu Kim, Chao Zhou, Chester Hu, Ching-Hsiang Chu, Chris Cai, Chris Tindal, Christoph Feichtenhofer, Cynthia Gao, Damon Civin, Dana Beaty, Daniel Kreymer, Daniel Li, David Adkins, David Xu, Davide Testuggine, Delia David, Devi Parikh, Diana Liskovich, Didem Foss, Dingkang Wang, Duc Le, Dustin Holland, Edward Dowl-ing, Eissa Jamil, Elaine Montgomery, Eleonora Presani, Emily Hahn, Emily Wood, Eric-Tuan Le, Erik Brinkman, Esteban Arcaute, Evan Dunbar, Evan Smothers, Fei Sun, Felix Kreuk, Feng Tian, Filippos Kokkinos, Firat Ozgenel, Francesco Cag-gioni, Frank Kanayet, Frank Seide, Gabriela Medina Florez, Gabriella Schwarz, Gada Badeer, Georgia Swee, Gil Halpern, Grant Herman, Grigory Sizov, Guangyi, Zhang, Guna Lakshminarayanan, Hakan Inan, Hamid Shojanazeri, Han Zou, Han-nah Wang, Hanwen Zha, Haroun Habeeb, Harrison Rudolph, Helen Suk, Henry Aspegren, Hunter Goldman, Hongyuan Zhan, Ibrahim Damlaj, Igor Molybog, Igor Tufanov, Ilias Leontiadis, Irina-Elena Veliche, Itai Gat, Jake Weissman, James Geboski, James Kohli, Janice Lam, Japhet Asher, Jean-Baptiste Gaya, Jeff Marcus, Jeff Tang, Jennifer Chan, Jenny Zhen, Jeremy Reizenstein, Jeremy Teboul, Jessica Zhong, Jian Jin, Jingyi Yang, Joe Cummings, Jon Carvill, Jon Shepard, Jonathan McPhie, Jonathan Torres, Josh Ginsburg, Junjie Wang, Kai Wu, Kam Hou U, Karan Saxena, Kartikay Khandelwal, Katayoun Zand, Kathy Matosich, Kaushik Veeraraghavan, Kelly Michelena, Keqian Li, Kiran Jagadeesh, Kun Huang, Kunal Chawla, Kyle Huang, Lailin Chen, Lakshya Garg, Lavender A, Leandro Silva, Lee Bell, Lei Zhang, Liangpeng Guo, Licheng Yu, Liron Moshkovich, Luca Wehrstedt, Madian Khabsa, Manav Avalani, Manish Bhatt, Martynas Mankus, Matan Has-son, Matthew Lennie, Matthias Reso, Maxim Groshev, Maxim Naumov, Maya Lathi, Meghan Keneally, Miao Liu, Michael L. Seltzer, Michal Valko, Michelle Restrepo, Mihir Patel, Mik Vyatskov, Mikayel Samvelyan, Mike Clark, Mike Macey, Mike Wang, Miquel Jubert Hermoso, Mo Metanat, Mohammad Raste-gari, Munish Bansal, Nandhini Santhanam, Natascha Parks, Natasha White, Navyata Bawa, Nayan Singhal, Nick Egebo, Nicolas Usunier, Nikhil Mehta, Niko-lay Pavlovich Laptev, Ning Dong, Norman Cheng, Oleg Chernoguz, Olivia Hart, Omkar Salpekar, Ozlem Kalinli, Parkin Kent, Parth Parekh, Paul Saab, Pavan Balaji, Pedro Rittner, Philip Bontrager, Pierre Roux, Piotr Dollar, Polina Zvyag-ina, Prashant Ratanchandani, Pritish Yuvraj, Qian Liang, Rachad Alao, Rachel Rodriguez, Rafi Ayub, Raghotham Murthy, Raghu Nayani, Rahul Mitra, Ran-gaprabhu Parthasarathy, Raymond Li, Rebekkah Hogan, Robin Battey, Rocky Wang, Russ Howes, Ruty Rinott, Sachin Mehta, Sachin Siby, Sai Jayesh Bondu, Samyak Datta, Sara Chugh, Sara Hunt, Sargun Dhillon, Sasha Sidorov, Satadru Pan, Saurabh Mahajan, Saurabh Verma, Seiji Yamamoto, Sharadh Ramaswamy, Shaun Lindsay, Shaun Lindsay, Sheng Feng, Shenghao Lin, Shengxin Cindy Zha, Shishir Patil, Shiva Shankar, Shuqiang Zhang, Shuqiang Zhang, Sinong Wang, Sneha Agarwal, Soji Sajuyigbe, Soumith Chintala, Stephanie Max, Stephen Chen, Steve Kehoe, Steve Satterfield, Sudarshan Govindaprasad, Sumit Gupta, Summer Deng, Sungmin Cho, Sunny Virk, Suraj Subramanian, Sy Choudhury, Sydney Goldman, Tal Remez, Tamar Glaser, Tamara Best, Thilo Koehler, Thomas Robin-son, Tianhe Li, Tianjun Zhang, Tim Matthews, Timothy Chou, Tzook Shaked, Varun Vontimitta, Victoria Ajayi, Victoria Montanez, Vijai Mohan, Vinay Satish Kumar, Vishal Mangla, Vlad Ionescu, Vlad Poenaru, Vlad Tiberiu Mihailescu, Vladimir Ivanov, Wei Li, Wenchen Wang, Wenwen Jiang, Wes Bouaziz, Will Constable, Xiaocheng Tang, Xiaojian Wu, Xiaolan Wang, Xilun Wu, Xinbo Gao, Yaniv Kleinman, Yanjun Chen, Ye Hu, Ye Jia, Ye Qi, Yenda Li, Yilin Zhang, Ying Zhang, Yossi Adi, Youngjin Nam, Yu, Wang, Yu Zhao, Yuchen Hao, Yundi Qian, Yunlu Li, Yuzi He, Zach Rait, Zachary DeVito, Zef Rosnbrick, Zhaoduo Wen, Zhenyu Yang, Zhiwei Zhao, and Zhiyu Ma. 2024. The Llama 3 Herd of Models. arXiv:2407.21783 [cs.AI] https://arxiv.org/abs/2407.21783 [8] Shangding Gu, Long Yang, Yali Du, Guang Chen, Florian Walter, Jun Wang, and Alois Knoll. 2024. A Review of Safe Reinforcement Learning: Methods, Theory and Applications. arXiv:2205.10330 [cs.AI] https://arxiv.org/abs/2205.10330 [9] Pengcheng He, Jianfeng Gao, and Weizhu Chen. 2023. DeBERTaV3: Improv-ing DeBERTa using ELECTRA-Style Pre-Training with Gradient-Disentangled Embedding Sharing. arXiv:2111.09543 [cs.CL] https://arxiv.org/abs/2111.09543 [10] Pengcheng He, Xiaodong Liu, Jianfeng Gao, and Weizhu Chen. 2021. DeBERTa: Decoding-enhanced BERT with Disentangled Attention. arXiv:2006.03654 [cs.CL] https://arxiv.org/abs/2006.03654 [11] Dan Hendrycks and Kevin Gimpel. 2023. Gaussian Error Linear Units (GELUs). arXiv:1606.08415 [cs.LG] https://arxiv.org/abs/1606.08415 [12] Hakan Inan, Kartikeya Upasani, Jianfeng Chi, Rashi Rungta, Krithika Iyer, Yuning Mao, Michael Tontchev, Qing Hu, Brian Fuller, Davide Testuggine, and Madian Khabsa. 2023. Llama Guard: LLM-based Input-Output Safeguard for Human-AI Conversations. arXiv:2312.06674 [cs.CL] https://arxiv.org/abs/2312.06674 [13] Jiaming Ji, Mickel Liu, Juntao Dai, Xuehai Pan, Chi Zhang, Ce Bian, Chi Zhang, Ruiyang Sun, Yizhou Wang, and Yaodong Yang. 2023. BeaverTails: To-wards Improved Safety Alignment of LLM via a Human-Preference Dataset. arXiv:2307.04657 [cs.CL] https://arxiv.org/abs/2307.04657 [14] Albert Q. Jiang, Alexandre Sablayrolles, Arthur Mensch, Chris Bamford, De-vendra Singh Chaplot, Diego de las Casas, Florian Bressand, Gianna Lengyel, Guillaume Lample, Lucile Saulnier, Lélio Renard Lavaud, Marie-Anne Lachaux, Pierre Stock, Teven Le Scao, Thibaut Lavril, Thomas Wang, Timothée Lacroix, and William El Sayed. 2023. Mistral 7B. arXiv:2310.06825 [cs.CL] https: //arxiv.org/abs/2310.06825 [15] Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph Gonzalez, Hao Zhang, and Ion Stoica. 2023. Efficient Memory Management for Large Language Model Serving with PagedAttention. In Proceedings of the 29th Symposium on Operating Systems Principles (Koblenz, Germany) (SOSP ’23) . Association for Computing Machinery, New York, NY, USA, 611–626. doi:10.1145/3600006.3613165 [16] Yang Li, Qiang Sheng, Yehan Yang, Xueyao Zhang, and Juan Cao. 2025. From Judgment to Interference: Early Stopping LLM Harmful Outputs via Streaming Content Monitoring. arXiv:2506.09996 [cs.CL] https://arxiv.org/abs/2506.09996 [17] Mantas Mazeika, Long Phan, Xuwang Yin, Andy Zou, Zifan Wang, Norman Mu, Elham Sakhaee, Nathaniel Li, Steven Basart, Bo Li, David Forsyth, and Dan Hendrycks. 2024. HarmBench: A Standardized Evaluation Framework for Automated Red Teaming and Robust Refusal. arXiv:2402.04249 [cs.LG] https://arxiv.org/abs/2402.04249 [18] Long Ouyang, Jeff Wu, Xu Jiang, Diogo Almeida, Carroll L. Wainwright, Pamela Mishkin, Chong Zhang, Sandhini Agarwal, Katarina Slama, Alex Ray, John Schul-man, Jacob Hilton, Fraser Kelton, Luke Miller, Maddie Simens, Amanda Askell, Pe-ter Welinder, Paul Christiano, Jan Leike, and Ryan Lowe. 2022. Training language models to follow instructions with human feedback. arXiv:2203.02155 [cs.CL] https://arxiv.org/abs/2203.02155 Sun et al. 
+
+[19] Mark Russinovich, Ahmed Salem, and Ronen Eldan. 2025. Great, Now Write an Article About That: The Crescendo Multi-Turn LLM Jailbreak Attack. arXiv:2404.01833 [cs.CR] https://arxiv.org/abs/2404.01833 [20] Alexandra Souly, Qingyuan Lu, Dillon Bowen, Tu Trinh, Elvis Hsieh, Sana Pandey, Pieter Abbeel, Justin Svegliato, Scott Emmons, Olivia Watkins, and Sam Toyer. 2024. A StrongREJECT for Empty Jailbreaks. arXiv:2402.10260 [cs.LG] https: //arxiv.org/abs/2402.10260 [21] Devansh Srivastav and Xiao Zhang. 2025. Safe in Isolation, Dangerous Together: Agent-Driven Multi-Turn Decomposition Jailbreaks on LLMs. In Proceedings of the 1st Workshop for Research on Agent Language Models (REALM 2025) , Ehsan Kamalloo, Nicolas Gontier, Xing Han Lu, Nouha Dziri, Shikhar Murty, and Alexan-dre Lacoste (Eds.). Association for Computational Linguistics, Vienna, Austria, 170–183. doi:10.18653/v1/2025.realm-1.13 [22] Guangzhi Sun, Xiao Zhan, Shutong Feng, Philip C. Woodland, and Jose Such. 2025. CASE-Bench: Context-Aware SafEty Benchmark for Large Language Models. arXiv:2501.14940 [cs.CL] https://arxiv.org/abs/2501.14940 [23] Rohan Taori, Ishaan Gulrajani, Tianyi Zhang, Yann Dubois, Xuechen Li, Carlos Guestrin, Percy Liang, and Tatsunori B. Hashimoto. 2023. Stanford Alpaca: An Instruction-following LLaMA model. https://github.com/tatsu-lab/stanford_ alpaca. [24] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. Attention is all you need. In Proceedings of the 31st International Conference on Neural Information Processing Systems (Long Beach, California, USA) (NIPS’17) . Curran Associates Inc., Red Hook, NY, USA, 6000–6010. [25] Jianguo Wang, Xiaomeng Yi, Rentong Guo, Hai Jin, Peng Xu, Shengjun Li, Xi-angyu Wang, Xiangzhou Guo, Chengming Li, Xiaohai Xu, Kun Yu, Yuxing Yuan, Yinghao Zou, Jiquan Long, Yudong Cai, Zhenxiang Li, Zhifeng Zhang, Yihua Mo, Jun Gu, Ruiyi Jiang, Yi Wei, and Charles Xie. 2021. Milvus: A Purpose-Built Vector Data Management System. In Proceedings of the 2021 International Conference on Management of Data (Virtual Event, China) (SIGMOD ’21) . Association for Com-puting Machinery, New York, NY, USA, 2614–2627. doi:10.1145/3448016.3457550 [26] Kun Wang, Guibin Zhang, Zhenhong Zhou, Jiahao Wu, Miao Yu, Shiqian Zhao, Chenlong Yin, Jinhu Fu, Yibo Yan, Hanjun Luo, Liang Lin, Zhihao Xu, Haolang Lu, Xinye Cao, Xinyun Zhou, Weifei Jin, Fanci Meng, Shicheng Xu, Junyuan Mao, Yu Wang, Hao Wu, Minghe Wang, Fan Zhang, Junfeng Fang, Wenjie Qu, Yue Liu, Chengwei Liu, Yifan Zhang, Qiankun Li, Chongye Guo, Yalan Qin, Zhaoxin Fan, Kai Wang, Yi Ding, Donghai Hong, Jiaming Ji, Yingxin Lai, Zitong Yu, Xinfeng Li, Yifan Jiang, Yanhui Li, Xinyu Deng, Junlin Wu, Dongxia Wang, Yihao Huang, Yufei Guo, Jen tse Huang, Qiufeng Wang, Xiaolong Jin, Wenxuan Wang, Dongrui Liu, Yanwei Yue, Wenke Huang, Guancheng Wan, Heng Chang, Tianlin Li, Yi Yu, Chenghao Li, Jiawei Li, Lei Bai, Jie Zhang, Qing Guo, Jingyi Wang, Tianlong Chen, Joey Tianyi Zhou, Xiaojun Jia, Weisong Sun, Cong Wu, Jing Chen, Xuming Hu, Yiming Li, Xiao Wang, Ningyu Zhang, Luu Anh Tuan, Guowen Xu, Jiaheng Zhang, Tianwei Zhang, Xingjun Ma, Jindong Gu, Liang Pang, Xiang Wang, Bo An, Jun Sun, Mohit Bansal, Shirui Pan, Lingjuan Lyu, Yuval Elovici, Bhavya Kailkhura, Yaodong Yang, Hongwei Li, Wenyuan Xu, Yizhou Sun, Wei Wang, Qing Li, Ke Tang, Yu-Gang Jiang, Felix Juefei-Xu, Hui Xiong, Xiaofeng Wang, Dacheng Tao, Philip S. Yu, Qingsong Wen, and Yang Liu. 2025. A Comprehensive Survey in LLM(-Agent) Full Stack Safety: Data, Training and Deployment. arXiv:2504.15585 [cs.CR] https://arxiv.org/abs/2504.15585 [27] Peiran Wang, Xiaogeng Liu, and Chaowei Xiao. 2024. RePD: Defending Jailbreak Attack through a Retrieval-based Prompt Decomposition Process. arXiv:2410.08660 [cs.CR] https://arxiv.org/abs/2410.08660 [28] Rongzhe Wei, Peizhi Niu, Xinjie Shen, Tony Tu, Yifan Li, Ruihan Wu, Eli Chien, Pin-Yu Chen, Olgica Milenkovic, and Pan Li. 2025. The Trojan Knowledge: By-passing Commercial LLM Guardrails via Harmless Prompt Weaving and Adaptive Tree Search. arXiv:2512.01353 [cs.CR] https://arxiv.org/abs/2512.01353 [29] Yuan Xin, Dingfan Chen, Linyi Yang, Michael Backes, and Xiao Zhang. 2025. Jailbreaking Attacks vs. Content Safety Filters: How Far Are We in the LLM Safety Arms Race? arXiv:2512.24044 [cs.CR] https://arxiv.org/abs/2512.24044 [30] Can Xu, Qingfeng Sun, Kai Zheng, Xiubo Geng, Pu Zhao, Jiazhan Feng, Chongyang Tao, Qingwei Lin, and Daxin Jiang. 2025. WizardLM: Em-powering large pre-trained language models to follow complex instructions. arXiv:2304.12244 [cs.CL] https://arxiv.org/abs/2304.12244 [31] Zhangchen Xu, Fengqing Jiang, Luyao Niu, Yuntian Deng, Radha Poovendran, Yejin Choi, and Bill Yuchen Lin. 2024. Magpie: Alignment Data Synthesis from Scratch by Prompting Aligned LLMs with Nothing. arXiv:2406.08464 [cs.CL] https://arxiv.org/abs/2406.08464 [32] Zihao Xu, Yi Liu, Gelei Deng, Yuekang Li, and Stjepan Picek. 2024. A Compre-hensive Study of Jailbreak Attack versus Defense for Large Language Models. In 
+
+Findings of the Association for Computational Linguistics: ACL 2024 , Lun-Wei Ku, Andre Martins, and Vivek Srikumar (Eds.). Association for Computational Lin-guistics, Bangkok, Thailand, 7432–7449. doi:10.18653/v1/2024.findings-acl.443 [33] An Yang, Anfeng Li, Baosong Yang, Beichen Zhang, Binyuan Hui, Bo Zheng, Bowen Yu, Chang Gao, Chengen Huang, Chenxu Lv, Chujie Zheng, Dayiheng Liu, Fan Zhou, Fei Huang, Feng Hu, Hao Ge, Haoran Wei, Huan Lin, Jialong Tang, Jian Yang, Jianhong Tu, Jianwei Zhang, Jianxin Yang, Jiaxi Yang, Jing Zhou, Jingren Zhou, Junyang Lin, Kai Dang, Keqin Bao, Kexin Yang, Le Yu, Lianghao Deng, Mei Li, Mingfeng Xue, Mingze Li, Pei Zhang, Peng Wang, Qin Zhu, Rui Men, Ruize Gao, Shixuan Liu, Shuang Luo, Tianhao Li, Tianyi Tang, Wenbiao Yin, Xingzhang Ren, Xinyu Wang, Xinyu Zhang, Xuancheng Ren, Yang Fan, Yang Su, Yichang Zhang, Yinger Zhang, Yu Wan, Yuqiong Liu, Zekun Wang, Zeyu Cui, Zhenru Zhang, Zhipeng Zhou, and Zihan Qiu. 2025. Qwen3 Technical Report. arXiv:2505.09388 [cs.CL] https://arxiv.org/abs/2505.09388 [34] Sibo Yi, Yule Liu, Zhen Sun, Tianshuo Cong, Xinlei He, Jiaxing Song, Ke Xu, and Qi Li. 2024. Jailbreak Attacks and Defenses Against Large Language Models: A Survey. arXiv:2407.04295 [cs.CR] https://arxiv.org/abs/2407.04295 [35] Chen Yueh-Han, Nitish Joshi, Yulin Chen, Maksym Andriushchenko, Rico Angell, and He He. 2025. Monitoring Decomposition Attacks in LLMs with Lightweight Sequential Monitors. arXiv:2506.10949 [cs.CR] https://arxiv.org/abs/2506.10949 [36] Yuqi Zhang, Liang Ding, Lefei Zhang, and Dacheng Tao. 2024. Intention Analysis Makes LLMs A Good Jailbreak Defender. arXiv:2401.06561 [cs.CL] https://arxiv. org/abs/2401.06561 [37] Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, Tianle Li, Siyuan Zhuang, Zhang-hao Wu, Yonghao Zhuang, Zhuohan Li, Zi Lin, Eric P. Xing, Joseph E. Gonzalez, Ion Stoica, and Hao Zhang. 2024. LMSYS-Chat-1M: A Large-Scale Real-World LLM Conversation Dataset. arXiv:2309.11998 [cs.CL] https://arxiv.org/abs/2309. 11998 [38] Andy Zou, Zifan Wang, Nicholas Carlini, Milad Nasr, J. Zico Kolter, and Matt Fredrikson. 2023. Universal and Transferable Adversarial Attacks on Aligned Language Models. arXiv:2307.15043 [cs.CL] https://arxiv.org/abs/2307.15043

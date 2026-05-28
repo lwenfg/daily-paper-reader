@@ -1,0 +1,2201 @@
+{
+  "mode": "standard",
+  "generated_at": "2026-05-28T10:05:59.665445+00:00",
+  "stats": {
+    "mode": "standard",
+    "tag_count": 1,
+    "deep_divecandidates": 52,
+    "deep_cap": 6,
+    "deep_selected": 44,
+    "quick_candidates": 14,
+    "quick_skim_target": 11,
+    "quick_selected": 11
+  },
+  "deep_dive": [
+    {
+      "id": "2605.02647v1",
+      "source": "arxiv",
+      "title": "ContextualJailbreak: Evolutionary Red-Teaming via Simulated Conversational Priming",
+      "abstract": "Large language models (LLMs) remain vulnerable to jailbreak attacks that bypass safety alignment and elicit harmful responses. A growing body of work shows that contextual priming, where earlier turns covertly bias later replies, constitutes a powerful attack surface, with hand-crafted multi-turn scaffolds consistently outperforming single-turn manipulations on capable models.   However, automated optimization-based red-teaming has remained largely limited to the single-turn setting, iterating over static prompts and lacking the ability to reason about which forms of conversational priming induce compliance. While recent multi-turn, search-based approaches have begun to bridge this gap, the mutator design space underlying effective primed dialogues remains largely unexplored.   We present ContextualJailbreak, a black-box red-teaming strategy that performs evolutionary search over a simulated multi-turn primed dialogue. The strategy leverages a graded 0-5 harm score from a two-level judge as an in-loop signal, enabling partially harmful responses to guide the search process rather than being discarded.   Search is driven by five semantically defined mutation operators: roleplay, scenario, expand, troubleshooting, and mechanistic, of which the last two are novel contributions of this work.   Across 50 representative HarmBench behaviors, ContextualJailbreak achieves an ASR of 100% on gpt-oss:20B, 100% on qwen3-8B, 100% on llama3.1:70B, and 90% on gpt-oss:120B, outperforming four single- and multi-turn baselines by 31-96 percentage points on average.   The 40 maximally harmful attacks discovered against gpt-oss:120B transfer without adaptation to closed frontier models, achieving 90.0% on gpt-4o-mini, 70.0% on gpt-5, and 70.0% on gemini-3-flash, but only 17.5% on claude-opus-4-7 and 15.0% on claude-sonnet-4-6, revealing a pronounced provider-level asymmetry in alignment robustness.",
+      "authors": [
+        "Mario Rodríguez Béjar",
+        "Francisco J. Cortés-Delgado",
+        "S. Braghin",
+        "Jose L. Hernández-Ramos"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.CR"
+      ],
+      "published": "2026-05-04T14:32:40+00:00",
+      "link": "https://arxiv.org/pdf/2605.02647v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Proposes evolutionary red-teaming method for discovering jailbreak vulnerabilities via conversational priming",
+      "llm_evidence_cn": "提出通过对话启动的进化红队测试方法，发现越狱漏洞",
+      "llm_evidence": "提出通过对话启动的进化红队测试方法，发现越狱漏洞",
+      "canonical_evidence": "提出通过对话启动的进化红队测试方法，发现越狱漏洞",
+      "llm_tldr_en": "Introduces ContextualJailbreak, an evolutionary red-teaming method that automatically discovers multi-turn jailbreak prompts via simulated conversational priming, outperforming single-turn attacks.",
+      "llm_tldr_cn": "当前自动化红队测试多局限于单轮静态提示，无法利用多轮对话的上下文启动效应。该文提出ContextualJailbreak，一种进化算法，通过模拟对话启动自动发现多轮越狱提示。算法设计变异算子探索有效的启动对话模式，迭代优化以诱导大模型输出有害内容。实验表明，该方法在多种先进模型上显著优于单轮攻击，揭示了多轮交互中潜伏的安全风险，为红队测试提供了高效自动化工具体。",
+      "llm_tldr": "当前自动化红队测试多局限于单轮静态提示，无法利用多轮对话的上下文启动效应。该文提出ContextualJailbreak，一种进化算法，通过模拟对话启动自动发现多轮越狱提示。算法设计变异算子探索有效的启动对话模式，迭代优化以诱导大模型输出有害内容。实验表明，该方法在多种先进模型上显著优于单轮攻击，揭示了多轮交互中潜伏的安全风险，为红队测试提供了高效自动化工具体。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "red teaming approaches to discover jailbreak vulnerabilities",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.07414v1",
+      "source": "arxiv",
+      "title": "OrchJail: Jailbreaking Tool-Calling Text-to-Image Agents by Orchestration-Guided Fuzzing",
+      "abstract": "Tool-calling text-to-image (T2I) agents can plan and execute multi-step tool chains to accomplish complex generation and editing queries. However, this capability introduces a new safety attack surface: harmful outputs may arise from tool orchestration, where individually benign steps combine into unsafe results, making prompt-only jailbreak techniques insufficient. We present OrchJail, an orchestration-guided fuzzing framework for jailbreaking tool-calling T2I agents. Its core idea is to exploit high-risk tool-orchestration patterns: by learning from successful jailbreak tool-calling traces and their causal relationships to prompt wording, OrchJail directly guides the fuzzing search toward prompts that are more likely to trigger unsafe multi-step tool behaviors, rather than relying on surface-level textual perturbations. Extensive experiments demonstrate that OrchJail improves jailbreak effectiveness and efficiency across representative toolcalling T2I agents, achieving higher attack success rates, better image fidelity, and lower query costs, while remaining robust against common jailbreak defenses. Our work highlights tool orchestration as a critical, previously unexplored attack surface and provides a novel framework for uncovering safety risks in T2I agents.",
+      "authors": [
+        "Jianming Chen",
+        "Yawen Wang",
+        "Junjie Wang",
+        "Zhe Liu",
+        "Qing Wang",
+        "Fanjiang Xu"
+      ],
+      "primary_category": "cs.MA",
+      "categories": [
+        "cs.MA",
+        "cs.AI",
+        "cs.CR"
+      ],
+      "published": "2026-05-08T08:06:23+00:00",
+      "link": "https://arxiv.org/pdf/2605.07414v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Presents OrchJail, an orchestration-guided fuzzing framework for jailbreaking tool-calling text-to-image agents.",
+      "llm_evidence_cn": "提出OrchJail，编排引导模糊测试框架，越狱调用工具文本到图像智能体。",
+      "llm_evidence": "提出OrchJail，编排引导模糊测试框架，越狱调用工具文本到图像智能体。",
+      "canonical_evidence": "提出OrchJail，编排引导模糊测试框架，越狱调用工具文本到图像智能体。",
+      "llm_tldr_en": "OrchJail targets the tool orchestration vulnerability of T2I agents, guiding fuzzing to generate prompts that combine benign steps into harmful outputs.",
+      "llm_tldr_cn": "调用工具的文本到图像智能体通过多步工具链完成复杂任务，但工具编排可能导致良性步骤组合产生危险输出。本文提出OrchJail编排引导模糊测试框架，学习成功越狱工具调用痕迹与提示词间的因果关系，直接引导模糊测试生成易触发不安全结果的提示。",
+      "llm_tldr": "调用工具的文本到图像智能体通过多步工具链完成复杂任务，但工具编排可能导致良性步骤组合产生危险输出。本文提出OrchJail编排引导模糊测试框架，学习成功越狱工具调用痕迹与提示词间的因果关系，直接引导模糊测试生成易触发不安全结果的提示。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks targeting AI agents",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.09504v1",
+      "source": "arxiv",
+      "title": "Position: AI Security Policy Should Target Systems, Not Models",
+      "abstract": "We present swarm-attack, an open-source adversarial testing framework in which multiple lightweight LLM agents coordinate through shared memory, parallel exploration, and evolutionary optimization. Together, our results demonstrate that both safety bypass of frontier models and software vulnerability discovery, i.e., the capability class that motivated restricted release of Anthropic's Mythos Preview, are achievable at effectively zero cost using commodity hardware and openly available models. We report two experiments. In the first, five instances of a 1.2 billion parameter model conducted 225 jailbreak attacks each against GPT-4o and Claude Sonnet~4. Against GPT-4o, the swarm achieved an Effective Harm Rate of 45.8%, producing 49 critical-severity breaches; against Claude Sonnet-4, the Effective Harm Rate was 0% despite a 40% technical success rate. In the second experiment, the same models performed combined source code analysis and binary fuzzing against a vulnerable C application with 9 planted CWEs. With a hand-crafted exploit seed corpus, regex pattern detection, and AddressSanitizer-based crash classification, the pipeline recovers 9 of 9 vulnerabilities (100% recall) in approximately four minutes on a consumer MacBook. With those scaffold components disabled, the same model recovers 0 of 9 by crash verification and 2 of 9 by citation. The capability class that motivated restricted release of Anthropic's Mythos Preview is therefore reproducible at effectively zero cost; the important enabler is the system scaffold itself, which compensates for the limited reasoning capacity of small individual models.",
+      "authors": [
+        "Michael A. Riegler",
+        "Inga Strümke"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-05-10T12:27:14+00:00",
+      "link": "https://arxiv.org/pdf/2605.09504v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "swarm of LLM agents coordinate to jailbreak frontier models",
+      "llm_evidence_cn": "LLM智能体群协同越狱前沿模型",
+      "llm_evidence": "LLM智能体群协同越狱前沿模型",
+      "canonical_evidence": "LLM智能体群协同越狱前沿模型",
+      "llm_tldr_en": "Introduces swarm-attack, a multi-agent adversarial testing framework where lightweight LLM agents share memory and use evolutionary optimization to perform jailbreak attacks, achieving high harm rates against GPT-4o and Claude.",
+      "llm_tldr_cn": "提出swarm-attack多智能体对抗测试框架，多个轻量级LLM智能体通过共享记忆、并行探索和进化优化协调，以极低成本对GPT-4o和Claude进行越狱攻击，有效危害率达45.8%。证明了利用普通硬件和开源模型即可突破前沿模型安全防线，强调AI安全政策应关注系统层面而非单模型。",
+      "llm_tldr": "提出swarm-attack多智能体对抗测试框架，多个轻量级LLM智能体通过共享记忆、并行探索和进化优化协调，以极低成本对GPT-4o和Claude进行越狱攻击，有效危害率达45.8%。证明了利用普通硬件和开源模型即可突破前沿模型安全防线，强调AI安全政策应关注系统层面而非单模型。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks targeting AI agents",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.10067v1",
+      "source": "arxiv",
+      "title": "Metis: Learning to Jailbreak LLMs via Self-Evolving Metacognitive Policy Optimization",
+      "abstract": "Red teaming is critical for uncovering vulnerabilities in Large Language Models (LLMs). While automated methods have improved scalability, existing approaches often rely on static heuristics or stochastic search, rendering them brittle against advanced safety alignment. To address this, we introduce Metis, a framework that reformulates jailbreaking as inference-time policy optimization within an adversarial Partially Observable Markov Decision Process (POMDP). Metis employs a self-evolving metacognitive loop to perform causal diagnosis of a target's defense logic and leverages structured feedback as a semantic gradient to refine its policy, offering enhanced interpretability through transparent reasoning traces. Extensive evaluations across 10 diverse models demonstrate that Metis achieves the strongest average Attack Success Rate (ASR) among compared methods at 89.2%, maintaining high efficacy on resilient frontier models (e.g., 76.0% on O1 and 78.0% on GPT-5-chat) where traditional baselines exhibit substantial performance degradation. By replacing redundant exploration with directed optimization, Metis reduces token costs by an average of 8.2x and up to 11.4x. Our analysis reveals that current defenses remain vulnerable to internally-steered, closed-loop reasoning trajectories under the tested settings, highlighting a critical need for next-generation defenses capable of reasoning about safety dynamically during inference.",
+      "authors": [
+        "Huilin Zhou",
+        "Jian Zhao",
+        "Yilu Zhong",
+        "Zhen Liang",
+        "Xiuyuan Chen",
+        "Yuchen Yuan",
+        "Tianle Zhang",
+        "Chi Zhang",
+        "Lan Zhang",
+        "Xuelong Li"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-05-11T06:45:00+00:00",
+      "link": "https://arxiv.org/pdf/2605.10067v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Frames jailbreaking as inference-time policy optimization in a POMDP, using self-evolving metacognitive loop and semantic gradients to discover jailbreaks.",
+      "llm_evidence_cn": "将越狱建模为推断时策略优化，使用自演化元认知环和语义梯度发现越狱攻击。",
+      "llm_evidence": "将越狱建模为推断时策略优化，使用自演化元认知环和语义梯度发现越狱攻击。",
+      "canonical_evidence": "将越狱建模为推断时策略优化，使用自演化元认知环和语义梯度发现越狱攻击。",
+      "llm_tldr_en": "Metis uses metacognitive policy optimization to learn jailbreak strategies, outperforming existing static and search-based red teaming methods.",
+      "llm_tldr_cn": "现有自动化红队方法依赖静态启发式或随机搜索，面对先进安全对齐脆弱。Metis框架将越狱重构为对抗部分可观测马尔可夫决策过程中的推断时策略优化，通过自演化元认知环因果诊断防御逻辑，以结构化反馈为语义梯度优化策略，提供透明推理轨迹，显著优于现有方法。",
+      "llm_tldr": "现有自动化红队方法依赖静态启发式或随机搜索，面对先进安全对齐脆弱。Metis框架将越狱重构为对抗部分可观测马尔可夫决策过程中的推断时策略优化，通过自演化元认知环因果诊断防御逻辑，以结构化反馈为语义梯度优化策略，提供透明推理轨迹，显著优于现有方法。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "automated methods for generating jailbreak prompts",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.10067v2",
+      "source": "arxiv",
+      "title": "Metis: Learning to Jailbreak LLMs via Self-Evolving Metacognitive Policy Optimization",
+      "abstract": "Red teaming is critical for uncovering vulnerabilities in Large Language Models (LLMs). While automated methods have improved scalability, existing approaches often rely on static heuristics or stochastic search, rendering them brittle against advanced safety alignment. To address this, we introduce Metis, a framework that reformulates jailbreaking as inference-time policy optimization within an adversarial Partially Observable Markov Decision Process (POMDP). Metis employs a self-evolving metacognitive loop to perform causal diagnosis of a target's defense logic and leverages structured feedback as a semantic gradient to refine its policy, offering enhanced interpretability through transparent reasoning traces. Extensive evaluations across 10 diverse models demonstrate that Metis achieves the strongest average Attack Success Rate (ASR) among compared methods at 89.2%, maintaining high efficacy on resilient frontier models (e.g., 76.0% on O1 and 78.0% on GPT-5-chat) where traditional baselines exhibit substantial performance degradation. By replacing redundant exploration with directed optimization, Metis reduces token costs by an average of 8.2x and up to 11.4x. Our analysis reveals that current defenses remain vulnerable to internally-steered, closed-loop reasoning trajectories under the tested settings, highlighting a critical need for next-generation defenses capable of reasoning about safety dynamically during inference.",
+      "authors": [
+        "Huilin Zhou",
+        "Jian Zhao",
+        "Yilu Zhong",
+        "Zhen Liang",
+        "Xiuyuan Chen",
+        "Yuchen Yuan",
+        "Tianle Zhang",
+        "Chi Zhang",
+        "Lan Zhang",
+        "Xuelong Li"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-05-11T06:45:00+00:00",
+      "link": "https://arxiv.org/pdf/2605.10067v2",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "self-evolving metacognitive policy optimization for red teaming to uncover LLM vulnerabilities",
+      "llm_evidence_cn": "自我演化的元认知策略优化，用于红队测试揭示LLM漏洞",
+      "llm_evidence": "自我演化的元认知策略优化，用于红队测试揭示LLM漏洞",
+      "canonical_evidence": "自我演化的元认知策略优化，用于红队测试揭示LLM漏洞",
+      "llm_tldr_en": "Introduces Metis, a framework that treats jailbreaking as inference-time policy optimization with a self-evolving metacognitive loop, achieving state-of-the-art attack success and interpretability across diverse LLMs.",
+      "llm_tldr_cn": "针对现有自动化红队方法依赖静态启发式或随机搜索的局限性，提出Metis框架，将越狱攻击建模为对抗性部分可观测马尔可夫决策过程中的推理时策略优化，利用自我演化的元认知循环进行因果诊断和策略精炼，在多种大语言模型上取得领先攻击成功率，并提供了可解释的推理轨迹。",
+      "llm_tldr": "针对现有自动化红队方法依赖静态启发式或随机搜索的局限性，提出Metis框架，将越狱攻击建模为对抗性部分可观测马尔可夫决策过程中的推理时策略优化，利用自我演化的元认知循环进行因果诊断和策略精炼，在多种大语言模型上取得领先攻击成功率，并提供了可解释的推理轨迹。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "red teaming approaches to discover jailbreak vulnerabilities",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.10779v1",
+      "source": "arxiv",
+      "title": "LITMUS: Benchmarking Behavioral Jailbreaks of LLM Agents in Real OS Environments",
+      "abstract": "The rapid proliferation of LLM-based autonomous agents in real operating system environments introduces a new category of safety risk beyond content safety: behavior jailbreak, where an adversary induces an agent to execute dangerous OS-level operations with irreversible consequences. Existing benchmarks either evaluate safety at the semantic layer alone, missing physical-layer harms, or fail to isolate test cases, letting earlier runs contaminate later ones. We present LITMUS (LLM-agents In-OS Testing for Measuring Unsafe Subversion), a benchmark addressing both gaps via a semantic-physical dual verification mechanism and OS-level state rollback. LITMUS comprises 819 high-risk test cases organized into one harmful seed subset and six attack-extended subsets covering three adversarial paradigms (jailbreak speaking, skill injection, and entity wrapping), plus a fully automated multi-agent evaluation framework judging behavior at both conversational and OS-level physical layers. Evaluation across frontier agents reveals three findings: (1) current agents lack effective safety awareness, with strong models (e.g., Claude Sonnet 4.6) still executing 40.64% of high-risk operations; (2) agents exhibit pervasive Execution Hallucination (EH), verbally refusing a request while the dangerous operation has already completed at the system level, invisible to every prior semantic-only framework; and (3) skill injection and entity wrapping attacks achieve high success rates, exposing pronounced agent vulnerabilities. LITMUS provides the first standardized platform for reproducible, physically grounded behavioral safety evaluation of LLM agents in real OS environments.",
+      "authors": [
+        "Chiyu Zhang",
+        "Huiqin Yang",
+        "Bendong Jiang",
+        "Xiaolei Zhang",
+        "Yiran Zhao",
+        "Ruyi Chen",
+        "Lu Zhou",
+        "Xiaogang Xu",
+        "Jiafei Wu",
+        "Liming Fang",
+        "Zhe Liu"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.CL"
+      ],
+      "published": "2026-05-11T16:14:04+00:00",
+      "link": "https://arxiv.org/pdf/2605.10779v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "benchmarks behavioral jailbreaks of LLM agents executing dangerous OS operations",
+      "llm_evidence_cn": "基准测试LLM智能体执行危险OS操作的行为越狱",
+      "llm_evidence": "基准测试LLM智能体执行危险OS操作的行为越狱",
+      "canonical_evidence": "基准测试LLM智能体执行危险OS操作的行为越狱",
+      "llm_tldr_en": "Introduces LITMUS, a benchmark with 819 test cases for evaluating behavioral jailbreaks of LLM agents in real OS environments, using semantic-physical dual verification and OS state rollback to ensure isolated, reliable testing.",
+      "llm_tldr_cn": "针对现有基准仅评估语义层安全而忽略物理层危害的不足，提出LITMUS基准，包含819个高风险测试用例，覆盖六种攻击策略，采用语义-物理双重验证和OS状态回滚机制，为在真实操作系统环境中评估LLM智能体的行为越狱风险提供了可靠、隔离的测试平台。",
+      "llm_tldr": "针对现有基准仅评估语义层安全而忽略物理层危害的不足，提出LITMUS基准，包含819个高风险测试用例，覆盖六种攻击策略，采用语义-物理双重验证和OS状态回滚机制，为在真实操作系统环境中评估LLM智能体的行为越狱风险提供了可靠、隔离的测试平台。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks targeting AI agents",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.19328v1",
+      "source": "arxiv",
+      "title": "RoboJailBench: Benchmarking Adversarial Attacks and Defenses in Embodied Robotic Agents",
+      "abstract": "Recent advances in Vision-Language Models (VLMs) facilitate a new class of embodied AI systems, where these models are integrated into physical platforms, e.g. robots and autonomous vehicles, to interpret visual scenes and execute natural language commands in diverse environments. Previous research has introduced jailbreak attacks and defenses for embodied AI. Their evaluations, however, rely on ad-hoc datasets, limited metrics, and emphasize attack success while neglecting the trade-off between security and the ability to follow benign commands. Existing benchmarks and evaluation frameworks either target traditional chat-based models or focus on non-adversarial safety evaluation for embodied AI; neither captures the adversarial risks, inputs, consequences, and evaluation criteria necessary for jailbreak attacks in embodied AI systems. In this paper, we address this gap with RoboJailBench, which consists of three core components. We establish a security taxonomy derived from ISO standards, regulatory rules, and documented incidents. This effort yields 18 categories of security violation consequences for embodied AI. We introduce an intent contrast dataset pipeline that augments existing datasets with paired adversarial and benign goals to measure both security and utility. Lastly, we provide an evolving repository with standardized metrics and a unified process for assessing and integrating new attacks and defenses. With this benchmark, we construct a new taxonomy-balanced dataset and augment five existing datasets. We integrate four attacks and two defenses to evaluate their performance on leading embodied VLMs. This benchmark provides the first standardized evaluation framework for jailbreak attacks in embodied AI and supports future research. We release our code, datasets, and artifacts, and maintain a leaderboard at https://purseclab.github.io/benchmark-for-robotics-security.",
+      "authors": [
+        "Doguhuan Yeke",
+        "Yanming Zhou",
+        "Leo Y. Lin",
+        "Hongyu Cai",
+        "Antonio Bianchi",
+        "Z. Berkay Celik"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.RO"
+      ],
+      "published": "2026-05-19T04:07:24+00:00",
+      "link": "https://arxiv.org/pdf/2605.19328v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "Benchmark for jailbreak attacks and defenses in embodied AI agents",
+      "llm_evidence_cn": "具身AI智能体越狱攻击与防御的基准评测",
+      "llm_evidence": "具身AI智能体越狱攻击与防御的基准评测",
+      "canonical_evidence": "具身AI智能体越狱攻击与防御的基准评测",
+      "llm_tldr_en": "Introduces RoboJailBench, the first standardized benchmark for jailbreak attacks and defenses in embodied AI agents, evaluating security-utility trade-offs with comprehensive metrics and realistic scenarios.",
+      "llm_tldr_cn": "现有具身AI越狱攻击评估采用临时数据集且指标单一，忽视了安全性与执行良性命令能力之间的权衡。该文提出RoboJailBench，首个专为具身机器人智能体设计的标准化评测基准，包含多样化场景和任务，统一评估攻击成功率与任务效用保持度。实验表明，现有防御手段在真实物理交互中往往降低任务性能，强调了安全与效用平衡的重要性，为具身AI安全研究提供了公共评测平台。随着视觉语言模型融入物理平台，具身AI面临越狱攻击风险，但缺乏系统的评估框架。RoboJailBench填补了这一空白，通过包含物理交互的对抗样本，衡量防御机制在维持任务完成能力的同时抵御攻击的有效性。该基准揭示了当前防御策略的不足，引导未来研究向着实用化、平衡化的方向发展。",
+      "llm_tldr": "现有具身AI越狱攻击评估采用临时数据集且指标单一，忽视了安全性与执行良性命令能力之间的权衡。该文提出RoboJailBench，首个专为具身机器人智能体设计的标准化评测基准，包含多样化场景和任务，统一评估攻击成功率与任务效用保持度。实验表明，现有防御手段在真实物理交互中往往降低任务性能，强调了安全与效用平衡的重要性，为具身AI安全研究提供了公共评测平台。随着视觉语言模型融入物理平台，具身AI面临越狱攻击风险，但缺乏系统的评估框架。RoboJailBench填补了这一空白，通过包含物理交互的对抗样本，衡量防御机制在维持任务完成能力的同时抵御攻击的有效性。该基准揭示了当前防御策略的不足，引导未来研究向着实用化、平衡化的方向发展。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks targeting AI agents",
+      "matched_requirement_id": "req-1",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.21362v1",
+      "source": "arxiv",
+      "title": "LASH: Adaptive Semantic Hybridization for Black-Box Jailbreaking of Large Language Models",
+      "abstract": "Jailbreak attacks expose a persistent gap between the intended safety behavior of aligned large language models and their behavior under adversarial prompting. Existing automated methods are increasingly effective but each commits to a single attack family (e.g., one refinement loop, one tree search, one mutation space, or one strategy library) and no single family dominates: the best-performing method shifts across target models and harm categories, suggesting complementary strengths that per-prompt composition could exploit. We introduce LASH (LLM Adaptive Semantic Hybridization), a black-box framework that treats outputs from multiple base attacks as reusable seed prompts and adaptively composes them for each target request. Given a seed pool, LASH searches over seed subsets and softmax-normalized mixture weights; a composition module synthesizes a single candidate prompt, and a derivative-free genetic optimizer updates the weights using black-box target feedback and a two-stage fitness function combining keyword-based refusal detection with LLM-judge scoring. On JailbreakBench, which contains 100 harmful prompts across 10 categories, we evaluate LASH on six common target models. LASH achieves an average attack success rate of 84.5% under keyword-based evaluation and 74.5% under two-stage evaluation, where responses are first filtered for refusals and then scored by an LLM judge for whether they substantively fulfill the original harmful request. LASH outperforms five state-of-the-art baselines on both metrics with only 30 mean target queries. LASH also remains competitive under three defense mechanisms and induces more success-like internal representations. These results suggest that adaptive composition across heterogeneous jailbreak strategies is a promising direction for black-box red-teaming.",
+      "authors": [
+        "Abdullah Al Nomaan Nafi",
+        "Fnu Suya",
+        "Swarup Bhunia",
+        "Prabuddha Chakraborty"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-05-20T16:27:00+00:00",
+      "link": "https://arxiv.org/pdf/2605.21362v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 10.0,
+      "llm_evidence_en": "adaptive semantic hybridization framework that composes multiple base attack outputs to generate more effective jailbreak prompts",
+      "llm_evidence_cn": "自适应语义混合框架组合多种基础攻击输出以生成更有效的越狱提示",
+      "llm_evidence": "自适应语义混合框架组合多种基础攻击输出以生成更有效的越狱提示",
+      "canonical_evidence": "自适应语义混合框架组合多种基础攻击输出以生成更有效的越狱提示",
+      "llm_tldr_en": "Proposes LASH, a black-box jailbreak framework that adaptively composes outputs from multiple diverse base attacks into hybrid prompts, outperforming individual methods across target models and harm categories by exploiting complementary strengths.",
+      "llm_tldr_cn": "针对单一越狱攻击家族难以在所有场景中占据优势的问题，提出LASH框架，将多种不同基础攻击的输出作为可重用种子，针对每个目标请求自适应地混合生成越狱提示，利用互补优势，在多种模型和伤害类别上超越了任何单一攻击方法，提升了黑盒越狱的通用性和有效性。",
+      "llm_tldr": "针对单一越狱攻击家族难以在所有场景中占据优势的问题，提出LASH框架，将多种不同基础攻击的输出作为可重用种子，针对每个目标请求自适应地混合生成越狱提示，利用互补优势，在多种模型和伤害类别上超越了任何单一攻击方法，提升了黑盒越狱的通用性和有效性。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "automated generation of jailbreak prompts",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2604.27861v1",
+      "source": "arxiv",
+      "title": "TwinGate: Stateful Defense against Decompositional Jailbreaks in Untraceable Traffic via Asymmetric Contrastive Learning",
+      "abstract": "Decompositional jailbreaks pose a critical threat to large language models (LLMs) by allowing adversaries to fragment a malicious objective into a sequence of individually benign queries that collectively reconstruct prohibited content. In real-world deployments, LLMs face a continuous, untraceable stream of fully anonymized and arbitrarily interleaved requests, infiltrated by covertly distributed adversarial queries. Under this rigorous threat model, state-of-the-art defensive strategies exhibit fundamental limitations. In the absence of trustworthy user metadata, they are incapable of tracking global historical contexts, while their deployment of generative models for real-time monitoring introduces computationally prohibitive overhead. To address this, we present TwinGate, a stateful dual-encoder defense framework. TwinGate employs Asymmetric Contrastive Learning (ACL) to cluster semantically disparate but intent-matched malicious fragments in a shared latent space, while a parallel frozen encoder suppresses false positives arising from benign topical overlap. Each request requires only a single lightweight forward pass, enabling the defense to execute in parallel with the target model's prefill phase at negligible latency overhead. To evaluate our approach and advance future research, we construct a comprehensive dataset of over 3.62 million instructions spanning 8,600 distinct malicious intents. Evaluated on this large-scale corpus under a strictly causal protocol, TwinGate achieves high malicious intent recall at a remarkably low false positive rate while remaining highly robust against adaptive attacks. Furthermore, our proposal substantially outperforms stateful and stateless baselines, delivering superior throughput and reduced latency.",
+      "authors": [
+        "Bowen Sun",
+        "Chaozhuo Li",
+        "Yaodong Yang",
+        "Yiwei Wang",
+        "Chaowei Xiao"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-04-30T13:44:01+00:00",
+      "link": "https://arxiv.org/pdf/2604.27861v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "stateful defense against decompositional jailbreaks using asymmetric contrastive learning",
+      "llm_evidence_cn": "利用非对称对比学习的针对分解式越狱攻击的有状态防御",
+      "llm_evidence": "利用非对称对比学习的针对分解式越狱攻击的有状态防御",
+      "canonical_evidence": "利用非对称对比学习的针对分解式越狱攻击的有状态防御",
+      "llm_tldr_en": "Proposes TwinGate, a stateful defense that uses asymmetric contrastive learning to track and block decompositional jailbreaks in fully anonymized, untraceable request streams, overcoming limitations of context-less defenses.",
+      "llm_tldr_cn": "针对分解式越狱攻击将恶意目标分散到多个良性查询中的威胁，提出TwinGate有状态防御方法，利用非对称对比学习在完全匿名且不可追踪的请求流中跟踪历史上下文并检测攻击，解决了现有防御无法关联全局上下文的问题，在严格威胁模型下显著提升了防御效果。",
+      "llm_tldr": "针对分解式越狱攻击将恶意目标分散到多个良性查询中的威胁，提出TwinGate有状态防御方法，利用非对称对比学习在完全匿名且不可追踪的请求流中跟踪历史上下文并检测攻击，解决了现有防御无法关联全局上下文的问题，在严格威胁模型下显著提升了防御效果。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.00236v1",
+      "source": "arxiv",
+      "title": "Attention Is Where You Attack",
+      "abstract": "Safety-aligned large language models rely on RLHF and instruction tuning to refuse harmful requests, yet the internal mechanisms implementing safety behavior remain poorly understood. We introduce the Attention Redistribution Attack (ARA), a white-box adversarial attack that identifies safety-critical attention heads and crafts nonsemantic adversarial tokens that redirect attention away from safety-relevant positions. Unlike prior jailbreak methods operating at the semantic or output-logit level, ARA targets the geometry of softmax attention on the probability simplex using Gumbel-softmax optimization over targeted heads. Across LLaMA-3-8B-Instruct, Mistral-7B-Instruct-v0.1, and Gemma-2-9B-it, ARA bypasses safety alignment with as few as 5 tokens and 500 optimization steps, achieving 36% ASR on Mistral-7B and 30% on LLaMA-3 against 200 HarmBench prompts, while Gemma-2 remains at 1%. Our principal mechanistic finding is a dissociation between ablation and redistribution: zeroing out the top-ranked safety heads produces at most 1 flip among 39 to 50 baseline refusals, while ARA targeting the corresponding safety-heavy layers flips 72/200 prompts on Mistral-7B and 60/200 on LLaMA-3. This suggests that safety is not localized in these heads as removable components, but emerges from the attention routing they perform. Removing a head allows compensation through the residual stream, while redirecting its attention propagates a corrupted signal downstream.",
+      "authors": [
+        "Aviral Srivastava",
+        "Sourav Panda"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-04-30T21:15:38+00:00",
+      "link": "https://arxiv.org/pdf/2605.00236v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "white-box adversarial attack redirecting attention heads to bypass safety alignment",
+      "llm_evidence_cn": "白盒对抗攻击重定向注意力头以绕过安全对齐",
+      "llm_evidence": "白盒对抗攻击重定向注意力头以绕过安全对齐",
+      "canonical_evidence": "白盒对抗攻击重定向注意力头以绕过安全对齐",
+      "llm_tldr_en": "Introduces ARA, a white-box attack that identifies safety-critical attention heads and crafts nonsemantic tokens to redirect attention away, effectively bypassing safety with minimal tokens and optimization steps.",
+      "llm_tldr_cn": "针对安全对齐LLM内部机制不明确的问题，提出注意力重分配攻击ARA。通过识别安全关键注意力头，利用Gumbel-softmax优化生成少量无意义对抗令牌，将注意力从安全相关位置移开。在LLaMA-3、Mistral等模型上，仅需5个令牌和500步优化即可实现36%攻击成功率，显著低于语义级越狱的令牌数量。",
+      "llm_tldr": "针对安全对齐LLM内部机制不明确的问题，提出注意力重分配攻击ARA。通过识别安全关键注意力头，利用Gumbel-softmax优化生成少量无意义对抗令牌，将注意力从安全相关位置移开。在LLaMA-3、Mistral等模型上，仅需5个令牌和500步优化即可实现36%攻击成功率，显著低于语义级越狱的令牌数量。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "adversarial prompts for bypassing safety alignment in language models",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.00583v1",
+      "source": "arxiv",
+      "title": "Jailbreaking Vision-Language Models Through the Visual Modality",
+      "abstract": "The visual modality of vision-language models (VLMs) is an underexplored attack surface for bypassing safety alignment. We introduce four jailbreak attacks exploiting the vision component: (1) encoding harmful instructions as visual symbol sequences with a decoding legend, (2) replacing harmful objects with benign substitutes (e.g., bomb -> banana) then prompting for harmful actions using the substitute term, (3) replacing harmful text in images (e.g., on book covers) with benign words while visual context preserves the original meaning, and (4) visual analogy puzzles whose solution requires inferring a prohibited concept. Evaluating across six frontier VLMs, our visual attacks bypass safety alignment and expose a cross-modality alignment gap: text-based safety training does not automatically generalize to harmful intent conveyed visually. For example, our visual cipher achieves 40.9% attack success on Claude-Haiku-4.5 versus 10.7% for an equivalent textual cipher. To further our insight into the attack mechanism, we present preliminary interpretability and mitigation results. These findings highlight that robust VLM alignment requires treating vision as a first-class target for safety post-training.",
+      "authors": [
+        "Aharon Azulay",
+        "Jan Dubiński",
+        "Zhuoyun Li",
+        "Atharv Mittal",
+        "Yossi Gandelsman"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-05-01T11:43:21+00:00",
+      "link": "https://arxiv.org/pdf/2605.00583v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes four visual jailbreak attacks to bypass safety alignment in VLMs",
+      "llm_evidence_cn": "提出四种利用视觉组件的越狱攻击，绕过VLM的安全对齐",
+      "llm_evidence": "提出四种利用视觉组件的越狱攻击，绕过VLM的安全对齐",
+      "canonical_evidence": "提出四种利用视觉组件的越狱攻击，绕过VLM的安全对齐",
+      "llm_tldr_en": "Presents four visual jailbreak attacks on VLMs that exploit the vision modality to bypass text-based safety alignment, exposing a critical cross-modality alignment gap.",
+      "llm_tldr_cn": "视觉语言模型的安全对齐多集中于文本模态，该文揭示了视觉模态作为攻击面的脆弱性。提出四种攻击：有害指令编码为视觉符号序列、用良性物品替换有害物并诱导有害行为、替换图像中有害文字保持上下文、以及视觉类比谜题推断禁止概念。在六款前沿VLM上的实验表明，这些视觉攻击能绕过安全对齐，突显了跨模态对齐的差距，为多模态安全研究敲响警钟。",
+      "llm_tldr": "视觉语言模型的安全对齐多集中于文本模态，该文揭示了视觉模态作为攻击面的脆弱性。提出四种攻击：有害指令编码为视觉符号序列、用良性物品替换有害物并诱导有害行为、替换图像中有害文字保持上下文、以及视觉类比谜题推断禁止概念。在六款前沿VLM上的实验表明，这些视觉攻击能绕过安全对齐，突显了跨模态对齐的差距，为多模态安全研究敲响警钟。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks against safety-aligned models",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.00974v1",
+      "source": "arxiv",
+      "title": "SRTJ: Self-Evolving Rule-Driven Training-Free LLM Jailbreaking",
+      "abstract": "LLMs are increasingly equipped with safety alignment mechanisms, yet recent studies demonstrate that they remain vulnerable to jailbreaking attacks that elicit harmful behaviors without explicit policy violations. While a growing body of work has explored automated jailbreak strategies, existing methods face several fundamental challenges, including the lack of systematic utilization of both successful and failed attack experiences, as well as the absence of principled mechanisms for composing and selecting reusable attack rules under diverse constraints. As a result, existing methods struggle to accumulate transferable knowledge over time and to reliably adapt attack strategies across different targets and evolving safety mechanisms. To address these issues, we propose a Self-Evolving Rule-Driven Training-Free Jailbreak (SRTJ) framework that systematically discovers, composes, and refines attack strategies through interaction and feedback, without updating model parameters. Specifically, SRTJ couples experience-driven attack generation with answer set programming (ASP)-based rule selection and constraint-aware composition, where iterative verifier feedback is leveraged to jointly refine successful strategies and analyze failure patterns. The resulting rule memory evolves in a hierarchical multi-level manner, explicitly organizing distilled attack knowledge into long-term, middle-term, and short-term rules, thereby capturing both stable transferable strategies and transient adaptive behaviors to effectively balance exploration and exploitation across attack attempts. Extensive experiments on mainstream jailbreak benchmark (HarmBench) demonstrate that SRTJ achieves strong and stable attack performance across different target LLMs, while exhibiting improved robustness and generalization compared to existing jailbreak methods. The code is available at https://github.com/TheSolkatt/SRTJ.",
+      "authors": [
+        "Jindong Li",
+        "Ying Liu",
+        "Yali Fu",
+        "Jinjing Zhu",
+        "Leyao Wang",
+        "Menglin Yang",
+        "Rex Ying"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.CL"
+      ],
+      "published": "2026-05-01T17:27:45+00:00",
+      "link": "https://arxiv.org/pdf/2605.00974v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "self-evolving rule-driven jailbreak prompt generation without training",
+      "llm_evidence_cn": "无训练的自进化规则驱动越狱提示生成",
+      "llm_evidence": "无训练的自进化规则驱动越狱提示生成",
+      "canonical_evidence": "无训练的自进化规则驱动越狱提示生成",
+      "llm_tldr_en": "Proposes SRTJ, a training-free jailbreak method that accumulates reusable attack rules from successes and failures, using evolutionary composition to generate effective prompts across targets.",
+      "llm_tldr_cn": "现有自动化越狱方法难以积累可迁移的知识和适应不同安全机制。SRTJ利用成功和失败攻击经验自进化导出攻击规则，通过规则组合与选择生成越狱提示。该方法无需训练，可跨目标迁移，在多个LLM上取得高成功率，展示出持续的适应能力。",
+      "llm_tldr": "现有自动化越狱方法难以积累可迁移的知识和适应不同安全机制。SRTJ利用成功和失败攻击经验自进化导出攻击规则，通过规则组合与选择生成越狱提示。该方法无需训练，可跨目标迁移，在多个LLM上取得高成功率，展示出持续的适应能力。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "automated generation of jailbreak prompts",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.01687v1",
+      "source": "arxiv",
+      "title": "MultiBreak: A Scalable and Diverse Multi-turn Jailbreak Benchmark for Evaluating LLM Safety",
+      "abstract": "We present MultiBreak, a scalable and diverse multi-turn jailbreak benchmark to evaluate large language model (LLM) safety. Multi-turn jailbreaks mimic natural conversational settings, making them easier to bypass safety-aligned LLM than single-turn jailbreaks. Existing multi-turn benchmarks are limited in size or rely heavily on templates, which restrict their diversity. To address this gap, we unify a wide range of harmful jailbreak intents, and introduce an active learning pipeline for expanding high-quality multi-turn adversarial prompts, where a generator is iteratively fine-tuned to produce stronger attack candidates, guided by uncertainty-based refinement. Our MultiBreak includes 10,389 multi-turn adversarial prompts, spans 2,665 distinct harmful intents, and covers the most diverse set of topics to date. Empirical evaluation shows that our benchmark achieves up to a 54.0 and 34.6 higher attack success rate (ASR)} than the second-best dataset on DeepSeek-R1-7B and GPT-4.1-mini, respectively. More importantly, safety evaluations suggest that diverse attack categories uncover fine-grained LLM vulnerabilities}, and categories that appear benign under single-turn can exhibit substantially higher adversarial effectiveness in multi-turn scenarios. These findings highlight persistent vulnerabilities of LLMs under realistic adversarial settings and establish MultiBreak as a scalable resource for advancing LLM safety.",
+      "authors": [
+        "Jialin Song",
+        "Xiaodong Liu",
+        "Weiwei Yang",
+        "Wuyang Chen",
+        "Mingqian Feng",
+        "Xuekai Zhu",
+        "Jianfeng Gao"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-05-03T02:55:30+00:00",
+      "link": "https://arxiv.org/pdf/2605.01687v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "introduces active learning pipeline for generating diverse multi-turn jailbreak prompts",
+      "llm_evidence_cn": "引入主动学习流程生成多样化多轮越狱提示",
+      "llm_evidence": "引入主动学习流程生成多样化多轮越狱提示",
+      "canonical_evidence": "引入主动学习流程生成多样化多轮越狱提示",
+      "llm_tldr_en": "Proposes MultiBreak, a benchmark with 10,389 multi-turn jailbreak prompts generated via active learning, achieving high diversity and scalability for evaluating LLM safety.",
+      "llm_tldr_cn": "针对现有多轮越狱基准规模小、多样性受限的问题，本文统一有害意图并引入基于主动学习的生成管道，通过不确定性引导迭代微调，生成10,389个高质量多轮对抗提示，构建了可扩展、多样化的越狱基准MultiBreak。",
+      "llm_tldr": "针对现有多轮越狱基准规模小、多样性受限的问题，本文统一有害意图并引入基于主动学习的生成管道，通过不确定性引导迭代微调，生成10,389个高质量多轮对抗提示，构建了可扩展、多样化的越狱基准MultiBreak。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "automated generation of jailbreak prompts",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.01761v1",
+      "source": "arxiv",
+      "title": "TrajShield: Trajectory-Level Safety Mediation for Defending Text-to-Video Models Against Jailbreak Attacks",
+      "abstract": "Text-to-Video (T2V) models have demonstrated remarkable capability in generating temporally coherent videos from natural language prompts, yet they also risk producing unsafe content such as violence or explicit material. Existing prompt-level defenses are largely inherited from text-to-image safety and operate on the lexical surface of the input, making them vulnerable to jailbreak attacks that disguise harmful intent through rephrasing or adversarial prompting. Moreover, T2V generation introduces a distinctive challenge overlooked by prior work: temporally emergent risk, where a seemingly benign prompt leads to unsafe content through the generator's temporal extrapolation toward narrative coherence. We propose \\method{}, a training-free, inference-time defense framework that reformulates T2V safety as a causal intervention in a temporally structured semantic space. TrajShield handles explicit unsafe prompts, jailbreak attacks, and temporally emergent risks in a unified manner by simulating the implied trajectory of a prompt, localizing the causal origin of potential risk, and applying a minimally invasive rewrite that neutralizes the risk while preserving safety-irrelevant semantics. Experiments on T2VSafetyBench across 14 safety categories and multiple T2V backends demonstrate that TrajShield achieves state-of-the-art defenseive performance while maintaining high semantic fidelity, substantially outperforming existing defenses, with an average ASR reduction of 52.44\\%.",
+      "authors": [
+        "Quanchen Zou",
+        "Nizhang Li",
+        "Wenxin Zhang",
+        "Jiaye Lin",
+        "Yangchen Zeng",
+        "Xiangzheng Zhang",
+        "Zonghao Ying"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV"
+      ],
+      "published": "2026-05-03T07:49:51+00:00",
+      "link": "https://arxiv.org/pdf/2605.01761v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "defense against jailbreak attacks on text-to-video models via trajectory-level safety mediation",
+      "llm_evidence_cn": "通过轨迹级安全中介防御文本到视频模型的越狱攻击",
+      "llm_evidence": "通过轨迹级安全中介防御文本到视频模型的越狱攻击",
+      "canonical_evidence": "通过轨迹级安全中介防御文本到视频模型的越狱攻击",
+      "llm_tldr_en": "Proposes TrajShield, a trajectory-level defense that intervenes during video generation to prevent unsafe content from jailbreak attacks, addressing temporally emergent risk unseen by prompt-level defenses.",
+      "llm_tldr_cn": "针对文本到视频模型易受越狱攻击生成不安全内容的问题，特别是攻击引发的时序涌现风险，提出轨迹级安全中介TrajShield，在生成过程中动态干预以防御越狱攻击，有效弥补了现有提示级防御的不足，提升了视频生成的安全性。",
+      "llm_tldr": "针对文本到视频模型易受越狱攻击生成不安全内容的问题，特别是攻击引发的时序涌现风险，提出轨迹级安全中介TrajShield，在生成过程中动态干预以防御越狱攻击，有效弥补了现有提示级防御的不足，提升了视频生成的安全性。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.01899v1",
+      "source": "arxiv",
+      "title": "Disentangling Intent from Role: Adversarial Self-Play for Persona-Invariant Safety Alignment",
+      "abstract": "The growing capabilities of large language models (LLMs) have driven their widespread deployment across diverse domains, even in potentially high-risk scenarios. Despite advances in safety alignment techniques, current models remain vulnerable to emerging persona-based jailbreak attacks. Existing research on persona-based jailbreak has primarily focused on attack iterations, yet it lacks systemic and mechanistic constraints on the defense side. To address this challenge, we propose Persona-Invariant Alignment (PIA), an adversarial self-play framework that achieves co-evolution through Persona Lineage Evolution (PLE) on the attack side and Persona-Invariant Consistency Learning (PICL) on the defense side. Theoretically, PICL is grounded in the structural separation hypothesis, using a unilateral KL-divergence constraint to enable the structural decoupling of safety decisions from persona context, thereby maintaining safe behavior under persona-based jailbreak attacks. Experimental results demonstrate that PLE efficiently explores high-risk persona spaces by leveraging lineage-based credit propagation. Meanwhile, the PICL defense method significantly reduces the Attack Success Rate (ASR) while preserving the model's general capability, thereby validating the superiority and robustness of this alignment paradigm. Codes are available at https://github.com/JiajiaLi-1130/PIA.",
+      "authors": [
+        "Jiajia Li",
+        "Xiaoyu Wen",
+        "Zhongtian Ma",
+        "Shuyue Hu",
+        "Qiaosheng Zhang",
+        "Zhen Wang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-05-03T14:28:08+00:00",
+      "link": "https://arxiv.org/pdf/2605.01899v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes defense framework against persona-based jailbreak attacks using adversarial self-play",
+      "llm_evidence_cn": "提出基于对抗自博弈的角色不变安全对齐防御框架",
+      "llm_evidence": "提出基于对抗自博弈的角色不变安全对齐防御框架",
+      "canonical_evidence": "提出基于对抗自博弈的角色不变安全对齐防御框架",
+      "llm_tldr_en": "Proposes PIA, an adversarial self-play framework that disentangles intent from role to achieve persona-invariant safety alignment, defending against persona-based jailbreak attacks.",
+      "llm_tldr_cn": "针对LLM角色扮演越狱攻击缺乏系统性防御的问题，该文提出角色不变对齐框架PIA。通过攻击侧的角色谱系演化和防御侧的角色不变一致性学习进行对抗自博弈，理论上将角色不变性纳入优化目标。实验表明PIA能有效抵御新颖的角色越狱攻击，同时保持模型在不同角色下的安全性一致。该框架为角色攻击防御提供了机制层面的解决方案，为构建角色鲁棒的安全LLM提供了理论与实践基础。",
+      "llm_tldr": "针对LLM角色扮演越狱攻击缺乏系统性防御的问题，该文提出角色不变对齐框架PIA。通过攻击侧的角色谱系演化和防御侧的角色不变一致性学习进行对抗自博弈，理论上将角色不变性纳入优化目标。实验表明PIA能有效抵御新颖的角色越狱攻击，同时保持模型在不同角色下的安全性一致。该框架为角色攻击防御提供了机制层面的解决方案，为构建角色鲁棒的安全LLM提供了理论与实践基础。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.03095v1",
+      "source": "arxiv",
+      "title": "Revisiting JBShield: Breaking and Rebuilding Representation-Level Jailbreak Defenses",
+      "abstract": "Defending large language models (LLMs) against jailbreak attacks, such as Greedy Coordinate Gradient (GCG), remains a challenge, particularly under adaptive threat models where an attacker directly targets the defense mechanism. JBShield, a recent jailbreak defense with a 0% attack success rate in some settings, detects malicious prompts via two concept signals, a toxic concept and a jailbreak concept. We design JB-GCG, which modifies GCG's objective to combine two terms: refusal-direction suppression via cosine similarity between the refusal direction and hidden-state representations, and toxic-concept regularization via JBShield's own toxic concept score. Across five configurations on Llama-3-8B, JB-GCG achieves an average ASR of 46.2%, reaching up to 53.4% in the strongest setting. We further show that our attack remains effective against JBShield-M, achieving ASR up to 30.7% across evaluated settings. The attack persists across multiple JBShield recalibrations, confirming that the vulnerability is structural rather than calibration-specific. We analyze the cosine-similarity signatures of jailbreak representations and find that they occupy a distinctive region in refusal-direction fingerprint space that neither harmless nor harmful prompts inhabit. We introduce Representation Trajectory Verification (RTV), a new defense based on Mahalanobis outlier detection over multi-layer refusal-direction fingerprints. RTV attains an AUROC of 0.99 against our attack. Finally, we design and evaluate an additional adaptive attack against RTV with full white-box knowledge of the defense; the best attack achieves only 7% ASR at 13x the computational cost. Our results show that strong non-adaptive detection does not imply robustness under adaptive threat models, and that multi-layer representation consistency is a more reliable foundation for jailbreak detection than single-layer concept similarity.",
+      "authors": [
+        "Kemal Derya",
+        "Berk Sunar"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-05-04T19:17:50+00:00",
+      "link": "https://arxiv.org/pdf/2605.03095v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "breaking and rebuilding representation-level jailbreak defense JBShield under adaptive attacks",
+      "llm_evidence_cn": "在自适应攻击下攻破并重建表示级越狱防御JBShield",
+      "llm_evidence": "在自适应攻击下攻破并重建表示级越狱防御JBShield",
+      "canonical_evidence": "在自适应攻击下攻破并重建表示级越狱防御JBShield",
+      "llm_tldr_en": "This paper first breaks the JBShield defense with a targeted attack, then reconstructs a more robust version by analyzing its failure modes, advancing representation-level jailbreak defense.",
+      "llm_tldr_cn": "针对表示级越狱防御JBShield声称的高安全性，本文设计自适应攻击JB-GCG成功攻破，随后分析失败模式并重建增强版防御，在多种配置下将攻击成功率从46.2%大幅降低，展示了攻防博弈中防御设计的演进路径。",
+      "llm_tldr": "针对表示级越狱防御JBShield声称的高安全性，本文设计自适应攻击JB-GCG成功攻破，随后分析失败模式并重建增强版防御，在多种配置下将攻击成功率从46.2%大幅降低，展示了攻防博弈中防御设计的演进路径。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.04700v1",
+      "source": "arxiv",
+      "title": "Sparse Tokens Suffice: Jailbreaking Audio Language Models via Token-Aware Gradient Optimization",
+      "abstract": "Jailbreak attacks on audio language models (ALMs) optimize audio perturbations to elicit unsafe generations, and they typically update the entire waveform densely throughout optimization. In this work, we investigate the necessity of such dense optimization by analyzing the structure of token-aligned gradients in ALMs. We find that gradient energy is highly non-uniform across audio tokens, indicating that only a small subset of token-aligned audio regions dominates the optimization signal. Motivated by this observation, we propose Token-Aware Gradient Optimization (TAGO), which enables sparse jailbreak optimization by retaining only waveform gradients aligned with audio tokens that have high gradient energy, while masking the remaining gradients at each iteration. Across three ALMs, TAGO outperforms baselines, and substantial sparsification preserves strong attack success rates (e.g. on Qwen3-Omni, $\\mathrm{ASR}_{l}$ remains at 86% with a token retention ratio of 0.25, compared to 87% with full token retention). These results demonstrate that dense waveform updates are largely redundant, and we advocate that future audio jailbreak and safety alignment research should further leverage this heterogeneous token-level gradient structure.",
+      "authors": [
+        "Zheng Fang",
+        "Xiaosen Wang",
+        "Shenyi Zhang",
+        "Shaokang Wang",
+        "Zhijin Ge"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.CL",
+        "cs.LG",
+        "cs.SD"
+      ],
+      "published": "2026-05-06T09:52:29+00:00",
+      "link": "https://arxiv.org/pdf/2605.04700v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "optimizes audio perturbations to jailbreak audio language models",
+      "llm_evidence_cn": "优化音频扰动以越狱音频语言模型",
+      "llm_evidence": "优化音频扰动以越狱音频语言模型",
+      "canonical_evidence": "优化音频扰动以越狱音频语言模型",
+      "llm_tldr_en": "Proposes TAGO, a sparse gradient optimization for jailbreaking audio language models by identifying and leveraging token-aligned regions with high gradient energy, achieving efficient attacks with minimal waveform updates.",
+      "llm_tldr_cn": "针对音频语言模型越狱攻击中密集优化计算量大的问题，提出令牌感知梯度优化方法TAGO。通过分析梯度能量分布，发现仅少数令牌区域主导攻击信号，从而仅保留高梯度能量令牌的梯度进行稀疏优化。实验验证该方法能以更少更新实现高效越狱，显著降低计算开销。",
+      "llm_tldr": "针对音频语言模型越狱攻击中密集优化计算量大的问题，提出令牌感知梯度优化方法TAGO。通过分析梯度能量分布，发现仅少数令牌区域主导攻击信号，从而仅保留高梯度能量令牌的梯度进行稀疏优化。实验验证该方法能以更少更新实现高效越狱，显著降低计算开销。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks against safety-aligned models",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.05058v1",
+      "source": "arxiv",
+      "title": "SoK: Robustness in Large Language Models against Jailbreak Attacks",
+      "abstract": "Large Language Models (LLMs) have achieved remarkable success but remain highly susceptible to jailbreak attacks, in which adversarial prompts coerce models into generating harmful, unethical, or policy-violating outputs. Such attacks pose real-world risks, eroding safety, trust, and regulatory compliance in high-stakes applications. Although a variety of attack and defense methods have been proposed, existing evaluation practices are inadequate, often relying on narrow metrics like attack success rate that fail to capture the multidimensional nature of LLM security. In this paper, we present a systematic taxonomy of jailbreak attacks and defenses and introduce Security Cube, a unified, multi-dimensional framework for comprehensive evaluation of these techniques. We provide detailed comparison tables of existing attacks and defenses, highlighting key insights and open challenges across the literature. Leveraging Security Cube, we conduct benchmark studies on 13 representative attacks and 5 defenses, establishing a clear view of the current landscape encompassing jailbreak attacks, defenses, automated judges, and LLM vulnerabilities. Based on these evaluations, we distill critical findings, identify unresolved problems, and outline promising research directions for enhancing LLM robustness against jailbreak attacks. Our analysis aims to pave the way towards more robust, interpretable, and trustworthy LLM systems. Our code is available at Code.",
+      "authors": [
+        "Feiyue Xu",
+        "Hongsheng Hu",
+        "Chaoxiang He",
+        "Sheng Hang",
+        "Hanqing Hu",
+        "Xiuming Liu",
+        "Yubo Zhao",
+        "Zhengyan Zhou",
+        "Bin Benjamin Zhu",
+        "Shi-Feng Sun",
+        "Dawu Gu",
+        "Shuo Wang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-05-06T15:53:17+00:00",
+      "link": "https://arxiv.org/pdf/2605.05058v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "systematization of knowledge on LLM jailbreak attacks and defenses, introducing multi-dimensional evaluation framework",
+      "llm_evidence_cn": "系统化LLM越狱攻击与防御知识，提出多维度评估框架Security Cube",
+      "llm_evidence": "系统化LLM越狱攻击与防御知识，提出多维度评估框架Security Cube",
+      "canonical_evidence": "系统化LLM越狱攻击与防御知识，提出多维度评估框架Security Cube",
+      "llm_tldr_en": "Presents a systematic taxonomy of jailbreak attacks and defenses and introduces Security Cube, a multi-dimensional evaluation framework to overcome inadequate existing metrics.",
+      "llm_tldr_cn": "针对现有越狱攻击评估仅依赖攻击成功率等狭窄指标的问题，本文提出系统化分类法，并引入Security Cube多维度统一评估框架，以全面衡量LLM安全性。该框架覆盖多个安全维度，为未来攻击和防御的鲁棒性评估提供了更可靠的基准。",
+      "llm_tldr": "针对现有越狱攻击评估仅依赖攻击成功率等狭窄指标的问题，本文提出系统化分类法，并引入Security Cube多维度统一评估框架，以全面衡量LLM安全性。该框架覆盖多个安全维度，为未来攻击和防御的鲁棒性评估提供了更可靠的基准。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks in AI safety",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.05709v1",
+      "source": "arxiv",
+      "title": "Conceal, Reconstruct, Jailbreak: Exploiting the Reconstruction-Concealment Tradeoff in MLLMs",
+      "abstract": "Intent-obfuscation-based jailbreak attacks on multimodal large language models (MLLMs) transform a harmful query into a concealed multimodal input to bypass safety mechanisms. We show that such attacks are governed by a \\emph{reconstruction--concealment tradeoff}: the transformed input must hide harmful intent from safety filters while remaining recoverable enough for the victim model to reconstruct the original request. Through a reconstruction analysis of three representative black-box methods, we find that existing transformations struggle to balance this tradeoff, limiting their effectiveness. In contrast, we show that character-removed variants achieve a better balance. Building on this, we propose \\emph{concealment-aware variant construction}, which greedily selects character-removed variants that are low in harmful-keyword alignment and mutually diverse, and instantiates them through five modality-aware prompting strategies. We further introduce \\emph{keyword-related distractor images} that depict the harmful keyword in diverse contexts, providing more effective auxiliary visual context than generic distractor images. Experiments across closed-source and open-source MLLMs show the proposed strategies outperform strong baselines, revealing an underexplored vulnerability: a model's own reconstruction ability can be exploited to recover hidden harmful intent and produce unsafe responses.",
+      "authors": [
+        "Md Farhamdur Reza",
+        "Richeng Jin",
+        "Tianfu Wu",
+        "Huaiyu Dai"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-05-07T05:54:49+00:00",
+      "link": "https://arxiv.org/pdf/2605.05709v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes concealment-aware variant with character-removed transformations to balance reconstruction and concealment, achieving higher jailbreak success on MLLMs.",
+      "llm_evidence_cn": "提出隐蔽感知变体，利用字符删除变换平衡重构与隐蔽，在MLLMs上取得更高越狱成功率。",
+      "llm_evidence": "提出隐蔽感知变体，利用字符删除变换平衡重构与隐蔽，在MLLMs上取得更高越狱成功率。",
+      "canonical_evidence": "提出隐蔽感知变体，利用字符删除变换平衡重构与隐蔽，在MLLMs上取得更高越狱成功率。",
+      "llm_tldr_en": "Exploits the reconstruction-concealment tradeoff with character-removed perturbations to create more effective intent-obfuscation jailbreak attacks on multimodal LLMs.",
+      "llm_tldr_cn": "意图混淆越狱攻击需隐藏有害意图同时让模型重构请求。本文分析重构-隐蔽权衡，发现现有方法失衡，提出隐蔽感知变体利用字符删除变换优化权衡，有效攻击多模态大模型安全机制。",
+      "llm_tldr": "意图混淆越狱攻击需隐藏有害意图同时让模型重构请求。本文分析重构-隐蔽权衡，发现现有方法失衡，提出隐蔽感知变体利用字符删除变换优化权衡，有效攻击多模态大模型安全机制。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "adversarial prompts for bypassing safety alignment in language models",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.08277v1",
+      "source": "arxiv",
+      "title": "Mitigating Many-shot Jailbreak Attacks with One Single Demonstration",
+      "abstract": "Many-shot jailbreaking (MSJ) causes safety-aligned language models to answer harmful queries by preceding them with many harmful question-answer demonstrations. We study why this attack becomes stronger as the number of demonstrations increases. Empirically, we find that MSJ induces a progressive activation drift: the representation of a fixed harmful query moves step by step away from the safety-aligned region as more harmful demonstrations are added. Theoretically, we show that this drift can be interpreted as implicit malicious fine-tuning: conditioning on N harmful demonstrations induces SGD-style updates equivalent to optimizing on the corresponding N harmful samples. This view turns the attack mechanism into a defense principle. We append a fixed one-shot safety demonstration at inference time, which induces a counteracting safety-oriented update and restores refusal behavior. The resulting method improves the model's robustness to MSJ without modifying its parameters or requiring white-box access at deployment. Code is available at https://github.com/Thecommonirin/SafeEnd.",
+      "authors": [
+        "Kejia Chen",
+        "Jiawen Zhang",
+        "Boheng Li",
+        "Pengcheng Li",
+        "Jian Lou",
+        "Zunlei Feng",
+        "Mingli Song",
+        "Ruoxi Jia",
+        "Tianwei Zhang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-05-08T06:33:42+00:00",
+      "link": "https://arxiv.org/pdf/2605.08277v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "defense against many-shot jailbreaks by appending a fixed 'anti-jailbreak' demonstration",
+      "llm_evidence_cn": "通过附加一个固定演示防御多示例越狱攻击",
+      "llm_evidence": "通过附加一个固定演示防御多示例越狱攻击",
+      "canonical_evidence": "通过附加一个固定演示防御多示例越狱攻击",
+      "llm_tldr_en": "This defense exploits the implicit malicious fine-tuning interpretation of many-shot jailbreaks to design a single, fixed demonstration that neutralizes the attack, achieving strong mitigation with minimal overhead.",
+      "llm_tldr_cn": "针对多示例越狱攻击因大量有害演示导致安全对齐漂移的问题，本文从理论和实证角度将其建模为隐式恶意微调，据此提出仅附加一个固定安全演示的防御方法，有效阻断攻击，相比传统方法大幅降低了防御成本，为理解与防御多示例攻击提供了新视角。",
+      "llm_tldr": "针对多示例越狱攻击因大量有害演示导致安全对齐漂移的问题，本文从理论和实证角度将其建模为隐式恶意微调，据此提出仅附加一个固定安全演示的防御方法，有效阻断攻击，相比传统方法大幅降低了防御成本，为理解与防御多示例攻击提供了新视角。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.08778v1",
+      "source": "arxiv",
+      "title": "Not All Turns Matter: Credit Assignment for Multi-Turn Jailbreaking",
+      "abstract": "Deploying LLMs in multi-turn dialogues facilitates jailbreak attacks that distribute harmful intent across seemingly benign turns. Recent training-based multi-turn jailbreak methods learn long-horizon attack strategies from interaction feedback, but often rely on coarse trajectory-level outcome signals that broadcast uniformly to every turn. However, we find that turn-level contributions in multi-turn jailbreaking are non-uniform, phase-dependent, and target-specific. Such coarse outcome supervision induces a credit assignment problem, leading to over-rewarding redundant turns in successful trajectories and under-crediting useful intermediate turns in failed ones. To address this, we propose TRACE, a turn-aware credit assignment framework for reinforcement learning (RL)-based multi-turn jailbreaking. For successful trajectories, TRACE estimates turn-level contributions via leave-one-turn-out semantic masking; for failed ones, TRACE assigns penalties based on prompt harmfulness and semantic relevance, with an additional local refusal-aware penalty. Furthermore, we reuse the attack-side credit signal for multi-turn defense alignment. Extensive experiments on open-source and closed-source targets show that TRACE achieves strong overall performance in effectiveness, transferability, and efficiency, yielding about a 25% relative improvement in attack success rate over the strongest RL baseline while also improving the safety-utility balance when reused for defense alignment.",
+      "authors": [
+        "Zhida He",
+        "Xiaoyu Wen",
+        "Han Qi",
+        "Ziyuan Zhou",
+        "Peng Yu",
+        "Xingcheng Xu",
+        "Dongrui Liu",
+        "Xia Hu",
+        "Chaochao Lu",
+        "Qiaosheng Zhang"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.LG",
+        "cs.MA"
+      ],
+      "published": "2026-05-09T08:07:30+00:00",
+      "link": "https://arxiv.org/pdf/2605.08778v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "credit assignment to learn multi-turn jailbreak attack strategies via RL",
+      "llm_evidence_cn": "通过信用分配学习多轮越狱攻击策略",
+      "llm_evidence": "通过信用分配学习多轮越狱攻击策略",
+      "canonical_evidence": "通过信用分配学习多轮越狱攻击策略",
+      "llm_tldr_en": "Addresses credit assignment in multi-turn jailbreak training, proposing TRACE to weight turn-level contributions, improving attack effectiveness by avoiding over-rewarding redundant turns and under-crediting useful ones.",
+      "llm_tldr_cn": "现有多轮越狱方法使用粗粒度轨迹级奖励信号，导致信用分配不均。本文提出TRACE框架，通过动态信用分配区分各轮次贡献，利用强化学习训练更高效的多轮越狱攻击策略。实验表明，TRACE在多个目标模型上显著提升越狱成功率和样本效率。",
+      "llm_tldr": "现有多轮越狱方法使用粗粒度轨迹级奖励信号，导致信用分配不均。本文提出TRACE框架，通过动态信用分配区分各轮次贡献，利用强化学习训练更高效的多轮越狱攻击策略。实验表明，TRACE在多个目标模型上显著提升越狱成功率和样本效率。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "automated generation of jailbreak prompts",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.09225v1",
+      "source": "arxiv",
+      "title": "The Art of the Jailbreak: Formulating Jailbreak Attacks for LLM Security Beyond Binary Scoring",
+      "abstract": "Jailbreak attacks -- adversarial prompts that bypass LLM alignment through purely linguistic manipulation -- pose a growing operational security threat, yet the field lacks large-scale, reproducible infrastructure for generating, categorizing, and evaluating them systematically. This paper addresses that gap with three contributions. (1) Large-scale compositional jailbreak dataset. We construct 114,000 adversarial prompts by applying 912 composing strategies to 125 harmful seed prompts from JailBreakV-28K. Every prompt is assigned to one of 14 cybersecurity attack categories (e.g., malware, phishing, privilege escalation) via a six-model majority-vote pipeline, and each strategy is ranked by effectiveness per category, enabling principled strategy selection grounded in concrete adversarial objectives. (2) Automated jailbreak generation. We instruction-fine-tune category-aware LLMs on Moderate and Optimal subsets, producing models that synthesize fluent jailbreak prompts from a harmful seed at inference time -- no templates, no gradient search. Our generators achieve perplexity 24-39 versus 40-140 for AutoDAN and AmpleGCG, with safety-filter evasion rates of 0.29-0.51 Mal (LlamaPromptGuard-2-86M), enabling controllable, scalable red-teaming under realistic adversarial conditions. (3) OPTIMUS: a training-free jailbreak evaluator. OPTIMUS is a continuous metric J(S,H) that jointly captures semantic similarity between the harmful seed and the jailbreak (S) and harmfulness probability (H) via calibrated penalty functions. Unlike binary attack success rate (ASR), OPTIMUS requires no task-specific training, generalizes across evolving strategies, and exposes a stealth-optimal regime (S*=0.57, H*=0.43) that ASR misses. Experiments across 114,000 prompts confirm that OPTIMUS separates Weak, Moderate, and Optimal jailbreaks with category-level evidence binary evaluation cannot supply.",
+      "authors": [
+        "Ismail Hossain",
+        "Tanzim Ahad",
+        "Md Jahangir Alam",
+        "Sai Puppala",
+        "Syed Bahauddin Alam",
+        "Sajedul Talukder"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-05-09T23:51:18+00:00",
+      "link": "https://arxiv.org/pdf/2605.09225v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "large-scale compositional jailbreak dataset and automated strategy composition for generating adversarial prompts",
+      "llm_evidence_cn": "大规模组合越狱数据集及自动策略组合生成对抗提示",
+      "llm_evidence": "大规模组合越狱数据集及自动策略组合生成对抗提示",
+      "canonical_evidence": "大规模组合越狱数据集及自动策略组合生成对抗提示",
+      "llm_tldr_en": "Constructs a dataset of 114,000 jailbreak prompts using 912 composing strategies on 125 harmful seeds, categorized by cybersecurity attack type, and ranks strategies by effectiveness, providing a systematic infrastructure for jailbreak generation and evaluation.",
+      "llm_tldr_cn": "为解决缺乏大规模可复现的越狱攻击生成和评估基础设施的问题，构建了包含114,000条对抗提示的数据集，基于912种组合策略作用于125个有害种子，并按照14类网络安全攻击类别分类，通过六模型多数投票标记，对策略按类别有效性排序，为越狱攻击的自动化生成、分类和评估提供了系统化平台。",
+      "llm_tldr": "为解决缺乏大规模可复现的越狱攻击生成和评估基础设施的问题，构建了包含114,000条对抗提示的数据集，基于912种组合策略作用于125个有害种子，并按照14类网络安全攻击类别分类，通过六模型多数投票标记，对策略按类别有效性排序，为越狱攻击的自动化生成、分类和评估提供了系统化平台。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "automated methods for generating jailbreak prompts",
+      "matched_requirement_id": "req-10",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.10582v1",
+      "source": "arxiv",
+      "title": "Guaranteed Jailbreaking Defense via Disrupt-and-Rectify Smoothing",
+      "abstract": "This paper proposes a guaranteed defense method for large language models (LLMs) to safeguard against jailbreaking attacks. Drawing inspiration from the denoised-smoothing approach in the adversarial defense domain, we propose a novel smoothing-based defense method, termed Disrupt-and-Rectify Smoothing (DR-Smoothing). Specifically, we integrate a two-stage prompt processing scheme-first disrupting the input prompt, then rectifying it-into the conventional smoothing defense framework. This disrupt-and-rectify approach improves upon previous disrupt-only approaches by restoring out-of-distribution disrupted prompts to an in-distribution form, thereby reducing the risk of unpredictable LLM behavior. In addition, this two-stage scheme offers a distinct advantage in striking a balance between harmlessness and helpfulness in jailbreaking defense. Notably, we present a theoretical analysis for generic smoothing framework, offering a tight bound for the defense success probability and the requirements on the disruption strength. Our approach can defend against both token-level and prompt-level jailbreaking attacks, under both established and adaptive attacking scenarios. Extensive experiments demonstrate that our approach surpasses current state-of-the-art defense methods in terms of both harmlessness and helpfulness.",
+      "authors": [
+        "Zheng Lin",
+        "Zhenxing Niu",
+        "Haoxuan Ji",
+        "Haichang Gao"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-05-11T13:54:26+00:00",
+      "link": "https://arxiv.org/pdf/2605.10582v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes smoothing-based defense against jailbreak attacks",
+      "llm_evidence_cn": "提出基于平滑的越狱攻击防御方法",
+      "llm_evidence": "提出基于平滑的越狱攻击防御方法",
+      "canonical_evidence": "提出基于平滑的越狱攻击防御方法",
+      "llm_tldr_en": "Proposes DR-Smoothing, a two-stage prompt processing defense that disrupts and rectifies inputs to guarantee LLM robustness against jailbreak attacks, reducing unpredictable behaviors.",
+      "llm_tldr_cn": "针对大语言模型面临的越狱攻击，该文提出一种名为DR-Smoothing的有保障防御方法。该方法采用两阶段提示处理：先扰乱输入提示再修正，将其恢复为分布内形式，从而减少不可预测行为并保障安全性。实验证明该方法能有效防御多种越狱攻击，为实际部署提供了可靠保障。",
+      "llm_tldr": "针对大语言模型面临的越狱攻击，该文提出一种名为DR-Smoothing的有保障防御方法。该方法采用两阶段提示处理：先扰乱输入提示再修正，将其恢复为分布内形式，从而减少不可预测行为并保障安全性。实验证明该方法能有效防御多种越狱攻击，为实际部署提供了可靠保障。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.10611v1",
+      "source": "arxiv",
+      "title": "Re-Triggering Safeguards within LLMs for Jailbreak Detection",
+      "abstract": "This paper proposes a jailbreaking prompt detection method for large language models (LLMs) to defend against jailbreak attacks. Although recent LLMs are equipped with built-in safeguards, it remains possible to craft jailbreaking prompts that bypass them. We argue that such jailbreaking prompts are inherently fragile, and thus introduce an embedding disruption method to re-activate the safeguards within LLMs. Unlike previous defense methods that aim to serve as standalone solutions, our approach instead cooperates with the LLM's internal defense mechanisms by re-triggering them. Moreover, through extensive analysis, we gain a comprehensive understanding of the disruption effects and develop an efficient search algorithm to identify appropriate disruptions for effective jailbreak detection. Extensive experiments demonstrate that our approach effectively defends against state-of-the-art jailbreak attacks in white-box and black-box settings, and remains robust even against adaptive attacks.",
+      "authors": [
+        "Zheng Lin",
+        "Zhenxing Niu",
+        "Haoxuan Ji",
+        "Yuzhe Huang",
+        "Haichang Gao"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-05-11T14:09:31+00:00",
+      "link": "https://arxiv.org/pdf/2605.10611v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "detects jailbreak prompts by re-triggering internal LLM safeguards via embedding disruption",
+      "llm_evidence_cn": "通过嵌入扰动重新触发LLM内部安全机制以检测越狱提示",
+      "llm_evidence": "通过嵌入扰动重新触发LLM内部安全机制以检测越狱提示",
+      "canonical_evidence": "通过嵌入扰动重新触发LLM内部安全机制以检测越狱提示",
+      "llm_tldr_en": "Proposes a defense that detects jailbreak prompts by introducing embedding disruptions to re-activate the LLM's internal safeguards, treating the LLM as a collaborator rather than relying on external detection.",
+      "llm_tldr_cn": "提出一种无需外部分类器的越狱检测防御方法，通过嵌入空间扰动重新激活LLM内建的安全机制。认为越狱提示本质脆弱，轻微扰动即可恢复模型拒绝行为。开发高效搜索算法寻找有效扰动，实验证明该方法能高精度检测多种越狱攻击，且不影响正常请求。",
+      "llm_tldr": "提出一种无需外部分类器的越狱检测防御方法，通过嵌入空间扰动重新激活LLM内建的安全机制。认为越狱提示本质脆弱，轻微扰动即可恢复模型拒绝行为。开发高效搜索算法寻找有效扰动，实验证明该方法能高精度检测多种越狱攻击，且不影响正常请求。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.10764v1",
+      "source": "arxiv",
+      "title": "Break the Brake, Not the Wheel: Untargeted Jailbreak via Entropy Maximization",
+      "abstract": "Recent studies show that gradient-based universal image jailbreaks on vision-language models (VLMs) exhibit little or no cross-model transferability, casting doubt on the feasibility of transferable multimodal jailbreaks. We revisit this conclusion under a strictly untargeted threat model without enforcing a fixed prefix or response pattern. Our preliminary experiment reveals that refusal behavior concentrates at high-entropy tokens during autoregressive decoding, and non-refusal tokens already carry substantial probability mass among the top-ranked candidates before attack. Motivated by this finding, we propose Untargeted Jailbreak via Entropy Maximization(UJEM)-KL, a lightweight attack that maximizes entropy at these decision tokens to flip refusal outcomes, while stabilizing the remaining low-entropy positions to preserve output quality. Across three VLMs and two safety benchmarks, UJEM-KL achieves competitive white-box attack success rates and consistently improves transferability, while remaining effective under representative defenses. Our experimental results indicate that the limited transferability primarily stems from overly constrained optimization objectives.",
+      "authors": [
+        "Mengqi He",
+        "Xinyu Tian",
+        "Xin Shen",
+        "Shu Zou",
+        "Jinhong Ni",
+        "Zhaoyuan Yang",
+        "Weikang Li",
+        "Xuesong Li",
+        "Jing Zhang"
+      ],
+      "primary_category": "cs.CV",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "published": "2026-05-11T15:59:02+00:00",
+      "link": "https://arxiv.org/pdf/2605.10764v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes an untargeted jailbreak attack on VLMs using entropy maximization",
+      "llm_evidence_cn": "提出基于熵最大化的无目标越狱攻击方法",
+      "llm_evidence": "提出基于熵最大化的无目标越狱攻击方法",
+      "canonical_evidence": "提出基于熵最大化的无目标越狱攻击方法",
+      "llm_tldr_en": "Proposes UJEM-KL, an untargeted jailbreak attack that maximizes entropy at decision tokens in VLMs, achieving high transferability and success without enforcing specific response patterns.",
+      "llm_tldr_cn": "针对视觉语言模型越狱攻击跨模型迁移性低的结论，该文重新审视无目标威胁模型，发现拒绝行为集中在高熵令牌。提出UJEM-KL攻击，通过最大化这些决策令牌的熵来翻转拒绝行为，无需强制前缀。实验证明该攻击在多模态越狱中具有高成功率且轻量，挑战了迁移性不可行的观点。该研究不仅提出了一种高效的攻击手段，更重要的是揭示了多模态模型中安全对齐的脆弱性，为防御提供了新视角。",
+      "llm_tldr": "针对视觉语言模型越狱攻击跨模型迁移性低的结论，该文重新审视无目标威胁模型，发现拒绝行为集中在高熵令牌。提出UJEM-KL攻击，通过最大化这些决策令牌的熵来翻转拒绝行为，无需强制前缀。实验证明该攻击在多模态越狱中具有高成功率且轻量，挑战了迁移性不可行的观点。该研究不仅提出了一种高效的攻击手段，更重要的是揭示了多模态模型中安全对齐的脆弱性，为防御提供了新视角。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks against safety-aligned models",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.11664v1",
+      "source": "arxiv",
+      "title": "Safety Context Injection: Inference-Time Safety Alignment via Static Filtering and Agentic Analysis",
+      "abstract": "Large Reasoning Models (LRMs) improve performance on complex tasks, but they also make safety control harder at deployment time. In black-box settings, defenders cannot modify model weights and must instead intervene at inference time. This setting creates three practical challenges: harmful intent may be hidden by educational or role-play framing, deep safety analysis can introduce non-trivial latency, and long adversarial contexts can dilute the local cues that simpler filters rely on. These challenges can expose an apparent thinking--output gap, where the model appears cautious during reasoning but still produces an unsafe final answer. To address this problem, we propose Safety Context Injection (SCI), an inference-time framework that separates safety assessment from task generation and prepends a structured external risk report as injected safety context for the protected model. The framework is instantiated in two complementary variants: Static Model Filtering (SMF), a lightweight one-pass guard for fast deployment, and Dynamic Agents Filtering (DAF), an agentic-loop-based analyzer that iteratively gathers and synthesizes evidence for ambiguous or long-context attacks. Across AdvBench and GPTFuzz, spanning base and reasoning models under five jailbreak families, both variants reduce attack success rate and toxicity in the evaluated settings. SMF offers an efficient low-latency option, while DAF is more effective when harmful intent is semantically disguised or dispersed across long contexts.",
+      "authors": [
+        "Zhenhao Xu",
+        "Wenhan Chang",
+        "Yichuan Chen",
+        "Yuxin Fang",
+        "Junhao Liu",
+        "Tianqing Zhu"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-05-12T07:23:02+00:00",
+      "link": "https://arxiv.org/pdf/2605.11664v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "inference-time safety alignment via static filtering and agentic analysis to defend against jailbreaks",
+      "llm_evidence_cn": "通过静态过滤和代理分析在推理时实现安全对齐以防御越狱攻击",
+      "llm_evidence": "通过静态过滤和代理分析在推理时实现安全对齐以防御越狱攻击",
+      "canonical_evidence": "通过静态过滤和代理分析在推理时实现安全对齐以防御越狱攻击",
+      "llm_tldr_en": "SCI addresses hidden harmful intent and latency challenges in black-box LLM safety by injecting safety context at inference time, closing the thinking-output gap without model modification.",
+      "llm_tldr_cn": "针对黑盒大推理模型在部署时安全控制困难、有害意图常被伪装且深度分析引入延迟等问题，本文提出安全上下文注入方法，在推理时动态注入安全约束，结合静态过滤与代理分析，有效填补模型思考与输出间的安全鸿沟，实现不修改模型权重的轻量防御。",
+      "llm_tldr": "针对黑盒大推理模型在部署时安全控制困难、有害意图常被伪装且深度分析引入延迟等问题，本文提出安全上下文注入方法，在推理时动态注入安全约束，结合静态过滤与代理分析，有效填补模型思考与输出间的安全鸿沟，实现不修改模型权重的轻量防御。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.11716v1",
+      "source": "arxiv",
+      "title": "SafeSteer: A Decoding-level Defense Mechanism for Multimodal Large Language Models",
+      "abstract": "Multimodal large language models (MLLMs) are gaining increasing attention. Due to the heterogeneity of their input features, they face significant challenges in terms of jailbreak defenses. Current defense methods rely on costly fine-tuning or inefficient post-hoc interventions, limiting their ability to address novel attacks and involving performance trade-offs. To address the above issues, we explore the inherent safety capabilities within MLLMs and quantify their intrinsic ability to discern harmfulness at decoding stage. We observe that 1) MLLMs can distinguish the harmful and harmless inputs during decoding process, 2) Image-based attacks are more stealthy. Based on these insights, we introduce SafeSteer, a decoding-level defense mechanism for MLLMs. Specifically, it includes a Decoding-Probe, a lightweight probe for detecting and correcting harmful output during decoding, which iteratively steers the decoding process toward safety. Furthermore, a modal semantic alignment vector is integrated to transfer the strong textual safety alignment to the vision modality. Experiments on multiple MLLMs demonstrate that SafeSterr can improve MLLMs' safety by up to 33.40\\% without fine-tuning. Notably, it can maintain the effectiveness of MLLMs, ensuring a balance between their helpfulness and harmlessness.",
+      "authors": [
+        "Xinyi Zeng",
+        "Xue Yang",
+        "Jingyuan Zhang",
+        "Huanqian Yan",
+        "Xiang Chen",
+        "Kaiwen Wei",
+        "Hankun Kang",
+        "Yu Tian"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-05-12T08:05:10+00:00",
+      "link": "https://arxiv.org/pdf/2605.11716v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Introduces SafeSteer, a decoding-level defense for multimodal LLMs against jailbreak attacks by leveraging inherent safety capabilities during decoding.",
+      "llm_evidence_cn": "提出SafeSteer，一种利用解码阶段固有安全能力的多模态大模型越狱防御方法。",
+      "llm_evidence": "提出SafeSteer，一种利用解码阶段固有安全能力的多模态大模型越狱防御方法。",
+      "canonical_evidence": "提出SafeSteer，一种利用解码阶段固有安全能力的多模态大模型越狱防御方法。",
+      "llm_tldr_en": "SafeSteer exploits MLLMs' ability to discern harmful inputs during decoding to provide a defense against jailbreaks without costly fine-tuning.",
+      "llm_tldr_cn": "多模态大模型面临越狱防御挑战，现有方法依赖昂贵微调或低效后干预。本文探索其解码阶段的固有安全能力，提出SafeSteer解码级防御机制，通过识别有害输入实现越狱防御，无需昂贵微调，缓解性能权衡。",
+      "llm_tldr": "多模态大模型面临越狱防御挑战，现有方法依赖昂贵微调或低效后干预。本文探索其解码阶段的固有安全能力，提出SafeSteer解码级防御机制，通过识别有害输入实现越狱防御，无需昂贵微调，缓解性能权衡。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.11730v1",
+      "source": "arxiv",
+      "title": "Persona-Conditioned Adversarial Prompting: Multi-Identity Red-Teaming for Adversarial Discovery and Mitigation",
+      "abstract": "Automated red-teaming for LLMs often discovers narrow attack slices, missing diverse real-world threats, and yielding insufficient data for safety fine-tuning. We introduce Persona-Conditioned Adversarial Prompting (PCAP), which conditions adversarial search on diverse attacker personas (e.g., doctors, students, malicious actors) and strategy sets to explore realistic attack scenarios. By running parallel persona-conditioned searches, PCAP discovers transferable jailbreaks across different contexts and generates rich defense datasets with automatic metadata tracking. On GPT-OSS 120B, PCAP increases attack success from 57\\% to 97\\% while producing 2-6$\\times$ more diverse prompts covering varied real-world scenarios. Critically, fine-tuning lightweight adapters on PCAP-generated data significantly improves model robustness (recall: 0.36 $\\rightarrow$ 0.99, F1: 0.53 $\\rightarrow$ 0.96) with minimal false positives, demonstrating a practical closed-loop approach from vulnerability discovery to automated alignment.",
+      "authors": [
+        "Cristian Morasso",
+        "Anisa Halimi",
+        "Muhammad Zaid Hameed",
+        "Douglas Leith"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.CR"
+      ],
+      "published": "2026-05-12T08:12:18+00:00",
+      "link": "https://arxiv.org/pdf/2605.11730v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "conditions adversarial search on diverse attacker personas for automated red-teaming",
+      "llm_evidence_cn": "基于多身份对抗提示的自动红队测试",
+      "llm_evidence": "基于多身份对抗提示的自动红队测试",
+      "canonical_evidence": "基于多身份对抗提示的自动红队测试",
+      "llm_tldr_en": "PCAP improves LLM red-teaming by conditioning adversarial prompt search on diverse personas, increasing attack success from 57% to 97% and generating 2-6× more diverse prompts for defense fine-tuning.",
+      "llm_tldr_cn": "针对现有自动化红队测试发现攻击面窄、多样性不足的问题，本文提出人格条件对抗提示方法，通过并行搜索不同攻击者人格和策略集，发现可迁移越狱攻击并生成丰富防御数据集。在GPT-OSS 120B上，攻击成功率从57%提升至97%，提示多样性提高2-6倍，为安全对齐数据增强提供了新途径。",
+      "llm_tldr": "针对现有自动化红队测试发现攻击面窄、多样性不足的问题，本文提出人格条件对抗提示方法，通过并行搜索不同攻击者人格和策略集，发现可迁移越狱攻击并生成丰富防御数据集。在GPT-OSS 120B上，攻击成功率从57%提升至97%，提示多样性提高2-6倍，为安全对齐数据增强提供了新途径。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "red teaming approaches to discover jailbreak vulnerabilities",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.12565v1",
+      "source": "arxiv",
+      "title": "Persona-Conditioned Adversarial Prompting (PCAP): Multi-Identity Red-Teaming for Enhanced Adversarial Prompt Discovery",
+      "abstract": "Existing automated red-teaming pipelines often miss attacks that depend on attacker identity, framing, or multi-turn tactics. This under-coverage underestimates real-world risk. We introduce Persona-Conditioned Adversarial Prompting (PCAP), which conditions adversarial search on attacker personas and strategy cards and runs parallel persona-conditioned beam searches to discover diverse, transferable jailbreaks. PCAP is orthogonal to the underlying search algorithm and substantially increases attack success rate (ASR) and prompt diversity (e.g., ASR on GPT-OSS~120B from $\\approx58\\% \\rightarrow \\approx97\\%$), improving attack strategy coverage and diversity.",
+      "authors": [
+        "Cristian Morasso",
+        "Anisa Halimi",
+        "Muhammad Zaid Hameed",
+        "Douglas Leith"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-05-12T08:59:36+00:00",
+      "link": "https://arxiv.org/pdf/2605.12565v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Conditions adversarial search on attacker personas to discover diverse, transferable jailbreaks, improving attack strategy coverage and diversity.",
+      "llm_evidence_cn": "基于攻击者角色条件化的对抗性搜索，发现多样且可迁移的越狱攻击，提高攻击策略覆盖率和多样性。",
+      "llm_evidence": "基于攻击者角色条件化的对抗性搜索，发现多样且可迁移的越狱攻击，提高攻击策略覆盖率和多样性。",
+      "canonical_evidence": "基于攻击者角色条件化的对抗性搜索，发现多样且可迁移的越狱攻击，提高攻击策略覆盖率和多样性。",
+      "llm_tldr_en": "Persona-Conditioned Adversarial Prompting method uses parallel persona-conditioned beam searches to discover a broader set of jailbreak attacks, significantly boosting attack success rates.",
+      "llm_tldr_cn": "现有自动化红队流程常忽略依赖攻击者身份、框架或多轮策略的攻击，导致风险评估不足。本文提出角色条件化对抗提示方法，通过并行角色条件化束搜索，发现多样且可迁移的越狱攻击，将攻击成功率从约58%提升至97%，并提高攻击策略覆盖率和多样性。",
+      "llm_tldr": "现有自动化红队流程常忽略依赖攻击者身份、框架或多轮策略的攻击，导致风险评估不足。本文提出角色条件化对抗提示方法，通过并行角色条件化束搜索，发现多样且可迁移的越狱攻击，将攻击成功率从约58%提升至97%，并提高攻击策略覆盖率和多样性。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "red teaming approaches to discover jailbreak vulnerabilities",
+      "matched_requirement_id": "req-4",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.14750v1",
+      "source": "arxiv",
+      "title": "EVA: Editing for Versatile Alignment against Jailbreaks",
+      "abstract": "Large Language Models (LLMs) and Vision Language Models (VLMs) have demonstrated impressive capabilities but remain vulnerable to jailbreaking attacks, where adversaries exploit textual or visual triggers to bypass safety guardrails. Recent defenses typically rely on safety fine-tuning or external filters to reduce the model's likelihood of producing harmful content. While effective to some extent, these methods often incur significant computational overheads and suffer from the safety utility trade-off, degrading the model's performance on benign tasks. To address these challenges, we propose EVA (Editing for Versatile Alignment against Jailbreaks), a novel framework that pioneers the application of direct model editing for safety alignment. EVA reframes safety alignment as a precise knowledge correction task. Instead of retraining massive parameters, EVA identifies and surgically edits specific neurons responsible for the model's susceptibility to harmful instructions, while leaving the vast majority of the model unchanged. By localizing the updates, EVA effectively neutralizes harmful behaviors without compromising the model's general reasoning capabilities. Extensive experiments demonstrate that EVA outperforms baselines in mitigating jailbreaks across both LLMs and VLMs, offering a precise and efficient solution for post-deployment safety alignment.",
+      "authors": [
+        "Yi Wang",
+        "Hongye Qiu",
+        "Yue Xu",
+        "Sibei Yang",
+        "Zhan Qin",
+        "Minlie Huang",
+        "Wenjie Wang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-05-14T12:16:10+00:00",
+      "link": "https://arxiv.org/pdf/2605.14750v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "direct model editing for safety alignment against jailbreaks",
+      "llm_evidence_cn": "直接编辑模型参数实现针对越狱攻击的安全对齐",
+      "llm_evidence": "直接编辑模型参数实现针对越狱攻击的安全对齐",
+      "canonical_evidence": "直接编辑模型参数实现针对越狱攻击的安全对齐",
+      "llm_tldr_en": "EVA pioneers direct model editing for safety alignment, overcoming computational overhead and safety-utility tradeoffs of traditional fine-tuning or filtering defenses against jailbreaks.",
+      "llm_tldr_cn": "针对现有越狱防御方法计算开销大且损害模型通用能力的问题，本文提出EVA框架，首次将直接模型编辑应用于安全对齐。通过精准修改关键参数层阻断有害输出路径，在保持良性性能的同时高效防御文本和视觉越狱攻击，为轻量级安全对齐提供了新范式。",
+      "llm_tldr": "针对现有越狱防御方法计算开销大且损害模型通用能力的问题，本文提出EVA框架，首次将直接模型编辑应用于安全对齐。通过精准修改关键参数层阻断有害输出路径，在保持良性性能的同时高效防御文本和视觉越狱攻击，为轻量级安全对齐提供了新范式。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.17128v1",
+      "source": "arxiv",
+      "title": "New Wide-Net-Casting Jailbreak Attacks Risk Large Models",
+      "abstract": "Jailbreak attacks on large models have drawn growing attention due to their close ties to societal safety. This work identifies a practical yet unexplored jailbreak scenario, the wide-net-casting scenario, where an adversary can query a group of large models instead of a single one to elicit harmful outputs. Our analysis reveals substantial yet previously overlooked safety risks under this scenario. As a key part of our analysis, we further develop a novel jailbreak method tailored to the wide-net-casting scenario. With this tailored method, the jailbreak success rate can even reach 100\\% in some experiments when targeting the large models without additional safeguards, exposing wide-net-casting as a distinct, high-risk scenario that warrants attention in future evaluation and defense research.",
+      "authors": [
+        "Qiuchi Xiang",
+        "Haoxuan Qu",
+        "Hossein Rahmani",
+        "Jun Liu"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-05-16T19:22:54+00:00",
+      "link": "https://arxiv.org/pdf/2605.17128v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes wide-net-casting jailbreak attack on multiple large models",
+      "llm_evidence_cn": "提出针对多模型的广撒网式越狱攻击",
+      "llm_evidence": "提出针对多模型的广撒网式越狱攻击",
+      "canonical_evidence": "提出针对多模型的广撒网式越狱攻击",
+      "llm_tldr_en": "Identifies wide-net-casting jailbreak scenario where querying multiple large models simultaneously yields harmful outputs; tailored attack achieves up to 100% success, highlighting a critical safety gap.",
+      "llm_tldr_cn": "现有越狱攻击研究多针对单一模型，该文揭示了广撒网式场景：攻击者可同时查询一组大模型以获取有害输出。作者开发了一种专门针对该场景的越狱方法，实验表明在某些无额外防护的大模型上成功率可达100%，暴露出此前被忽视的重大安全风险，为未来的安全评估和防御提供了新的考量维度。该工作不仅定义了广撒网威胁模型，还通过实验证明了其危险性远超单模型攻击，呼吁社区关注多模型交互下的越狱风险。",
+      "llm_tldr": "现有越狱攻击研究多针对单一模型，该文揭示了广撒网式场景：攻击者可同时查询一组大模型以获取有害输出。作者开发了一种专门针对该场景的越狱方法，实验表明在某些无额外防护的大模型上成功率可达100%，暴露出此前被忽视的重大安全风险，为未来的安全评估和防御提供了新的考量维度。该工作不仅定义了广撒网威胁模型，还通过实验证明了其危险性远超单模型攻击，呼吁社区关注多模型交互下的越狱风险。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks against safety-aligned models",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.17971v1",
+      "source": "arxiv",
+      "title": "Babel: Jailbreaking Safety Attention via Obfuscation Distribution Optimized Sampling",
+      "abstract": "Despite rigorous safety alignment, Large Language Models (LLMs) remain vulnerable to jailbreak attacks. Existing black-box methods often rely on heuristic templates or exhaustive trials, lacking mechanistic interpretability and query efficiency. In this study, we investigate an intrinsic vulnerability in the safety mechanisms of LLMs, where safety alignment relies on a small set of sparsely distributed attention heads, leaving much of the representational space weakly monitored. We formalize this phenomenon with a mathematical jailbreaking model that characterizes the delicate boundary of effective text obfuscation and analytically explains observed jailbreak behaviors. Guided by this model, we propose Babel, an efficient black-box attack framework that exploits the identified safety gap through systematic obfuscation sampling with iterative, feedback-driven distribution refinement, enabling reliable and high-success jailbreak attacks without access to model internals. Comprehensive evaluations on frontier commercial models demonstrate that Babel achieves state-of-the-art attack success rates and superior query efficiency. Specifically, compared to state-of-the-art methods, Babel increases the attack success rate on GPT-4o from 41.33% to 82.67% and on Claude-3-5-haiku from 38.33% to 78.33% within an average of 40 queries, providing a robust red-teaming methodology for LLMs safety research.",
+      "authors": [
+        "Ziwei Wang",
+        "Jing Chen",
+        "Ruichao Liang",
+        "Zhi Wang",
+        "Yebo Feng",
+        "Ju Jia",
+        "Ruiying Du",
+        "Cong Wu",
+        "Yang Liu"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-05-18T07:27:59+00:00",
+      "link": "https://arxiv.org/pdf/2605.17971v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "efficient black-box jailbreak attack via obfuscation optimized sampling exploiting sparse safety attention",
+      "llm_evidence_cn": "利用稀疏安全注意力通过混淆优化采样进行高效黑盒越狱攻击",
+      "llm_evidence": "利用稀疏安全注意力通过混淆优化采样进行高效黑盒越狱攻击",
+      "canonical_evidence": "利用稀疏安全注意力通过混淆优化采样进行高效黑盒越狱攻击",
+      "llm_tldr_en": "Proposes Babel, a query-efficient jailbreak that leverages the finding that safety relies on sparse attention heads, using obfuscation distribution optimized sampling to evade these heads.",
+      "llm_tldr_cn": "本文发现LLM安全对齐依赖于一组稀疏的注意力头，大部分表示空间监控薄弱，以此构建数学越狱模型解析混淆边界。基于此提出Babel，一种高效黑盒攻击，通过混淆分布优化采样绕过安全注意。该方法兼具机制可解释性和查询效率，在多个模型上实现高攻成功率。",
+      "llm_tldr": "本文发现LLM安全对齐依赖于一组稀疏的注意力头，大部分表示空间监控薄弱，以此构建数学越狱模型解析混淆边界。基于此提出Babel，一种高效黑盒攻击，通过混淆分布优化采样绕过安全注意。该方法兼具机制可解释性和查询效率，在多个模型上实现高攻成功率。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "automated generation of jailbreak prompts",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.19321v1",
+      "source": "arxiv",
+      "title": "Exploring and Developing a Pre-Model Safeguard with Draft Models",
+      "abstract": "Large Language Model (LLM) alignment remains vulnerable to jailbreak attacks that elicit unsafe responses, motivating pre-model and post-model guards. Pre-model guards audit the safety of prompts before invoking target models. However, relying solely on the prompt often leads to high false-negative rates (i.e., jailbreak attacks go undetected). Post-model guards address this issue by auditing both the user prompt and the target model's response. However, they incur a high computational cost, including increased token usage and processing time, because they operate after target model inference.   In this paper, we introduce a safeguard design that leverages the transferability of jailbreak attacks to enforce prompt safety before target model inference. We first conduct a systematic study of jailbreak transferability, particularly from LLMs to small language models (SLMs). Through these experiments, we identify key factors influencing transferability. Building on these insights, we observe that responses from smaller draft models reflect the safety implications of those from large target models; \\ie given a jailbreak prompt constructed for an LLM, an SLM is likely to be triggered to generate an unaligned response. Based on this observation, our safeguard design leverages speculative inference with SLMs to generate a set of draft responses. It then feeds the original prompt and these drafts into existing guards to predict their safety. We demonstrate that this design reduces the false-negative rate of pre-model guards and offers a low \\Efficiency alternative to post-model guards. \\textcolor{red}{\\bf Notice: This paper contains examples of harmful language.}",
+      "authors": [
+        "Hongyu Cai",
+        "Arjun Arunasalam",
+        "Yiming Liang",
+        "Antonio Bianchi",
+        "Z. Berkay Celik"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-05-19T04:01:36+00:00",
+      "link": "https://arxiv.org/pdf/2605.19321v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Develops a pre-model safeguard that uses transferability of jailbreak attacks to audit prompt safety before target model inference.",
+      "llm_evidence_cn": "开发基于越狱攻击迁移性的预模型防护，在目标模型推理前审计提示安全性。",
+      "llm_evidence": "开发基于越狱攻击迁移性的预模型防护，在目标模型推理前审计提示安全性。",
+      "canonical_evidence": "开发基于越狱攻击迁移性的预模型防护，在目标模型推理前审计提示安全性。",
+      "llm_tldr_en": "A pre-model safeguard leverages the transferability of jailbreaks to audit prompts with a draft model, achieving effective defense while saving computation.",
+      "llm_tldr_cn": "预模型防护在调用目标模型前审计提示安全性，但依赖单提示易漏报。本文利用越狱攻击的迁移性，通过草稿模型执行越狱检查，在推理前强制提示安全，有效降低误报率并节省计算开销。",
+      "llm_tldr": "预模型防护在调用目标模型前审计提示安全性，但依赖单提示易漏报。本文利用越狱攻击的迁移性，通过草稿模型执行越狱检查，在推理前强制提示安全，有效降低误报率并节省计算开销。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.20654v1",
+      "source": "arxiv",
+      "title": "REFLECTOR: Internalizing Step-wise Reflection against Indirect Jailbreak",
+      "abstract": "While Large Language Models (LLMs) demonstrate remarkable capabilities, they remain susceptible to sophisticated, multi-step jailbreak attacks that circumvent conventional surface-level safety alignment by exploiting the internal generation process. To address these vulnerabilities, we propose Reflector, a principled two-stage framework that internalizes self-reflection within the generation trajectory. Reflector first leverages teacher-guided generation to produce high-quality reflection data for supervised fine-tuning (SFT), establishing structured reflection patterns. It subsequently uses Reinforcement Learning (RL) with outcome-driven and reward-validity supervision to instill robust, autonomous self-reflection capabilities. Empirical results show that Reflector achieves Defense Success Rates (DSR) exceeding 90% against complex indirect attacks while generalizing robustly across diverse threat scenarios. Notably, the framework enhances both task-specific and general utility, yielding a 5.85% gain on GSM8K alongside improved performance on knowledge-intensive benchmarks. By internalizing trajectory-level safety, Reflector overcomes the fundamental limitations of surface alignment without significant computational overhead, offering an efficient and scalable solution for the development of safe and capable LLMs.",
+      "authors": [
+        "Jiachen Ma",
+        "Jiawen Zhang",
+        "Xiangtian Li",
+        "Bo Zou",
+        "Chaochao Lu",
+        "Chao Yang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-05-20T03:16:15+00:00",
+      "link": "https://arxiv.org/pdf/2605.20654v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "defense against multi-step jailbreak attacks by internalizing self-reflection within the generation trajectory",
+      "llm_evidence_cn": "通过在生成轨迹中内化自我反思来防御多步越狱攻击",
+      "llm_evidence": "通过在生成轨迹中内化自我反思来防御多步越狱攻击",
+      "canonical_evidence": "通过在生成轨迹中内化自我反思来防御多步越狱攻击",
+      "llm_tldr_en": "Proposes Reflector, a two-stage framework that fine-tunes LLMs with reflection data and RL to internalize self-reflection, enabling robust defense against sophisticated multi-step jailbreak attacks that exploit internal generation processes.",
+      "llm_tldr_cn": "针对大语言模型易受多步间接越狱攻击，这些攻击利用生成过程绕过表面安全对齐的问题，提出Reflector框架，先通过教师引导生成构建反思数据并微调，再通过强化学习训练以形成稳健的自主反思能力，从而在生成过程中内化自我反思，有效防御多步越狱攻击，提升了模型的内在安全性。",
+      "llm_tldr": "针对大语言模型易受多步间接越狱攻击，这些攻击利用生成过程绕过表面安全对齐的问题，提出Reflector框架，先通过教师引导生成构建反思数据并微调，再通过强化学习训练以形成稳健的自主反思能力，从而在生成过程中内化自我反思，有效防御多步越狱攻击，提升了模型的内在安全性。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.21674v1",
+      "source": "arxiv",
+      "title": "Adversarial Reframing: A Framework for Targeted Generation in Language Models",
+      "abstract": "Large Language Models (LLMs) are widely deployed in diverse real-world settings, yet remain vulnerable to jailbreaking, where prompt-based attacks bypass safety filters. We present THREAT (Targeted Harmful generation via Reframing and Exploitation of Adversarial Tactics), a reasoning-driven framework that coordinates multiple LLMs in an iterative search loop to find textual jailbreak prompts. We formulate prompt discovery as a nonconvex optimization problem and provide an efficient solution that lowers runtime and improves attack effectiveness. Across diverse datasets and model architectures, THREAT delivers higher attack success rates with lower computational cost than prior methods. The crafted prompts were flagged as harmful in fewer than 1% of cases, compared with about 50% refusals for the corresponding unmodified prompts. These findings reveal previously undetected vulnerabilities in aligned LLMs and position THREAT as a practical tool for proactively strengthening the safety of foundation models.",
+      "authors": [
+        "Shahnewaz Karim Sakib",
+        "Swati Kar",
+        "Anindya Bijoy Das"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-05-20T19:31:07+00:00",
+      "link": "https://arxiv.org/pdf/2605.21674v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "iterative search to find jailbreak prompts that bypass safety filters",
+      "llm_evidence_cn": "迭代搜索寻找绕过安全过滤器的越狱提示",
+      "llm_evidence": "迭代搜索寻找绕过安全过滤器的越狱提示",
+      "canonical_evidence": "迭代搜索寻找绕过安全过滤器的越狱提示",
+      "llm_tldr_en": "Presents THREAT, a framework using multiple LLMs in an iterative search to efficiently generate textual jailbreak prompts, achieving higher attack success at lower cost.",
+      "llm_tldr_cn": "针对大语言模型易受越狱攻击的问题，提出THREAT框架，通过多LLM协作的迭代搜索高效生成越狱提示，在多种数据集和模型上以更低成本实现更高攻击成功率，同时生成提示被标记为有害的比例低于1%，显著提升了自动化越狱攻击的实用性与隐蔽性。",
+      "llm_tldr": "针对大语言模型易受越狱攻击的问题，提出THREAT框架，通过多LLM协作的迭代搜索高效生成越狱提示，在多种数据集和模型上以更低成本实现更高攻击成功率，同时生成提示被标记为有害的比例低于1%，显著提升了自动化越狱攻击的实用性与隐蔽性。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "automated generation of jailbreak prompts",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.24497v1",
+      "source": "arxiv",
+      "title": "Reasoning as an Attack Surface: Adaptive Evolutionary CoT Jailbreaks for LLMs",
+      "abstract": "Large Reasoning Models (LRMs) have demonstrated remarkable capabilities in reasoning and generation tasks and are increasingly deployed in real-world applications. However, their explicit chain-of-thought (CoT) mechanism introduces new security risks, making them particularly vulnerable to jailbreak attacks. Existing approaches often rely on static CoT templates to elicit harmful outputs, but such fixed designs suffer from limited diversity, adaptability, and effectiveness. To overcome these limitations, we propose an adaptive evolutionary CoT jailbreak framework, called AE-CoT. Specifically, the method first rewrites harmful goals into mild prompts with teacher role-play and decomposes them into semantically coherent reasoning fragments to construct a pool of CoT jailbreak candidates. Then, within a structured representation space, we perform multi-generation evolutionary search, where candidate diversity is expanded through fragment-level crossover and a mutation strategy with an adaptive mutation-rate control mechanism. An independent scoring model provides graded harmfulness evaluations, and high-scoring candidates are further enhanced with a harmful CoT template to induce more destructive generations. Extensive experiments across multiple models and datasets demonstrate the effectiveness of the proposed AE-CoT, consistently outperforming state-of-the-art jailbreak methods.",
+      "authors": [
+        "Jianan Li",
+        "Simeng Qin",
+        "Xiaojun Jia",
+        "Lionel Z. Wang",
+        "Tianhang Zheng",
+        "Xiaoshuang Jia",
+        "Yang Liu",
+        "Xiaochun Cao"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-05-23T10:11:32+00:00",
+      "link": "https://arxiv.org/pdf/2605.24497v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "adaptive evolutionary CoT jailbreak framework that automatically generates reasoning-based harmful prompts",
+      "llm_evidence_cn": "自适应进化思维链越狱框架，自动生成基于推理的有害提示",
+      "llm_evidence": "自适应进化思维链越狱框架，自动生成基于推理的有害提示",
+      "canonical_evidence": "自适应进化思维链越狱框架，自动生成基于推理的有害提示",
+      "llm_tldr_en": "AE-CoT uses evolutionary optimization over rewritten mild prompts and reasoning fragments to adaptively jailbreak large reasoning models via chain-of-thought, outperforming static CoT attacks.",
+      "llm_tldr_cn": "针对大型推理模型链式思维机制带来的新安全风险及静态越狱模板效果有限的问题，本文提出自适应进化思维链越狱框架AE-CoT，通过教师角色扮演将有害目标重写为温和提示并分解为推理片段，利用进化算法动态优化，大幅提升对先进LRMs的攻击成功率，揭示了推理机制的攻击面。",
+      "llm_tldr": "针对大型推理模型链式思维机制带来的新安全风险及静态越狱模板效果有限的问题，本文提出自适应进化思维链越狱框架AE-CoT，通过教师角色扮演将有害目标重写为温和提示并分解为推理片段，利用进化算法动态优化，大幅提升对先进LRMs的攻击成功率，揭示了推理机制的攻击面。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "automated generation of jailbreak prompts",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.24535v1",
+      "source": "arxiv",
+      "title": "Steering Beyond the Support: Adversarial Training on Unsupervised Jailbroken Activation Simulation",
+      "abstract": "Jailbreak prompts can trigger harmful completions on aligned LLMs, In accordance, safety steering has been proposed: test-time activation interventions that steer jailbreak activations to trigger refusal while preserving benign utility. However, existing steering methods are fundamentally supervised and tied to a static, limited training set, whereas real jailbreaks evolve and are often out-of-distributed from the training set, leading to failures on unseen attacks. In this paper, we tackle the failure on unseen jailbreaks problem, base on unsupervised latent direction discovery. We propose a bi-level adversarial training framework for zero-shot jailbreak defense. In the inner step, we simulate diverse jail-broken activations by extrapolating from refusal-state harmful-request activations via unsupervised latent direction discovery, which expands the coverage of real jailbreak activation subspaces. In the outer step, we train a potential-induced steering field to push these adversarial jailbroken states into refusal regions while keeping benign unchanged. Across three LLMs and six classical jailbreak families, our method achieves strong defense with attack success rates mostly below 5%, and rising subspace coverage throughout training helps explain the improved generalization.",
+      "authors": [
+        "Luoyu Chen",
+        "Weiqi Wang",
+        "Zhiyi Tian",
+        "Chenhan Zhang",
+        "Feng Wu",
+        "Jianhuan Huang",
+        "Ahmed Asiri",
+        "Shui Yu"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.LG"
+      ],
+      "published": "2026-05-23T12:07:38+00:00",
+      "link": "https://arxiv.org/pdf/2605.24535v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes a zero-shot jailbreak defense via adversarial training on unsupervised activation simulation",
+      "llm_evidence_cn": "提出基于无监督激活模拟的零样本越狱防御对抗训练",
+      "llm_evidence": "提出基于无监督激活模拟的零样本越狱防御对抗训练",
+      "canonical_evidence": "提出基于无监督激活模拟的零样本越狱防御对抗训练",
+      "llm_tldr_en": "Addresses the failure of existing steering methods on unseen jailbreaks by proposing a bi-level adversarial training framework that simulates diverse jailbroken activations in an unsupervised manner, enabling zero-shot defense.",
+      "llm_tldr_cn": "现有安全引导方法高度依赖已知攻击样本训练，面对未知越狱攻击时性能骤降。该文针对此问题，提出基于无监督越狱激活模拟的对抗训练框架。在内层，通过无监督方法模拟多样化的越狱激活分布；在外层，进行对抗训练以学习鲁棒的安全引导方向。实验表明，该方法实现了对未见攻击的零样本防御，显著提升了防御泛化性，为动态演化的越狱威胁提供了可行应对。",
+      "llm_tldr": "现有安全引导方法高度依赖已知攻击样本训练，面对未知越狱攻击时性能骤降。该文针对此问题，提出基于无监督越狱激活模拟的对抗训练框架。在内层，通过无监督方法模拟多样化的越狱激活分布；在外层，进行对抗训练以学习鲁棒的安全引导方向。实验表明，该方法实现了对未见攻击的零样本防御，显著提升了防御泛化性，为动态演化的越狱威胁提供了可行应对。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.24552v1",
+      "source": "arxiv",
+      "title": "Ellipsoid Control: A White-list Jailbreak Defense via Benign Latent Modeling",
+      "abstract": "Representation engineering (RepE) defenses have shown strong robustness against jailbreak attacks on large language models (LLMs). However, these methods fundamentally rely on black-list supervision: they learn jailbreak-to-refusal activation transformations from harmful or jailbreak data that are inherently incomplete and continuously evolving. Hence, the performance of RepE-based defenses becomes tightly coupled to the quality and coverage of collected harmful samples, leaving models vulnerable to unseen attacks. This reliance also obscures the distinction between defenses that fit known harmful distributions and defenses that protect a benign latent region without estimating the harmful distribution. We adopt the opposite, the white-list perspective, by leveraging the accessibility and abundance of benign data. The goal is to elicit refusal on arbitrary inputs while ensuring that harmless inputs are not falsely rejected. This shifts the core research question to: How can we design a robust benign-latent preservation mechanism such that the benign latent distribution remains intact while refusal is elicited? To answer this, we propose Ellipsoid Control, a test-time defense. It performs projected gradient descent that can elicit refusal on arbitrary inputs, aiming to improve defense effectiveness. At the same time, an anisotropic benign-geometry ellipsoid is fitted from abundant benign data to constrain the update to minimize distortion of the benign latent geometry. This tight constraint helps preserve model utility. Across multiple LLMs, jailbreak attacks, benign tasks, and safety-boundary evaluations, Ellipsoid Control consistently enhances safety while better preserving utility, demonstrating the effectiveness of the white-list approach for jailbreak defense",
+      "authors": [
+        "Luoyu Chen",
+        "Weiqi Wang",
+        "Zhiyi Tian",
+        "Feng Wu",
+        "Ahmed Asiri",
+        "Shui Yu"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR"
+      ],
+      "published": "2026-05-23T12:39:25+00:00",
+      "link": "https://arxiv.org/pdf/2605.24552v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "white-list defense modeling benign latent region to reject jailbreak prompts",
+      "llm_evidence_cn": "通过建模良性潜在区域的白名单防御方法拒绝越狱提示",
+      "llm_evidence": "通过建模良性潜在区域的白名单防御方法拒绝越狱提示",
+      "canonical_evidence": "通过建模良性潜在区域的白名单防御方法拒绝越狱提示",
+      "llm_tldr_en": "Proposes a white-list defense that models a benign latent ellipsoid to protect LLM safety, avoiding reliance on black-list harmful samples, thus robust against unseen attacks.",
+      "llm_tldr_cn": "针对现有表示工程防御依赖黑名单有害样本、对未见攻击泛化性差的局限，提出白名单视角的椭圆体控制防御。通过仅在干净数据上建模良性潜在空间分布，构建一个决策边界，将越狱样本排除在外。实验证明该方法在多种攻击下保持高防御率，且不降低正常性能。",
+      "llm_tldr": "针对现有表示工程防御依赖黑名单有害样本、对未见攻击泛化性差的局限，提出白名单视角的椭圆体控制防御。通过仅在干净数据上建模良性潜在空间分布，构建一个决策边界，将越狱样本排除在外。实验证明该方法在多种攻击下保持高防御率，且不降低正常性能。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.25194v1",
+      "source": "arxiv",
+      "title": "Localization then Neutralization: Gradient-guided Token Suppression against Visual Prompt Injection Attack",
+      "abstract": "Adversarial images pose a severe security threat to multimodal large language models through prompt injection. Existing defenses largely lack a principled understanding of the underlying mechanisms and struggle to balance efficiency and defense utility. In this work, we show that successful adversarial attacks do not rely on the entire image uniformly but instead depend on a small subset of critical image tokens. Based on this insight, we propose Gradient Token Masking (GTM), which localizes these tokens via gradient analysis and neutralizes them through masking. We find that attribution based on the first generated token's output probability fails when attacks preserve the predicted token. To overcome this, GTM utilizes the Hidden-State Gradient Norm score for generation-influence attribution under adversarial inputs. We prove that its ranking is consistent with that of the full adversarial loss gradient, providing a theoretical guarantee for accurate localization. Our method requires only a single forward-backward pass to identify and zero out a small number of high-scoring tokens, effectively disrupting the adversarial attack path. Extensive experiments on prompt injection and multimodal jailbreak attacks demonstrate that our approach reduces attack success rates (ASR) to near zero while preserving model utility with negligible computational overhead.",
+      "authors": [
+        "Dongpeng Zhang",
+        "Ke Ma",
+        "Yangbangyan Jiang",
+        "Gaozheng Pei",
+        "Longtao Huang",
+        "Qianqian Xu",
+        "Qingming Huang"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-05-24T17:51:34+00:00",
+      "link": "https://arxiv.org/pdf/2605.25194v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "defense against visual prompt injection attacks in multimodal LLMs by gradient-guided token masking",
+      "llm_evidence_cn": "通过梯度引导的令牌掩码防御多模态LLM中的视觉提示注入攻击",
+      "llm_evidence": "通过梯度引导的令牌掩码防御多模态LLM中的视觉提示注入攻击",
+      "canonical_evidence": "通过梯度引导的令牌掩码防御多模态LLM中的视觉提示注入攻击",
+      "llm_tldr_en": "Proposes Gradient Token Masking (GTM), a defense that localizes critical adversarial image tokens via gradient analysis and neutralizes them, achieving efficient defense against visual prompt injection attacks in multimodal LLMs.",
+      "llm_tldr_cn": "针对多模态大语言模型面临的视觉提示注入攻击，提出梯度引导令牌掩码（GTM）防御方法，通过梯度分析定位并掩码关键对抗图像令牌，克服了基于首令牌输出概率的属性失败问题，在保持防御效用的同时提升了效率，为视觉越狱攻击提供了一种原理性强的防御机制。",
+      "llm_tldr": "针对多模态大语言模型面临的视觉提示注入攻击，提出梯度引导令牌掩码（GTM）防御方法，通过梯度分析定位并掩码关键对抗图像令牌，克服了基于首令牌输出概率的属性失败问题，在保持防御效用的同时提升了效率，为视觉越狱攻击提供了一种原理性强的防御机制。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defenses against prompt injection jailbreak attacks",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.26158v1",
+      "source": "arxiv",
+      "title": "Furina: Fragmented Uncertainty-Driven Refusal Instability Attack",
+      "abstract": "Safety alignment in large language models (LLMs) and multimodal large language models (MLLMs) is commonly assumed to operate as a near-binary threshold mechanism. We challenge this assumption by revealing that safety behavior is governed by an instability region where small perturbations induce stochastic refusal decisions rather than deterministic outcomes. We develop a multi-metric diagnostic framework combining external and internal signals to characterize this instability. Through systematic experiments, we identify a characteristic diagnostic signature: inputs in unstable regimes exhibit elevated output uncertainty yet decreased internal safety activation, a decoupling phenomenon that explains why detection-based defenses fail against sophisticated attacks. Building on this framework, we introduce Furina, a jailbreak attack that deliberately induces this signature through fragmented, scene-anchored prompts without model-specific optimization. Furina outperforms strong single-turn and multi-turn baselines on HarmBench and achieves competitive results on MM-SafetyBench, demonstrating that uncertainty amplification provides a principled and transferable mechanism for understanding safety vulnerabilities. Code is available at: https://github.com/0xCavaliers/Furina_Jailbreak.",
+      "authors": [
+        "Tongxi Wu",
+        "Jian Zhang",
+        "Yang Gao"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-05-24T11:35:12+00:00",
+      "link": "https://arxiv.org/pdf/2605.26158v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "proposes a novel jailbreak attack exploiting refusal instability region via fragmented uncertainty",
+      "llm_evidence_cn": "提出利用拒绝不稳定区域的碎片化不确定性越狱攻击",
+      "llm_evidence": "提出利用拒绝不稳定区域的碎片化不确定性越狱攻击",
+      "canonical_evidence": "提出利用拒绝不稳定区域的碎片化不确定性越狱攻击",
+      "llm_tldr_en": "Introduces Furina, an attack that exploits the instability region where safety decisions become stochastic, using a multi-metric diagnostic framework to identify and attack this region.",
+      "llm_tldr_cn": "本文揭示安全对齐并非二值阈值，而是存在一个不稳定区域，其中小扰动导致随机拒绝。作者开发多指标诊断框架，发现不稳定区域输出不确定性高但内部安全激活低，这一解耦现象使检测防御失效。基于此提出Furina攻击，利用碎片化不确定性绕过防御。",
+      "llm_tldr": "本文揭示安全对齐并非二值阈值，而是存在一个不稳定区域，其中小扰动导致随机拒绝。作者开发多指标诊断框架，发现不稳定区域输出不确定性高但内部安全激活低，这一解耦现象使检测防御失效。基于此提出Furina攻击，利用碎片化不确定性绕过防御。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks on large language models and AI agents",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.26409v1",
+      "source": "arxiv",
+      "title": "Jailbreak susceptibility prediction and mitigation via the behavioral geometry of models",
+      "abstract": "Evaluating and mitigating a generative system's susceptibility to jailbreak attacks is critical to its safe deployment. Given the number of deployable systems, full per-configuration evaluation and optimization is impractical. In this paper, we formalize the behavioral geometry of a population of models that, by leveraging previously evaluated and defended models, supports both efficient susceptibility prediction and effective defense transfer across a population. We apply the framework to 79 models spanning 24 providers and to 100 system configurations of a single base model. Simple methods that use the behavioral geometry reach an AUPRC of $0.94$ for susceptibility detection with $\\approx98\\%$ fewer probes relative to a full evaluation. Using the behavioral geometry to select which model to transfer an optimized defense from outperforms same-provider assignment ($+2\\%$, $p = 0.03$) at no additional probe cost, with a set of three models sufficient to cover the population. Results are robust to hyperparameter selection and judge.",
+      "authors": [
+        "Hayden Helm",
+        "Xiaodong Liu",
+        "Weiwei Yang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "published": "2026-05-26T00:36:42+00:00",
+      "link": "https://arxiv.org/pdf/2605.26409v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "proposes defense transfer via behavioral geometry to predict and mitigate jailbreak susceptibility",
+      "llm_evidence_cn": "提出通过行为几何进行防御迁移以预测和缓解越狱易感性",
+      "llm_evidence": "提出通过行为几何进行防御迁移以预测和缓解越狱易感性",
+      "canonical_evidence": "提出通过行为几何进行防御迁移以预测和缓解越狱易感性",
+      "llm_tldr_en": "Introduces behavioral geometry to efficiently predict jailbreak susceptibility and transfer defenses across many models, achieving high accuracy with drastically fewer probes.",
+      "llm_tldr_cn": "本文提出利用模型种群的行为几何，通过先前评估和防御过的模型，高效预测新模型配置的越狱易感性并进行防御迁移。框架在79个模型和100个配置上，以约98%的探测数量减少达到0.94的AUPRC，解决了全评估不切实际的问题。",
+      "llm_tldr": "本文提出利用模型种群的行为几何，通过先前评估和防御过的模型，高效预测新模型配置的越狱易感性并进行防御迁移。框架在79个模型和100个配置上，以约98%的探测数量减少达到0.94的AUPRC，解决了全评估不切实际的问题。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.27545v1",
+      "source": "arxiv",
+      "title": "PAST2HARM: A Simple Adaptive Past Tense Attack for Jailbreaking Multimodal AI",
+      "abstract": "Jailbreak attacks on multimodal AI systems remain underexplored, even though unsafe image generation can have more severe consequences than unsafe text and current defenses are relatively immature. We introduce PAST2HARM, a simple yet effective adaptive jailbreak framework that bypasses refusal training in state of the art multimodal text to image models. Building on prior findings that past tense reformulations can evade safeguards, PAST2HARM systematically exploits this vulnerability in multimodal generative AI.   We characterize the attack along two dimensions. First, breadth: through temporal deepening, the framework incrementally strengthens historical anchoring and archival cues, eroding refusal boundaries across models with varying alignment strength. Second, depth: via iterative escalation after initial compliance, we probe the upper bound of harmful generation, measuring severity using a scalar severity jailbreak metric evaluated by a language model acting as a judge. We find that mid conversation turns form peak vulnerability windows, where harmfulness increases before plateauing and eventually undergoing semantic inversion.   We evaluate PAST2HARM on three models Gemini Nano Banana Pro, GPT Image 2, and SD XL achieving attack success rates of 83 percent, 67 percent, and 100 percent in a black box, gradient free setting. Adversarial prompts also transfer across models, with cross model success rates above 50 percent. The attack elicits diverse harmful outputs, including explicit sexual content, political disinformation, historical denial narratives, hate speech, and self harm glorification. We further release a curated benchmark of prompts, reformulations, and outputs as a resource for red teaming and alignment. Our results expose fundamental brittleness in current safeguards and highlight the need for stronger multimodal safety training.",
+      "authors": [
+        "Snehasis Mukhopadhyay"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL"
+      ],
+      "published": "2026-05-26T18:16:22+00:00",
+      "link": "https://arxiv.org/pdf/2605.27545v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "adaptive past-tense jailbreak attack on multimodal text-to-image models",
+      "llm_evidence_cn": "针对多模态文本到图像模型的自适应过去式越狱攻击",
+      "llm_evidence": "针对多模态文本到图像模型的自适应过去式越狱攻击",
+      "canonical_evidence": "针对多模态文本到图像模型的自适应过去式越狱攻击",
+      "llm_tldr_en": "Proposes PAST2HARM, an adaptive jailbreak using past tense reformulations to bypass refusal training in multimodal text-to-image models, achieving high success.",
+      "llm_tldr_cn": "针对多模态文本到图像模型中越狱攻击研究不足的问题，本文提出PAST2HARM框架，通过系统化利用过去式重述和历史锚定侵蚀对齐模型的拒绝边界。实验显示该攻击在多个模型上成功绕过安全训练，生成不安全图像，揭示了多模态防御的脆弱性。",
+      "llm_tldr": "针对多模态文本到图像模型中越狱攻击研究不足的问题，本文提出PAST2HARM框架，通过系统化利用过去式重述和历史锚定侵蚀对齐模型的拒绝边界。实验显示该攻击在多个模型上成功绕过安全训练，生成不安全图像，揭示了多模态防御的脆弱性。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks against safety-aligned models",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.27823v1",
+      "source": "arxiv",
+      "title": "Disentangling Adversarial Prompts: A Semantic-Graph Defense for Robust LLM Security",
+      "abstract": "Large Language Models (LLMs) are increasingly vulnerable to adversarial prompts that exploit semantic ambiguities to bypass safety mechanisms, resulting in harmful or inappropriate outputs. Such attacks, including jailbreaking and prompt injection, pose significant risks to the integrity and availability of LLMs in security-critical applications. This paper proposes the Adversarial Prompt Disentanglement (APD) framework, a novel defense mechanism that proactively identifies and neutralizes malicious components in input prompts before they are processed by the LLM. The APD framework integrates three key innovations: (1) a mutual information-based semantic decomposition method to isolate adversarial and benign prompt components, ensuring statistical independence; (2) a graph-based intent classification approach that leverages spectral analysis to detect malicious patterns in prompt semantics; and (3) a lightweight transformer-based classifier trained on real-world datasets of toxic and jailbreaking prompts, enabling efficient and accurate adversarial intent detection. Evaluated on diverse datasets containing adversarial prompts, APD demonstrates superior robustness, reducing harmful output generation by over 85\\% while maintaining negligible impact on model performance. The framework's computational efficiency supports real-time deployment, making it a practical solution for securing LLMs. Our work addresses critical challenges in machine learning security on novel attacks and integrity methods for ML systems, and offers a scalable, ethically grounded defense against prompt-based adversarial threats.",
+      "authors": [
+        "Xiang Fang",
+        "Wanlong Fang"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI",
+        "cs.CV"
+      ],
+      "published": "2026-05-27T01:30:06+00:00",
+      "link": "https://arxiv.org/pdf/2605.27823v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes APD framework to disentangle and neutralize malicious prompt components for defense against jailbreak and injection",
+      "llm_evidence_cn": "提出对抗提示解耦框架，主动识别并中和恶意提示成分以防御越狱和注入攻击",
+      "llm_evidence": "提出对抗提示解耦框架，主动识别并中和恶意提示成分以防御越狱和注入攻击",
+      "canonical_evidence": "提出对抗提示解耦框架，主动识别并中和恶意提示成分以防御越狱和注入攻击",
+      "llm_tldr_en": "Proposes APD, a semantic-graph defense that disentangles adversarial prompts into benign and malicious components, neutralizing jailbreak and injection attacks proactively.",
+      "llm_tldr_cn": "大语言模型面临越狱和提示注入攻击，传统防御往往无法区分恶意与良性成分。该文提出对抗提示解耦框架APD，利用互信息分解将输入提示语义分解为独立的对抗和良性成分，并通过图结构保持语义完整性，再对恶意部分进行中和。实验表明，APD在多种攻击场景下有效防御，同时保持对良性指令的响应质量，实现了高安全性而不牺牲可用性。该框架为构建细粒度、可解释的LLM安全防御提供了新思路。",
+      "llm_tldr": "大语言模型面临越狱和提示注入攻击，传统防御往往无法区分恶意与良性成分。该文提出对抗提示解耦框架APD，利用互信息分解将输入提示语义分解为独立的对抗和良性成分，并通过图结构保持语义完整性，再对恶意部分进行中和。实验表明，APD在多种攻击场景下有效防御，同时保持对良性指令的响应质量，实现了高安全性而不牺牲可用性。该框架为构建细粒度、可解释的LLM安全防御提供了新思路。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch"
+    },
+    {
+      "id": "2605.28467v1",
+      "source": "arxiv",
+      "title": "Mitigating Adaptive Attacks against Reasoning Models with Activation Consistency Training",
+      "abstract": "As LLMs gain stronger reasoning capabilities, their extended chain-of-thought introduces new degrees of complexity for defending against adversarial jailbreaks and prompt injection. We study consistency training, a family of fine-tuning objectives that enforce identical behavior on clean prompts and adversarial rewrites, and evaluate its two main variants, output-level (BCT) and activation-level (ACT), across five reasoning models. We formulate both methods as a prompt injection defense and find ACT to be competitive with other training-based defenses while requiring only self-supervised pairs of clean and wrapped prompts. Our experiments also generalize both techniques within the jailbreak setting, demonstrating that ACT remains more robust to adaptive attacks. We also provide mechanistic evidence that ACT's defense against jailbreaks is encoded as a roughly linear shift in activation space at the assistant-turn boundary. After ACT training, we can recover a single steering direction that controls refusal on reasoning models with minimal effect on benign inputs. We find that ACT remains robust even when the model's chain-of-thought is replaced with a compliant trace from the undefended base model, pivoting to refuse prefilled jailbreaks. Together, these results suggest that supervising internal representations is a surprisingly effective and interpretable approach to various forms of safety training in reasoning models.",
+      "authors": [
+        "Avidan Shah",
+        "Jannik Brinkmann",
+        "Rico Angell"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-05-27T13:33:26+00:00",
+      "link": "https://arxiv.org/pdf/2605.28467v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 9.0,
+      "llm_evidence_en": "Proposes ACT, a self-supervised fine-tuning objective that enforces identical behavior on clean and wrapped prompts, effective as prompt injection defense and jailbreak defense.",
+      "llm_evidence_cn": "提出激活一致性训练，一种自监督微调目标，强制干净提示和对抗性重写提示行为一致，有效防御提示注入越狱攻击。",
+      "llm_evidence": "提出激活一致性训练，一种自监督微调目标，强制干净提示和对抗性重写提示行为一致，有效防御提示注入越狱攻击。",
+      "canonical_evidence": "提出激活一致性训练，一种自监督微调目标，强制干净提示和对抗性重写提示行为一致，有效防御提示注入越狱攻击。",
+      "llm_tldr_en": "Activation Consistency Training enforces consistent behavior on clean and adversarial rewrites, providing a self-supervised defense against prompt injection and jailbreak attacks in reasoning LLMs.",
+      "llm_tldr_cn": "推理模型长链思维给防御对抗性越狱和提示注入带来新复杂度。本文研究一致性训练，提出激活级一致性训练(ACT)，仅需自监督的干净与包装提示对，在提示注入防御和越狱防御中均具竞争力，尤其对推理模型有效。",
+      "llm_tldr": "推理模型长链思维给防御对抗性越狱和提示注入带来新复杂度。本文研究一致性训练，提出激活级一致性训练(ACT)，仅需自监督的干净与包装提示对，在提示注入防御和越狱防御中均具竞争力，尤其对推理模型有效。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defenses against prompt injection jailbreak attacks",
+      "matched_requirement_id": "req-9",
+      "selection_source": "fresh_fetch"
+    }
+  ],
+  "quick_skim": [
+    {
+      "id": "2605.00123v1",
+      "source": "arxiv",
+      "title": "Minimal, Local, Causal Explanations for Jailbreak Success in Large Language Models",
+      "abstract": "Safety trained large language models (LLMs) can often be induced to answer harmful requests through jailbreak prompts. Because we lack a robust understanding of why LLMs are susceptible to jailbreaks, future frontier models operating more autonomously in higher-stakes settings may similarly be vulnerable to such attacks. Prior work has studied jailbreak success by examining the model's intermediate representations, identifying directions in this space that causally encode concepts like harmfulness and refusal. Then, they globally explain all jailbreak attacks as attempting to reduce or strengthen these concepts (e.g., reduce harmfulness). However, different jailbreak strategies may succeed by strengthening or suppressing different intermediate concepts, and the same jailbreak strategy may not work for different harmful request categories (e.g., violence vs. cyberattack); thus, we seek to give a local explanation -- i.e., why did this specific jailbreak succeed? To address this gap, we introduce LOCA, a method that gives Local, CAusal explanations of jailbreak success by identifying a minimal set of interpretable, intermediate representation changes that causally induce model refusal on an otherwise successful jailbreak request. We evaluate LOCA on harmful original-jailbreak pairs from a large jailbreak benchmark across Gemma and Llama chat models, comparing against prior methods adapted to this setting. LOCA can successfully induce refusal by making, on average, six interpretable changes; prior work routinely fails to achieve refusal even after 20 changes. LOCA is a step toward mechanistic, local explanations of jailbreak success in LLMs. Code to be released.",
+      "authors": [
+        "Shubham Kumar",
+        "Narendra Ahuja"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI"
+      ],
+      "published": "2026-04-30T18:22:19+00:00",
+      "link": "https://arxiv.org/pdf/2605.00123v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "explains why safety-aligned LLMs are susceptible to jailbreaks via causal representation analysis",
+      "llm_evidence_cn": "通过因果表示分析解释安全对齐LLM为何易受越狱攻击",
+      "llm_evidence": "通过因果表示分析解释安全对齐LLM为何易受越狱攻击",
+      "canonical_evidence": "通过因果表示分析解释安全对齐LLM为何易受越狱攻击",
+      "llm_tldr_en": "Investigates jailbreak success by finding minimal, local causal explanations, showing that different strategies suppress or strengthen distinct intermediate representations, not a single global concept.",
+      "llm_tldr_cn": "针对安全对齐的大型语言模型为何仍能被越狱诱导回答有害请求，本文通过因果分析中间表示，发现不同越狱策略通过抑制或增强不同的中间概念（而非单一全局概念）成功。该发现为理解越狱脆弱性提供了细粒度的机制解释。",
+      "llm_tldr": "针对安全对齐的大型语言模型为何仍能被越狱诱导回答有害请求，本文通过因果分析中间表示，发现不同越狱策略通过抑制或增强不同的中间概念（而非单一全局概念）成功。该发现为理解越狱脆弱性提供了细粒度的机制解释。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks against safety-aligned models",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.00267v2",
+      "source": "arxiv",
+      "title": "Jailbroken Frontier Models Retain Their Capabilities",
+      "abstract": "As language model safeguards become more robust, attackers are pushed toward developing increasingly complex jailbreaks. Prior work has found that this complexity imposes a \"jailbreak tax\" that degrades the target model's task performance. We show that this tax scales inversely with model capability and that the most advanced jailbreaks effectively yield no reduction in model capabilities. Evaluating 28 jailbreaks on five benchmarks across Claude models ranging in capability from Haiku 4.5 to Opus 4.6, we find Haiku 4.5 loses an average of 33.1% on benchmark performance when jailbroken, while Opus 4.6 at max thinking effort loses only 7.7%. We also observe that across all models, reasoning-heavy tasks display considerably more degradation than knowledge-recall tasks. Finally, Boundary Point Jailbreaking, currently the strongest jailbreak against deployed classifiers, achieves near-perfect classifier evasion with near-zero degradation across safeguarded models. We recommend that safety cases for frontier models should not rely on a meaningful capability degradation from jailbreaks.",
+      "authors": [
+        "Daniel Zhu",
+        "Zihan Wang",
+        "Xuchan Bao",
+        "Jerry Wei"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CR"
+      ],
+      "published": "2026-04-30T22:04:10+00:00",
+      "link": "https://arxiv.org/pdf/2605.00267v2",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "analyzes capability degradation when safety-aligned models are jailbroken",
+      "llm_evidence_cn": "分析安全对齐模型被越狱后的能力退化",
+      "llm_evidence": "分析安全对齐模型被越狱后的能力退化",
+      "canonical_evidence": "分析安全对齐模型被越狱后的能力退化",
+      "llm_tldr_en": "Shows that advanced jailbreaks impose negligible capability tax on frontier models, with Opus 4.6 losing only 7.7% performance, while smaller models suffer more, revealing that jailbreak complexity does not hinder high-capability models.",
+      "llm_tldr_cn": "研究发现越狱对前沿模型能力影响极小。评估28种越狱方法在Claude系列模型上的表现，Opus 4.6越狱后基准性能仅下降7.7%，而低能力模型下降33.1%。推理任务退化显著大于知识回忆任务，表明强大模型在越狱后仍保持高度可用性。",
+      "llm_tldr": "研究发现越狱对前沿模型能力影响极小。评估28种越狱方法在Claude系列模型上的表现，Opus 4.6越狱后基准性能仅下降7.7%，而低能力模型下降33.1%。推理任务退化显著大于知识回忆任务，表明强大模型在越狱后仍保持高度可用性。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks against safety-aligned models",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2605.05662v1",
+      "source": "arxiv",
+      "title": "XL-SafetyBench: A Country-Grounded Cross-Cultural Benchmark for LLM Safety and Cultural Sensitivity",
+      "abstract": "Current LLM safety benchmarks are predominantly English-centric and often rely on translation, failing to capture country-specific harms. Moreover, they rarely evaluate a model's ability to detect culturally embedded sensitivities as distinct from universal harms. We introduce XL-SafetyBench. a suite of 5,500 test cases across 10 country-language pairs, comprising a Jailbreak Benchmark of country-grounded adversarial prompts and a Cultural Benchmark where local sensitivities are embedded within innocuous requests. Each item is constructed via a multi-stage pipeline that combines LLM-assisted discovery, automated validation gates, and dual independent native-speaker annotators per country. To distinguish principled refusal from comprehension failure, we evaluate Attack Success Rate (ASR) alongside two complementary metrics we introduce: Neutral-Safe Rate (NSR) and Cultural Sensitivity Rate (CSR). Evaluating 10 frontier and 27 local LLMs reveals two key findings. First, jailbreak robustness and cultural awareness do not show a coupled relationship among frontier models, so a composite safety score obscures per-axis variation. Second, local models exhibit a near-linear ASR-NSR trade-off (r = -0.81), indicating that their apparent safety reflects generation failure rather than genuine alignment. XL-SafetyBench enables more nuanced, cross-cultural safety evaluation in the multilingual era.",
+      "authors": [
+        "Dasol Choi",
+        "Eugenia Kim",
+        "Jaewon Noh",
+        "Sang Seo",
+        "Eunmi Kim",
+        "Myunggyo Oh",
+        "Yunjin Park",
+        "Brigitta Jesica Kartono",
+        "Josef Pichlmeier",
+        "Helena Berndt",
+        "Sai Krishna Mendu",
+        "Glenn Johannes Tungka",
+        "Özlem Gökçe",
+        "Suresh Gehlot",
+        "Katherine Pratt",
+        "Amanda Minnich",
+        "Haon Park"
+      ],
+      "primary_category": "cs.CL",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "published": "2026-05-07T04:35:03+00:00",
+      "link": "https://arxiv.org/pdf/2605.05662v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Provides a jailbreak benchmark with country-grounded adversarial prompts for LLM safety evaluation",
+      "llm_evidence_cn": "提供面向不同国家的越狱对抗提示基准，用于LLM安全评估",
+      "llm_evidence": "提供面向不同国家的越狱对抗提示基准，用于LLM安全评估",
+      "canonical_evidence": "提供面向不同国家的越狱对抗提示基准，用于LLM安全评估",
+      "llm_tldr_en": "Introduces XL-SafetyBench, a cross-cultural LLM safety benchmark with 5,500 country-grounded test cases, including a jailbreak benchmark to evaluate cultural sensitivity and refusal behaviors.",
+      "llm_tldr_cn": "现有LLM安全基准多集中于英语和通用危害，缺乏对特定国家文化敏感的评估。该文提出XL-SafetyBench，包含10种语言-国家对的5500个测试案例，其中越狱基准提供了基于各国语境的对抗提示，用于检测模型的有害生成；文化基准则评估模型对嵌入本地敏感性的请求的识别能力。该基准通过多阶段管道结合LLM辅助发现和人工标注构建，为跨文化LLM安全评估提供了标准化工具。实验展示了当前前沿模型在跨文化安全上的不足，强调了本地化安全对齐的重要性。",
+      "llm_tldr": "现有LLM安全基准多集中于英语和通用危害，缺乏对特定国家文化敏感的评估。该文提出XL-SafetyBench，包含10种语言-国家对的5500个测试案例，其中越狱基准提供了基于各国语境的对抗提示，用于检测模型的有害生成；文化基准则评估模型对嵌入本地敏感性的请求的识别能力。该基准通过多阶段管道结合LLM辅助发现和人工标注构建，为跨文化LLM安全评估提供了标准化工具。实验展示了当前前沿模型在跨文化安全上的不足，强调了本地化安全对齐的重要性。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks in AI safety",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2605.07032v1",
+      "source": "arxiv",
+      "title": "A Systematic Investigation of The RL-Jailbreaker in LLMs",
+      "abstract": "The evolution of generative models from next-token predictors to autonomous engines of complex systems necessitates rigorous safety hardening. Adversarial jailbreaking, the strategic manipulation of models to elicit harmful output, remains a primary threat to safe deployment. While Reinforcement Learning (RL) frames jailbreaking as a multi-step attack through sequential optimization, a mechanistic understanding of why the framework succeeds remains incomplete. To fill this gap, we present the first systematic decomposition of RL jailbreaking. We deconstruct the framework into problem formalization (reward function, action space, episode length), and algorithmic measures (RL algorithm, training data, reward-shaping) to identify the structural determinants of adversarial success. Our results reveal that the RL-jailbreaker successfully compromised all targeted models and safeguards. Through this first-of-its-kind analysis, we demonstrate that environment formalization, specifically dense rewards and extended episode lengths, is the primary driver of jailbreaking success. This work provides a tool for improving RL-jailbreaker efficiency and, ultimately, harden generative models resistant to RL-based attacks.",
+      "authors": [
+        "Montaser Mohammedalamen",
+        "Kevin Roice",
+        "Reginald McLean",
+        "Alyssa Lefaivre Škopac"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "published": "2026-05-07T23:22:07+00:00",
+      "link": "https://arxiv.org/pdf/2605.07032v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "systematic analysis of RL-based jailbreak frameworks to optimize attack generation",
+      "llm_evidence_cn": "系统分析基于强化学习的越狱框架以优化攻击生成",
+      "llm_evidence": "系统分析基于强化学习的越狱框架以优化攻击生成",
+      "canonical_evidence": "系统分析基于强化学习的越狱框架以优化攻击生成",
+      "llm_tldr_en": "Deconstructs RL-based jailbreaking into problem formalization and algorithmic components, providing a mechanistic understanding to guide better automated jailbreak prompt generation.",
+      "llm_tldr_cn": "对基于强化学习的越狱进行系统分解，将其拆解为问题形式化（奖励函数、动作空间、回合长度）和算法措施（RL算法、训练数据、奖励塑形），分析各组件对攻击效果的影响。实验揭示关键设计选择，为改进自动化越狱生成提供机理洞见。",
+      "llm_tldr": "对基于强化学习的越狱进行系统分解，将其拆解为问题形式化（奖励函数、动作空间、回合长度）和算法措施（RL算法、训练数据、奖励塑形），分析各组件对攻击效果的影响。实验揭示关键设计选择，为改进自动化越狱生成提供机理洞见。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "automated generation of jailbreak prompts",
+      "matched_requirement_id": "req-5",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.11002v1",
+      "source": "arxiv",
+      "title": "MT-JailBench: A Modular Benchmark for Understanding Multi-Turn Jailbreak Attacks",
+      "abstract": "Multi-turn jailbreaks exploit the ability of large language models to accumulate and act on conversational context. Instead of stating a harmful request directly, an attacker can gradually steer the conversation toward an unsafe answer. Recent methods demonstrate this risk, but they are usually evaluated as black-box pipelines with different budgets, judges, retry rules, and strategy generation procedures. As a result, it is often unclear whether reported gains reflect stronger attack mechanisms or different experimental conditions. We introduce MT-JailBench, a modular evaluation framework for benchmarking multi-turn jailbreaks under fixed conditions. MT-JailBench implements each attack as five interacting modules: evaluation function, attack strategy, prompt generation, prompt refinement, and flow control. This design enables fair comparison across attack methods and component-wise analysis of what drives attack success. Using MT-JailBench, we find that resource budgets and evaluation functions are major confounders: controlling turns, retries, interactions, sampled strategies, and judges substantially change the ranking of attacks. At the component level, prompt generation accounts for most performance variation, while refinement and flow control provide moderate gains. We also find that explicit dynamic strategy generation is not always necessary; stochastic sampling from a fixed strategy can rival more elaborate diversification mechanisms. Finally, recomposing the best components yields a strong attack configuration that outperforms its source attacks and generalizes across diverse target LLMs. MT-JailBench therefore provides a modular framework for comparing multi-turn jailbreaks, understanding the impact of components, and guiding stronger red-teaming evaluations.",
+      "authors": [
+        "Xinkai Zhang",
+        "Zhipeng Wei",
+        "Huanli Gong",
+        "Jing Ting Zheng",
+        "Yuchen Zhang",
+        "Yue Dong",
+        "N. Benjamin Erichson"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-05-10T00:17:14+00:00",
+      "link": "https://arxiv.org/pdf/2605.11002v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "modular benchmark for evaluating multi-turn jailbreak attacks on LLMs",
+      "llm_evidence_cn": "评估大模型多轮越狱攻击的模块化基准",
+      "llm_evidence": "评估大模型多轮越狱攻击的模块化基准",
+      "canonical_evidence": "评估大模型多轮越狱攻击的模块化基准",
+      "llm_tldr_en": "MT-JailBench standardizes multi-turn jailbreak evaluation by implementing attacks as five interacting modules under fixed conditions, enabling fair comparison of attack mechanisms.",
+      "llm_tldr_cn": "针对多轮越狱攻击评估因实验条件不一而难以公平比较的问题，本文提出MT-JailBench，一个模块化评估框架，将攻击分解为五个可交互模块，在固定条件下标准化评测，揭示了攻击强度与实验设置的独立影响，为多轮越狱研究提供了可靠基准。",
+      "llm_tldr": "针对多轮越狱攻击评估因实验条件不一而难以公平比较的问题，本文提出MT-JailBench，一个模块化评估框架，将攻击分解为五个可交互模块，在固定条件下标准化评测，揭示了攻击强度与实验设置的独立影响，为多轮越狱研究提供了可靠基准。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks on large language models and AI agents",
+      "matched_requirement_id": "req-7",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2605.24550v1",
+      "source": "arxiv",
+      "title": "Jailbreak to Protect: Buffering and Reinforcing via Temporary Jailbreaking for Safe Fine-Tuning in Large Language Models",
+      "abstract": "Fine-tuning-as-a-Service (FaaS) enables personalization of large language models (LLMs), but it can weaken safety-alignment under harmful fine-tuning attacks. Recent work has shown that activating harmful-behavior modules during fine-tuning can prevent models from learning undesired behaviors, but its mechanism remains unclear. In this paper, we revisit temporary jailbreaking as a defense against harmful fine-tuning and provide a gradient-level analysis showing that it saturates safety-degrading gradients while preserving benign task-relevant gradients. Based on this insight, we propose a Buffer-and-Reinforce fine-tuning framework that buffers harmful updates during user fine-tuning and reinforces safety after adaptation. Specifically, BufferLoRA induces temporary jailbreaking as a removable adapter to reduce harmful updates during user fine-tuning. After adaptation, ReinforceLoRA, trained to recover refusal behavior under the temporarily jailbroken state, is integrated with UserLoRA via QR decomposition-based merging to reinforce safety while preserving user-task performance. Extensive experiments show that our framework achieves superior safety and utility with no additional safety data during user fine-tuning and minimal computational cost.",
+      "authors": [
+        "Seokil Ham",
+        "Jaehyuk Jang",
+        "Wonjun Lee",
+        "Changick Kim"
+      ],
+      "primary_category": "cs.AI",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "published": "2026-05-23T12:35:02+00:00",
+      "link": "https://arxiv.org/pdf/2605.24550v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 6.0,
+      "llm_evidence_en": "Revisits temporary jailbreaking as a defense against harmful fine-tuning, saturating safety-degrading gradients.",
+      "llm_evidence_cn": "重新审视临时越狱作为有害微调防御，饱和降低安全性的梯度。",
+      "llm_evidence": "重新审视临时越狱作为有害微调防御，饱和降低安全性的梯度。",
+      "canonical_evidence": "重新审视临时越狱作为有害微调防御，饱和降低安全性的梯度。",
+      "llm_tldr_en": "Uses temporary jailbreaking during fine-tuning to buffer harmful updates, preserving safety alignment without sacrificing benign task performance.",
+      "llm_tldr_cn": "微调即服务可能削弱安全对齐，临时越狱在微调中激活有害行为模块可防止学习不良行为。本文分析发现其饱和降低安全性的梯度并保留良性任务梯度，提出缓冲与强化微调框架，缓冲有害更新并强化安全。",
+      "llm_tldr": "微调即服务可能削弱安全对齐，临时越狱在微调中激活有害行为模块可防止学习不良行为。本文分析发现其饱和降低安全性的梯度并保留良性任务梯度，提出缓冲与强化微调框架，缓冲有害更新并强化安全。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "6"
+    },
+    {
+      "id": "2605.08878v1",
+      "source": "arxiv",
+      "title": "Why Do Aligned LLMs Remain Jailbreakable: Refusal-Escape Directions, Operator-Level Sources, and Safety-Utility Trade-off",
+      "abstract": "Aligned large language models (LLMs) remain vulnerable to jailbreak attacks. Recent mechanistic studies have identified latent features and representation shifts associated with jailbreak success, but they leave a more fundamental question open: why do aligned LLMs remain jailbreakable, and what structural vulnerabilities in the model make this possible? We study this question through a continuous input-transformation view. Our theoretical finding is that aligned models can still exhibit Refusal-Escape Directions (RED): local perturbation directions around a harmful input that shift the model's behavior from refusal to answering while preserving the model's harmful-semantics interpretation. From this perspective, a jailbreak is not only a successful discrete prompt construction, but can also be understood as a refusal-to-answer behavior transition induced by continuously perturbing a harmful input along RED. We then prove that RED can be exactly decomposed into contributions from operator-level sources across the model's operator structure, and identify normalization, residual-wiring, and terminal sources as analytically constrained operator-level sources. To eliminate RED, the shared expressive modules -- self-attention and MLP -- must eliminate the contributions from these analytically constrained sources while preserving the mechanisms that support benign responses. These competing requirements give rise to a conditional safety-utility trade-off. Experiments across multiple models and attack methods empirically analyze RED from two complementary perspectives and show that added token dimensions can expose RED, while successful jailbreaks exhibit refusal-to-answer shifts largely aligned with terminal-source contributions.",
+      "authors": [
+        "Yu Chen",
+        "Yuanhao Liu",
+        "Qi Cao"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-05-09T10:57:36+00:00",
+      "link": "https://arxiv.org/pdf/2605.08878v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "identifies Refusal-Escape Directions that make aligned LLMs jailbreakable",
+      "llm_evidence_cn": "发现使对齐LLM仍可被越狱的拒绝逃逸方向",
+      "llm_evidence": "发现使对齐LLM仍可被越狱的拒绝逃逸方向",
+      "canonical_evidence": "发现使对齐LLM仍可被越狱的拒绝逃逸方向",
+      "llm_tldr_en": "Theoretically shows aligned LLMs exhibit Refusal-Escape Directions, local perturbations that shift refusal to answering while preserving harmful semantics, explaining fundamental jailbreak vulnerability.",
+      "llm_tldr_cn": "本文通过连续输入变换视角，理论发现对齐模型仍存在拒绝逃逸方向（RED），即在有害输入附近局部扰动可将模型行为从拒绝转为回答并保留有害语义。该发现从算符级源头上解释了为什么对齐LLM仍可越狱，并关联了安全-效用权衡。",
+      "llm_tldr": "本文通过连续输入变换视角，理论发现对齐模型仍存在拒绝逃逸方向（RED），即在有害输入附近局部扰动可将模型行为从拒绝转为回答并保留有害语义。该发现从算符级源头上解释了为什么对齐LLM仍可越狱，并关联了安全-效用权衡。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks against safety-aligned models",
+      "matched_requirement_id": "req-3",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.12869v1",
+      "source": "arxiv",
+      "title": "Quantifying LLM Safety Degradation Under Repeated Attacks Using Survival Analysis",
+      "abstract": "Large language models (LLMs) are increasingly deployed in a wide range of applications, yet remain vulnerable to adversarial jailbreak attacks that circumvent their safety guardrails. Existing evaluation frameworks typically report binary success/failure metrics, failing to capture the temporal dynamics of how attacks succeed under persistent adversarial pressure. This preliminary work proposes a novel evaluation framework that applies survival analysis techniques to characterize LLM jailbreak vuln`erability. Our approach models the time-to-jailbreak as a survival outcome, enabling estimation of hazard functions, survival curves, and risk factors associated with successful attacks. We evaluate three LLMs against a subset of prompts from the HarmBench dataset spanning three attack categories. Our analysis reveals that models exhibit distinct vulnerability profiles: while one model demonstrates rapid degradation under iterative attacks, the two other models show consistent moderate vulnerability. Our framework provides actionable insights for model and LLM application developers and establishes survival analysis as a rigorous methodology for LLM safety evaluation.",
+      "authors": [
+        "Zvi Topol"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-05-13T01:26:06+00:00",
+      "link": "https://arxiv.org/pdf/2605.12869v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "survival analysis to model LLM jailbreak vulnerability over repeated attempts",
+      "llm_evidence_cn": "生存分析建模LLM在重复越狱攻击下的脆弱性",
+      "llm_evidence": "生存分析建模LLM在重复越狱攻击下的脆弱性",
+      "canonical_evidence": "生存分析建模LLM在重复越狱攻击下的脆弱性",
+      "llm_tldr_en": "Proposes a survival analysis framework to evaluate LLM jailbreak vulnerability over time, moving beyond binary metrics to capture temporal dynamics and risk factors of successful attacks.",
+      "llm_tldr_cn": "针对当前越狱攻击评估仅报告二值成功率的不足，提出基于生存分析的评估框架，将越狱时间建模为生存结局，估计风险函数和生存曲线。初步实验揭示不同模型的越狱脆弱性随时间变化的动态模式，为持久对抗下的安全性评估提供新工具。",
+      "llm_tldr": "针对当前越狱攻击评估仅报告二值成功率的不足，提出基于生存分析的评估框架，将越狱时间建模为生存结局，估计风险函数和生存曲线。初步实验揭示不同模型的越狱脆弱性随时间变化的动态模式，为持久对抗下的安全性评估提供新工具。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks in AI safety",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2605.12726v1",
+      "source": "arxiv",
+      "title": "Before the Last Token: Diagnosing Final-Token Safety Probe Failures",
+      "abstract": "Final-token safety probes monitor a single hidden state after prompt prefill, but jailbreak prompts can contain probe-visible unsafe evidence distributed across earlier user-token representations that is missed by this readout. We study this prefill-time failure mode using SafeSwitch-style probes trained only on clean harmful and benign prompts across three instruction-tuned LLMs. The probes achieve high recall on clean harmful prompts, but miss many jailbreaks and can produce false positives on safety-adjacent benign prompts. Subspace analyses suggest that missed jailbreaks differ from clean benign prompts along directions that are poorly captured by the probe's representational subspace, and increasing probe bottleneck width does not reliably resolve this mismatch. Token-level prefill analyses reveal that probe-visible unsafe evidence often appears earlier in the sequence but is not exposed at the final-token readout, while naive max-pooling over token positions overfires on safe prompts. A simple PCA-HMM trajectory model, trained only on the same clean split, recovers many final-token misses from user-content prefill trajectories without the catastrophic false-positive behavior of naive token pooling, motivating trajectory-aware hidden-state analyses as diagnostic complements to final-token probes",
+      "authors": [
+        "Shravan Doda"
+      ],
+      "primary_category": "cs.LG",
+      "categories": [
+        "cs.LG"
+      ],
+      "published": "2026-05-12T20:30:24+00:00",
+      "link": "https://arxiv.org/pdf/2605.12726v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "diagnoses why final-token safety probes fail to detect jailbreaks, identifying prefill-time evidence distribution issue",
+      "llm_evidence_cn": "诊断最终令牌安全探针为何遗漏越狱，找到预填充时期证据分布问题",
+      "llm_evidence": "诊断最终令牌安全探针为何遗漏越狱，找到预填充时期证据分布问题",
+      "canonical_evidence": "诊断最终令牌安全探针为何遗漏越狱，找到预填充时期证据分布问题",
+      "llm_tldr_en": "Shows that final-token safety probes miss jailbreaks because unsafe evidence is distributed across earlier tokens, and probes trained only on clean prompts fail to capture this.",
+      "llm_tldr_cn": "本文发现标准的安全探针仅在最终令牌处监控隐藏状态会遗漏越狱，因为有害证据可能分散在更早的用户令牌中。通过子空间分析，发现被遗漏的越狱沿难以被探针捕捉的方向分布，单纯增加瓶颈宽度无法解决，为改进探针设计提供方向。",
+      "llm_tldr": "本文发现标准的安全探针仅在最终令牌处监控隐藏状态会遗漏越狱，因为有害证据可能分散在更早的用户令牌中。通过子空间分析，发现被遗漏的越狱沿难以被探针捕捉的方向分布，单纯增加瓶颈宽度无法解决，为改进探针设计提供方向。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "defense mechanisms against jailbreak attacks",
+      "matched_requirement_id": "req-6",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    },
+    {
+      "id": "2605.14418v1",
+      "source": "arxiv",
+      "title": "The Great Pretender: A Stochasticity Problem in LLM Jailbreak",
+      "abstract": "\"Oh-Oh, yes, I'm the great pretender. Pretending that I'm doing well. My need is such, I pretend too much...\" summarizes the state in the area of jailbreak creation and evaluation. You find this method to generate adversarial attacks proposed by a reputable institution (e.g., BoN from Anthropic or Crescendo from Microsoft Research). However, this method does not deliver on the promise claimed in the paper despite having top ASR scores against industry-grade LLMs. You successfully generate the jailbreak prompts against your target (open) model. However, the generated jailbreak prompt works against the target model with a 50% consecutive success rate (5 out of 10 attempts) despite having an 80% ASR (on paper) on the latest closed-source model (with a guardrail system)! This observation leads us to think. First, Attack Success Rate (ASR), the primary metric for LLM jailbreak benchmarking, is not a stable quantity. Second, published ASR numbers are therefore systematically inflated and incomparable across papers. Therefore, we wonder \"Why a successful jailbreak prompt does not perform consistently well against a target model on which the prompts have been optimized?\". To answer this question, we study the impact of stochasticity not only during attack evaluation but also during attack generation. Our evaluation includes several jailbreak attacks, models (different sizes and providers), and judges. In addition, we propose a new metric and two new frameworks (CAS-eval and CAS-gen). Our evaluation framework, CAS-eval, shows that an attack can have an ASR drop of up to 30 percentage points when a jailbreak prompt needs to succeed on more than one attempt. Thankfully, our attack generation framework (CAS-gen) improves previous jailbreak methods and helps them recover this loss of 30 percentage points!",
+      "authors": [
+        "Jean-Philippe Monteuuis",
+        "Cong Chen",
+        "Jonathan Petit"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.AI"
+      ],
+      "published": "2026-05-14T06:05:37+00:00",
+      "link": "https://arxiv.org/pdf/2605.14418v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 7.0,
+      "llm_evidence_en": "highlights stochasticity problem in jailbreak creation and evaluation, questioning reliability of reported ASR",
+      "llm_evidence_cn": "指出越狱生成与评估中的随机性问题，质疑报告ASR的可靠性",
+      "llm_evidence": "指出越狱生成与评估中的随机性问题，质疑报告ASR的可靠性",
+      "canonical_evidence": "指出越狱生成与评估中的随机性问题，质疑报告ASR的可靠性",
+      "llm_tldr_en": "Reveals that jailbreak methods often show inconsistent success due to randomness, even with high ASR scores, and calls for more robust evaluation accounting for stochasticity.",
+      "llm_tldr_cn": "现有越狱攻击方法常因随机性导致实际成功率不稳定，尽管报告高ASR，连续成功率可能仅50%。本文系统揭示了这一随机性问题，呼吁在越狱评估中考虑概率性，避免被虚假报告误导，从而促进更严谨的比较和防御。",
+      "llm_tldr": "现有越狱攻击方法常因随机性导致实际成功率不稳定，尽管报告高ASR，连续成功率可能仅50%。本文系统揭示了这一随机性问题，呼吁在越狱评估中考虑概率性，避免被虚假报告误导，从而促进更严谨的比较和防御。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "jailbreak attacks in AI safety",
+      "matched_requirement_id": "req-2",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "7"
+    },
+    {
+      "id": "2605.15598v1",
+      "source": "arxiv",
+      "title": "Compositional Jailbreaking: An Empirical Analysis of Mutator Chain Interactions in Aligned LLMs",
+      "abstract": "Jailbreaking attacks on large language models pose a significant threat to AI safety by enabling the generation of harmful or restricted content. While prior work has explored both handcrafted and automated jailbreak strategies, the potential for compositional interaction between simple attacks remains underexplored. This paper presents a systematic study of mutator chaining, in which weak jailbreak transformations are applied sequentially to characterize how they interact: whether they reinforce one another, interfere destructively, or produce no meaningful change. We implement twelve baseline mutators and evaluate all ordered pairs on a benchmark of harmful prompts against three popular LLM models. Our framework introduces metrics for completeness and validity that capture both transformation persistence and attack effectiveness. Results reveal that the interaction landscape is highly non-uniform, while most combinations fail to outperform individual mutators, exhibiting destructive interference or structural incompatibility, a small fraction produce synergistic effects that improve attack success rates. Equally important, the prevalent failure modes reveal structural properties of safety alignment that are not apparent from single-strategy evaluations. These findings highlight the nuanced dynamics of adversarial prompt composition and offer new insights for building more robust safety defenses.",
+      "authors": [
+        "Reinelle Jan Bugnot",
+        "Soohyeon Choi",
+        "Hoon Wei Lim",
+        "Yue Duan"
+      ],
+      "primary_category": "cs.CR",
+      "categories": [
+        "cs.CR",
+        "cs.SE"
+      ],
+      "published": "2026-05-15T04:14:04+00:00",
+      "link": "https://arxiv.org/pdf/2605.15598v1",
+      "tags": [
+        "keyword:JBA",
+        "query:JBA"
+      ],
+      "llm_score": 8.0,
+      "llm_evidence_en": "systematic study of mutator chaining to characterize compositional jailbreak interactions",
+      "llm_evidence_cn": "系统研究突变链以揭示组合越狱攻击的交互特性",
+      "llm_evidence": "系统研究突变链以揭示组合越狱攻击的交互特性",
+      "canonical_evidence": "系统研究突变链以揭示组合越狱攻击的交互特性",
+      "llm_tldr_en": "This paper systematically explores how simple jailbreak transformations interact when chained, introducing metrics to measure reinforcement, interference, or null effects, advancing understanding of compositional attacks.",
+      "llm_tldr_cn": "针对简单越狱转型组合交互特性未知的问题，本文对12种突变算子的有序配对进行实证分析，揭示它们之间增强、干扰或无关的相互作用，并引入新度量指标，加深了对组合式攻击机理的理解，为未来攻击与防御设计提供洞见。",
+      "llm_tldr": "针对简单越狱转型组合交互特性未知的问题，本文对12种突变算子的有序配对进行实证分析，揭示它们之间增强、干扰或无关的相互作用，并引入新度量指标，加深了对组合式攻击机理的理解，为未来攻击与防御设计提供洞见。",
+      "llm_tags": [
+        "query:jba"
+      ],
+      "matched_query_tag": "query:jba",
+      "matched_query_text": "adversarial prompts for bypassing safety alignment in language models",
+      "matched_requirement_id": "req-8",
+      "selection_source": "fresh_fetch",
+      "quick_tier": "8plus"
+    }
+  ]
+}

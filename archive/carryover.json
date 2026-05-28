@@ -1,6 +1,12 @@
 {
-  "generated_at": "2026-03-06T19:11:18.471356+00:00",
-  "updated_date": "20260306",
+  "generated_at": "2026-05-28T10:05:59.669062+00:00",
+  "updated_date": "20260429-20260528",
   "carryover_days": 9,
-  "items": []
+  "tag_states": {
+    "JBA": {
+      "updated_date": "20260429-20260528",
+      "carryover_days": 9,
+      "items": []
+    }
+  }
 }
