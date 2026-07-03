@@ -308,6 +308,14 @@
       scrollPanel: panelKey || '',
     };
   }
+  function rerenderOptionsForAxisControlClick() {
+    return {
+      syncActive: false,
+      centerActive: false,
+      autoMark: false,
+      preserveScroll: true,
+    };
+  }
   function rerenderOptionsForStatusClick() {
     return {
       updateInPlace: true,
@@ -2101,7 +2109,7 @@
         } else if (axisGroup === 'conference') {
           state.conferenceViewMode = state.conferenceViewMode === 'tag' ? 'conf' : 'tag';
         }
-        rerenderSidebarBody(rerenderOptionsForAxisInteraction(axisGroup));
+        rerenderSidebarBody(rerenderOptionsForAxisControlClick());
         return;
       }
       var calendarNav = e.target.closest('.dpr-sidebar-calendar-nav');
@@ -2110,7 +2118,7 @@
         if (navMonth) {
           state.dailyViewMode = 'date';
           state.activeDailyMonth = navMonth;
-          rerenderSidebarBody(rerenderOptionsForAxisInteraction('daily'));
+          rerenderSidebarBody(rerenderOptionsForAxisControlClick());
         }
         return;
       }
@@ -2122,7 +2130,7 @@
           state.dailyViewMode = 'date';
           state.activeDailyDate = calendarDate;
           state.activeDailyMonth = monthKeyFromDateKey(calendarDate) || state.activeDailyMonth;
-          rerenderSidebarBody(rerenderOptionsForAxisInteraction('daily'));
+          rerenderSidebarBody(rerenderOptionsForAxisControlClick());
         }
         return;
       }
@@ -2140,7 +2148,7 @@
           if (state.conferenceViewMode === 'tag') state.activeConferenceTag = tabKey;
           else state.activeConference = tabKey;
         }
-        rerenderSidebarBody(rerenderOptionsForAxisInteraction(tabGroup));
+        rerenderSidebarBody(rerenderOptionsForAxisControlClick());
         return;
       }
       var statusButton = e.target.closest('.dpr-sidebar-paper-status-btn');
@@ -2375,6 +2383,7 @@
         clampSidebarWidth: clampSidebarWidth,
         rerenderOptionsForReadStateEvent: rerenderOptionsForReadStateEvent,
         rerenderOptionsForAxisInteraction: rerenderOptionsForAxisInteraction,
+        rerenderOptionsForAxisControlClick: rerenderOptionsForAxisControlClick,
         rerenderOptionsForStatusClick: rerenderOptionsForStatusClick,
         syncActiveOptionsForInitialLoad: syncActiveOptionsForInitialLoad,
         rememberPendingPaperHref: rememberPendingPaperHref,

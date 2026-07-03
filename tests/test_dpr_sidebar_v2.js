@@ -619,6 +619,13 @@ function testSidebarUtilityHelpers() {
     syncActive: false,
     scrollPanel: 'daily',
   });
+  assert.equal(typeof tools.rerenderOptionsForAxisControlClick, 'function');
+  assert.deepEqual(tools.rerenderOptionsForAxisControlClick(), {
+    syncActive: false,
+    centerActive: false,
+    autoMark: false,
+    preserveScroll: true,
+  });
 
   assert.equal(typeof tools.updatePaperTitleOverflowMarks, 'function');
   function fakePaper(scrollWidth, clientWidth) {
@@ -1198,6 +1205,18 @@ function testStatusClickKeepsPaperRowInPlace() {
   assert.ok(!block.includes('.blur('));
 }
 
+function testAxisControlClicksKeepSidebarScrollInPlace() {
+  const js = fs.readFileSync('app/dpr-sidebar.js', 'utf8');
+  const start = js.indexOf("var axisToggle = e.target.closest('.dpr-sidebar-axis-toggle');");
+  const end = js.indexOf("var statusButton = e.target.closest('.dpr-sidebar-paper-status-btn');", start);
+  assert.ok(start > 0 && end > start, 'axis control click handlers should be present');
+  const block = js.slice(start, end);
+  assert.ok(block.includes('rerenderSidebarBody(rerenderOptionsForAxisControlClick())'));
+  assert.ok(!block.includes('rerenderOptionsForAxisInteraction(axisGroup)'));
+  assert.ok(!block.includes("rerenderOptionsForAxisInteraction('daily')"));
+  assert.ok(!block.includes('rerenderOptionsForAxisInteraction(tabGroup)'));
+}
+
 function testReadStatusNormalization() {
   const sidebar = loadSidebarForTest('#/202606/24/paper-a');
   const tools = sidebar.__test;
@@ -1241,6 +1260,7 @@ testUnreadSessionSnapshotKeepsSeenRowsVisibleUntilReload();
 testUnreadClickPendingHrefKeepsClickedPaperVisibleBeforeHashUpdates();
 testPaperLinkClickStoresPendingHrefBeforeRouteChange();
 testStatusClickKeepsPaperRowInPlace();
+testAxisControlClicksKeepSidebarScrollInPlace();
 testReadStatusNormalization();
 
 console.log('dpr sidebar v2 tests passed');
