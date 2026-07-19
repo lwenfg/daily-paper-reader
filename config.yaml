@@ -74,6 +74,53 @@ subscriptions:
           note: ''
       updated_at: '2026-07-19T05:47:28.941Z'
       paused: true
+    - tag: safe-codegen
+      description: 安全代码生成：面向通用代码生成，或者具身智能系统开发场景，提出安全代码生成解决方案，也就是如何安全生成通用代码、如何安全生成具身智能系统开发代码，以提高生产效率。
+      enabled: true
+      paper_sources:
+        - arxiv
+        - biorxiv
+      keywords:
+        - keyword: safe code generation
+          keyword_cn: 安全代码生成
+          query: safe code generation techniques for general software development
+        - keyword: code security
+          keyword_cn: 代码安全
+          query: ensuring security in automatically generated code
+        - keyword: secure software development
+          keyword_cn: 安全软件开发
+          query: secure development practices for generated software
+        - keyword: Embodied Intelligence Security Code Development
+          keyword_cn: 具身智能安全开发
+          query: safe code generation for embodied AI systems
+        - keyword: robotic system programming
+          keyword_cn: 机器人系统编程
+          query: programming robotic systems with safety guarantees
+        - keyword: trustworthy AI coding
+          keyword_cn: 可信人工智能编码
+          query: trustworthy artificial intelligence code generation
+      intent_queries:
+        - query: How to safely generate code for general software development?
+          query_cn: 如何安全地生成通用软件开发代码？
+          enabled: true
+          source: manual
+          note: ''
+        - query: Safe code generation methods for embodied intelligence systems
+          query_cn: 面向具身智能系统的安全代码生成方法
+          enabled: true
+          source: manual
+          note: ''
+        - query: Techniques to ensure security and safety in automatic code generation
+          query_cn: 确保自动代码生成中安全性的技术
+          enabled: true
+          source: manual
+          note: ''
+        - query: Integrating safety constraints in code generation for robotic systems
+          query_cn: 在机器人系统代码生成中集成安全约束
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-07-19T15:08:58.625Z'
 source_backends:
   arxiv:
     papers_table: arxiv_papers
