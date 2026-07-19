@@ -93,8 +93,8 @@ subscriptions:
         - keyword: Embodied Intelligence Security Code Development
           keyword_cn: 具身智能安全开发
           query: safe code generation for embodied AI systems
-        - keyword: robotic system programming
-          keyword_cn: 机器人系统编程
+        - keyword: embodied intelligence safety code generation
+          keyword_cn: 具身智能安全代码生成
           query: programming robotic systems with safety guarantees
         - keyword: trustworthy AI coding
           keyword_cn: 可信人工智能编码
@@ -120,7 +120,7 @@ subscriptions:
           enabled: true
           source: manual
           note: ''
-      updated_at: '2026-07-19T15:08:58.625Z'
+      updated_at: '2026-07-19T15:11:06.879Z'
 source_backends:
   arxiv:
     papers_table: arxiv_papers
