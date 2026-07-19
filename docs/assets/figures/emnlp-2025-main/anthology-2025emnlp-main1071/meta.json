@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/emnlp-2025-main/anthology-2025emnlp-main1071/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 1655,
+      "height": 788,
+      "label": "Figure"
+    }
+  ]
+}

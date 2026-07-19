@@ -1,0 +1,114 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/ndss-2025-accepted/ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 920,
+      "height": 286,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2025-accepted/ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/fig-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 827,
+      "height": 283,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2025-accepted/ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/fig-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 936,
+      "height": 801,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2025-accepted/ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/fig-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 818,
+      "height": 1281,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2025-accepted/ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/fig-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 920,
+      "height": 602,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2025-accepted/ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/fig-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 813,
+      "height": 675,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2025-accepted/ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/fig-007.webp",
+      "caption": "",
+      "page": 0,
+      "index": 7,
+      "width": 695,
+      "height": 406,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2025-accepted/ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/fig-008.webp",
+      "caption": "",
+      "page": 0,
+      "index": 8,
+      "width": 837,
+      "height": 475,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2025-accepted/ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/fig-009.webp",
+      "caption": "",
+      "page": 0,
+      "index": 9,
+      "width": 840,
+      "height": 163,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2025-accepted/ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/fig-010.webp",
+      "caption": "",
+      "page": 0,
+      "index": 10,
+      "width": 921,
+      "height": 526,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2025-accepted/ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/fig-011.webp",
+      "caption": "",
+      "page": 0,
+      "index": 11,
+      "width": 834,
+      "height": 182,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2025-accepted/ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/fig-012.webp",
+      "caption": "",
+      "page": 0,
+      "index": 12,
+      "width": 917,
+      "height": 774,
+      "label": "Figure"
+    }
+  ]
+}

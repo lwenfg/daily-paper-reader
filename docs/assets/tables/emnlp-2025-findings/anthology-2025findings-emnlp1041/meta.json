@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025findings-emnlp1041/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 811,
+      "height": 601,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025findings-emnlp1041/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 812,
+      "height": 151,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025findings-emnlp1041/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 817,
+      "height": 696,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025findings-emnlp1041/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 812,
+      "height": 256,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-findings/anthology-2025findings-emnlp1041/table-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 806,
+      "height": 163,
+      "label": "Table"
+    }
+  ]
+}

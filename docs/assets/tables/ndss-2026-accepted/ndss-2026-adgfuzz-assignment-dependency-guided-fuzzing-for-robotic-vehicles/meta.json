@@ -1,0 +1,51 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 739,
+      "height": 254,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 930,
+      "height": 958,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 738,
+      "height": 318,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 911,
+      "height": 175,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles/table-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 1875,
+      "height": 2372,
+      "label": "Table"
+    }
+  ]
+}

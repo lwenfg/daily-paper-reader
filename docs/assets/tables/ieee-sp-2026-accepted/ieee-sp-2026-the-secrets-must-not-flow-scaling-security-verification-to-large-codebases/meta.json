@@ -1,0 +1,141 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 907,
+      "height": 671,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 933,
+      "height": 209,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 1512,
+      "height": 288,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 1357,
+      "height": 286,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 1547,
+      "height": 284,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 1433,
+      "height": 372,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-007.webp",
+      "caption": "",
+      "page": 0,
+      "index": 7,
+      "width": 1541,
+      "height": 283,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-008.webp",
+      "caption": "",
+      "page": 0,
+      "index": 8,
+      "width": 1305,
+      "height": 484,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-009.webp",
+      "caption": "",
+      "page": 0,
+      "index": 9,
+      "width": 1583,
+      "height": 490,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-010.webp",
+      "caption": "",
+      "page": 0,
+      "index": 10,
+      "width": 1715,
+      "height": 298,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-011.webp",
+      "caption": "",
+      "page": 0,
+      "index": 11,
+      "width": 1155,
+      "height": 305,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-012.webp",
+      "caption": "",
+      "page": 0,
+      "index": 12,
+      "width": 1348,
+      "height": 343,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-013.webp",
+      "caption": "",
+      "page": 0,
+      "index": 13,
+      "width": 1538,
+      "height": 283,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-014.webp",
+      "caption": "",
+      "page": 0,
+      "index": 14,
+      "width": 1511,
+      "height": 528,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ieee-sp-2026-accepted/ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases/table-015.webp",
+      "caption": "",
+      "page": 0,
+      "index": 15,
+      "width": 1709,
+      "height": 293,
+      "label": "Table"
+    }
+  ]
+}

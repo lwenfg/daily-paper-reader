@@ -1,0 +1,42 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/emnlp-2025-main/anthology-2025emnlp-main1071/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 791,
+      "height": 487,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-main/anthology-2025emnlp-main1071/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 791,
+      "height": 237,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-main/anthology-2025emnlp-main1071/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 791,
+      "height": 238,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/emnlp-2025-main/anthology-2025emnlp-main1071/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 1637,
+      "height": 670,
+      "label": "Table"
+    }
+  ]
+}

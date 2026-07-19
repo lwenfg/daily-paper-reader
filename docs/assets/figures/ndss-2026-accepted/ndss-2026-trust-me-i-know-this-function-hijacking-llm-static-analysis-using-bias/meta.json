@@ -1,0 +1,60 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "figures": [
+    {
+      "url": "assets/figures/ndss-2026-accepted/ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias/fig-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 917,
+      "height": 464,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2026-accepted/ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias/fig-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 915,
+      "height": 851,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2026-accepted/ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias/fig-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 910,
+      "height": 788,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2026-accepted/ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias/fig-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 914,
+      "height": 480,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2026-accepted/ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias/fig-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 900,
+      "height": 761,
+      "label": "Figure"
+    },
+    {
+      "url": "assets/figures/ndss-2026-accepted/ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias/fig-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 918,
+      "height": 584,
+      "label": "Figure"
+    }
+  ]
+}

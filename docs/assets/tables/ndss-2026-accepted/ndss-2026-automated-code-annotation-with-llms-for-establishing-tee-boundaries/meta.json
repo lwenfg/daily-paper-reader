@@ -1,0 +1,168 @@
+{
+  "version": 2,
+  "extractor": "papercropper",
+  "tables": [
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-001.webp",
+      "caption": "",
+      "page": 0,
+      "index": 1,
+      "width": 920,
+      "height": 148,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-002.webp",
+      "caption": "",
+      "page": 0,
+      "index": 2,
+      "width": 912,
+      "height": 418,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-003.webp",
+      "caption": "",
+      "page": 0,
+      "index": 3,
+      "width": 929,
+      "height": 341,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-004.webp",
+      "caption": "",
+      "page": 0,
+      "index": 4,
+      "width": 928,
+      "height": 714,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-005.webp",
+      "caption": "",
+      "page": 0,
+      "index": 5,
+      "width": 930,
+      "height": 375,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-006.webp",
+      "caption": "",
+      "page": 0,
+      "index": 6,
+      "width": 928,
+      "height": 214,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-007.webp",
+      "caption": "",
+      "page": 0,
+      "index": 7,
+      "width": 931,
+      "height": 257,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-008.webp",
+      "caption": "",
+      "page": 0,
+      "index": 8,
+      "width": 931,
+      "height": 383,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-009.webp",
+      "caption": "",
+      "page": 0,
+      "index": 9,
+      "width": 929,
+      "height": 478,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-010.webp",
+      "caption": "",
+      "page": 0,
+      "index": 10,
+      "width": 926,
+      "height": 474,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-011.webp",
+      "caption": "",
+      "page": 0,
+      "index": 11,
+      "width": 926,
+      "height": 475,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-012.webp",
+      "caption": "",
+      "page": 0,
+      "index": 12,
+      "width": 927,
+      "height": 222,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-013.webp",
+      "caption": "",
+      "page": 0,
+      "index": 13,
+      "width": 782,
+      "height": 171,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-014.webp",
+      "caption": "",
+      "page": 0,
+      "index": 14,
+      "width": 917,
+      "height": 230,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-015.webp",
+      "caption": "",
+      "page": 0,
+      "index": 15,
+      "width": 913,
+      "height": 339,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-016.webp",
+      "caption": "",
+      "page": 0,
+      "index": 16,
+      "width": 928,
+      "height": 241,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-017.webp",
+      "caption": "",
+      "page": 0,
+      "index": 17,
+      "width": 916,
+      "height": 132,
+      "label": "Table"
+    },
+    {
+      "url": "assets/tables/ndss-2026-accepted/ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries/table-018.webp",
+      "caption": "",
+      "page": 0,
+      "index": 18,
+      "width": 923,
+      "height": 388,
+      "label": "Table"
+    }
+  ]
+}

@@ -1,0 +1,3243 @@
+{
+  "top_k": 200,
+  "generated_at": "2026-07-19T08:04:58.719642+00:00",
+  "papers": [
+    {
+      "id": "openreview-neurips-2025-vuoy5kacg5",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "PurpCode: Reasoning for Safer Code Generation",
+      "abstract": "We introduce PurpCode, the first post-training recipe for training safe code reasoning models towards generating secure code and defending against malicious cyberactivities. PurpCode trains a reasoning model in two stages: (i) Rule Learning, which\nexplicitly teaches the model to reference cybersafety rules to generate vulnerability-free code and to avoid facilitating malicious cyberactivities; and (ii) Reinforcement Learning, which optimizes model safety and preserves model utility through diverse, multi-objective reward mechanisms. To empower the training pipelines with comprehensive cybersafety data, we conduct internal red-teaming to synthesize comprehensive and high-coverage prompts based on real-world tasks for inducing unsafe cyberactivities in the model. Based on PurpCode, we develop a reasoning-based coding model, namely PurpCode-32B, which demonstrates state-of-the-art cybersafety,\noutperforming various frontier models. Moreover, our alignment method decreases the model overrefusal rates in both general and cybersafety-specific scenarios, while preserving model utility in both code generation and common security knowledge.",
+      "authors": [
+        "Jiawei Liu",
+        "Nirav Diwan",
+        "Zhe Wang",
+        "Haoyu Zhai",
+        "Xiaona Zhou",
+        "Kiet A. Nguyen",
+        "Tianjiao Yu",
+        "Muntasir Wahed",
+        "Yinlin Deng",
+        "hadjer Benkraouda",
+        "Yuxiang Wei",
+        "LINGMING ZHANG",
+        "Ismini Lourentzou",
+        "Gang Wang"
+      ],
+      "primary_category": "Code generation",
+      "categories": [
+        "Code generation",
+        "reasoning",
+        "code security",
+        "model safety"
+      ],
+      "published": "2025-09-18T17:36:45.201+00:00",
+      "link": "https://openreview.net/forum?id=VUoY5kacG5",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "anthology-2025.findings-emnlp.1219",
+      "source": "EMNLP-2025-Findings",
+      "title": "Personalized open world plan generation for safety-critical human centered autonomous systems: A case study on Artificial Pancreas",
+      "abstract": "Design-time safety guarantees for human-centered autonomous systems (HCAS) often break down in open-world deployment due to uncertain human interaction. In practice, HCAS must follow a user-personalized safety plan, with the human providing external inputs to handle out-of-distribution events. Open-world safety planning for HCAS demands modeling dynamical systems, exploring novel actions, and rapid replanning when plans are invalidated or dynamics shift. No single state-of-the-art planner meets all these needs. We introduce an LLM-based architecture that automatically generates personalized safety plans. By itself, the LLM fares poorly at producing safe usage plans, but coupling it with a safety verifier—which evaluates plan safety over the planning horizon and feeds back quality scores—enables the discovery of safe plans. Moreover, fine-tuning the LLM on personalized models inferred from open-world data further enhances plan quality. We validate our approach by generating safe usage plans for artificial pancreas systems in automated insulin delivery for Type 1 Diabetes patients. Code: https://github.com/ImpactLabASU/LLMOpen",
+      "authors": [
+        "Ayan Banerjee",
+        "Sandeep Gupta"
+      ],
+      "primary_category": "EMNLP-2025-Findings",
+      "categories": [
+        "EMNLP-2025-Findings"
+      ],
+      "published": "2025-11-01T00:00:00+00:00",
+      "link": "https://aclanthology.org/2025.findings-emnlp.1219/",
+      "pdf_url": "https://aclanthology.org/2025.findings-emnlp.1219.pdf",
+      "tags": [
+        "keyword:safe-coding"
+      ]
+    },
+    {
+      "id": "ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection",
+      "source": "NDSS-2025-Accepted",
+      "title": "Generating API Parameter Security Rules with LLM for API Misuse Detection",
+      "abstract": "When utilizing library APIs, developers should follow the API security rules to mitigate the risk of API misuse. API Parameter Security Rule (APSR) is a common type of security rule that specifies how API parameters should be safely used and places constraints on their values. Failure to comply with the APSRs can lead to severe security issues, including null pointer dereference and memory corruption. Manually analyzing numerous APIs and their parameters to construct APSRs is labor-intensive and needs to be automated. Existing studies generate APSRs from documentation and code, but the missing information and limited analysis heuristics result in missing APSRs. Due to the superior Large Language Model’s (LLM) capability in code analysis and text generation without predefined heuristics, we attempt to utilize it to address the challenge encountered in API misuse detection. However, directly utilizing LLMs leads to incorrect APSRs which may lead to false bugs in detection, and overly general APSRs that could not generate applicable detection code resulting in many security bugs undiscovered. In this paper, we present a new framework, named GPTAid, for automatic APSRs generation by analyzing API source code with LLM and detecting API misuse caused by incorrect parameter use. To validate the correctness of the LLM-generated APSRs, we propose an execution feedback-checking approach based on the observation that security-critical API misuse is often caused by APSRs violations, and most of them result in runtime errors. Specifically, GPTAid first uses LLM to generate raw APSRs and the Right calling code, and then generates Violation code for each raw APSR by modifying the Right calling code using LLM. Subsequently, GPTAid performs dynamic execution on each piece of Violation code and further filters out the incorrect APSRs based on runtime errors. To further generate concrete APSRs, GPTAid employs a code differential analysis to refine the filtered ones. Particularly, as the programming language is more precise than natural language, GPTAid identifies the key operations within Violation code by differential analysis, and then generates the corresponding concrete APSR based on the aforementioned operations. These concrete APSRs could be precisely interpreted into applicable detection code, which proven to be effective in API misuse detection. Implementing on the dataset containing 200 randomly selected APIs from eight popular libraries, GPTAid achieves a precision of 92.3%. Moreover, it generates 6 times more APSRs than state-of-the-art detectors on a comparison dataset of previously reported bugs and APSRs. We further evaluated GPTAid on 47 applications, 210 unknown security bugs were found potentially resulting in severe security issues (e.g., system crashes), 150 of which have been confirmed by developers after our reports. When utilizing library APIs, developers should follow the API security rules to mitigate the risk of API misuse. API Parameter Security Rule (APSR) is a common type of security rule that specifies how API parameters should be safely used and places constraints on their values. Failure to comply with the APSRs can lead to severe security issues, including null pointer dereference and memory corruption. Manually analyzing numerous APIs and their parameters to construct APSRs is labor-intensive and needs to be automated. Existing studies generate APSRs from documentation and code, but the missing information and limited analysis heuristics result in missing APSRs. Due to the superior Large Language Model’s (LLM) capability in code analysis and text generation without predefined heuristics, we attempt to utilize it to address the challenge encountered in API misuse detection. However, directly utilizing LLMs leads to incorrect APSRs which may lead to false bugs in detection, and overly general APSRs that could not generate applicable detection code resulting in many security bugs undiscovered. In this paper, we present a new framework, named GPTAid, for automatic APSRs generation by analyzing API source code with LLM and detecting API misuse caused by incorrect parameter use. To validate the correctness of the LLM-generated APSRs, we propose an execution feedback-checking approach based on the observation that security-critical API misuse is often caused by APSRs violations, and most of them result in runtime errors. Specifically, GPTAid first uses LLM to generate raw APSRs and the Right calling code, and then generates Violation code for each raw APSR by modifying the Right calling code using LLM. Subsequently, GPTAid performs dynamic execution on each piece of Violation code and further filters out the incorrect APSRs based on runtime errors. To further generate concrete APSRs, GPTAid employs a code differential analysis to refine the filtered ones. Particularly, as the programming language is more precise than natural language, GPTAid identifies the key operations within Violation code by differential analysis, and then generates the corresponding concrete APSR based on the aforementioned operations. These concrete APSRs could be precisely interpreted into applicable detection code, which proven to be effective in API misuse detection. Implementing on the dataset containing 200 randomly selected APIs from eight popular libraries, GPTAid achieves a precision of 92.3%. Moreover, it generates 6 times more APSRs than state-of-the-art detectors on a comparison dataset of previously reported bugs and APSRs. We further evaluated GPTAid on 47 applications, 210 unknown security bugs were found potentially resulting in severe security issues (e.g., system crashes), 150 of which have been confirmed by developers after our reports.",
+      "authors": [
+        "Jinghua Liu",
+        "Yi Yang",
+        "Kai Chen",
+        "Miaoqian Lin"
+      ],
+      "primary_category": "ndss",
+      "categories": [
+        "ndss",
+        "security"
+      ],
+      "published": "2025-01-01T00:00:00+00:00",
+      "link": "https://www.ndss-symposium.org/ndss-paper/generating-api-parameter-security-rules-with-llm-for-api-misuse-detection/",
+      "pdf_url": "https://www.ndss-symposium.org/wp-content/uploads/2025-465-paper.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "anthology-2025.findings-acl.1197",
+      "source": "ACL-2025-Findings",
+      "title": "SafeChain: Safety of Language Models with Long Chain-of-Thought Reasoning Capabilities",
+      "abstract": "Emerging large reasoning models (LRMs), such as DeepSeek-R1 models, leverage long chain-of-thought (CoT) reasoning to generate structured intermediate steps, enhancing their reasoning capabilities. However, long CoT does not inherently guarantee safe outputs, potentially leading to harmful consequences such as the introduction of security vulnerabilities in code or the spread of misinformation. Current research on large language model (LLM) safety usually focuses on short-answer responses, overlooking the long CoT style outputs of LRMs. To bridge this gap, we conduct a systematic study of LRM safety. First, we investigate safety evaluators calibrated against human annotations. Using our newly developed metrics, we thoroughly assess the safety of 13 state-of-the-art LRMs on StrongReject and WildJailbreak datasets. Our results show that LRMs are not safe compared to their reasoning advance. Further, we perform a fine-grained analysis of the reasoning trace and final answer. We find that three decoding strategies-ZeroThink, LessThink, and MoreThink-can improve model safety without additional training. However, these strategies either use constrained reasoning traces or incur high inference costs. To better strengthen LRM safety, we introduce SafeChain, the first-of-its-kind safety training dataset in CoT style. We fine-tune two LRMs with SafeChain, showing that it not only enhances model safety but also preserves performance across 6 reasoning benchmarks.",
+      "authors": [
+        "Fengqing Jiang",
+        "Zhangchen Xu",
+        "Yuetai Li",
+        "Luyao Niu",
+        "Zhen Xiang",
+        "Bo Li",
+        "Bill Yuchen Lin",
+        "Radha Poovendran"
+      ],
+      "primary_category": "ACL-2025-Findings",
+      "categories": [
+        "ACL-2025-Findings"
+      ],
+      "published": "2025-07-01T00:00:00+00:00",
+      "link": "https://aclanthology.org/2025.findings-acl.1197/",
+      "pdf_url": "https://aclanthology.org/2025.findings-acl.1197.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-qqhqiqons0",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "SEC-bench: Automated Benchmarking of LLM Agents on Real-World Software Security Tasks",
+      "abstract": "Rigorous security-focused evaluation of large language model (LLM) agents is imperative for establishing trust in their safe deployment throughout the software development lifecycle. However, existing benchmarks largely rely on synthetic challenges or simplified vulnerability datasets that fail to capture the complexity and ambiguity encountered by security engineers in practice. We introduce SEC-bench, the first fully automated benchmarking framework for evaluating LLM agents on authentic security engineering tasks. SEC-bench employs a novel multi-agent scaffold that automatically constructs code repositories with harnesses, reproduces vulnerabilities in isolated environments, and generates gold patches for reliable evaluation. Our framework automatically creates high-quality software vulnerability datasets with reproducible artifacts at a cost of only $0.87 per instance. Using SEC-bench, we implement two critical software security tasks to rigorously evaluate LLM agents' capabilities: proof-of-concept (PoC) generation and vulnerability patching. A comprehensive evaluation of state-of-the-art LLM code agents reveals significant performance gaps, achieving at most 18.0% success in PoC generation and 34.0% in vulnerability patching on our complete dataset. These results highlight the crucial steps needed toward developing LLM agents that are more practical, intelligent, and autonomous for security engineering.",
+      "authors": [
+        "Hwiwon Lee",
+        "Ziqi Zhang",
+        "Hanxiao Lu",
+        "LINGMING ZHANG"
+      ],
+      "primary_category": "Security Benchmarking",
+      "categories": [
+        "Security Benchmarking",
+        "LLM Agents",
+        "Security Engineering",
+        "AI for Security",
+        "Automated Evaluation"
+      ],
+      "published": "2025-09-18T17:40:22.794+00:00",
+      "link": "https://openreview.net/forum?id=QQhQIqons0",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-icml-2025-il3krr4h9u",
+      "source": "ICML-2025-Accepted",
+      "title": "BaxBench: Can LLMs Generate Correct and Secure Backends?",
+      "abstract": "Automatic program generation has long been a fundamental challenge in computer science. Recent benchmarks have shown that large language models (LLMs) can effectively generate code at the function level, make code edits, and solve algorithmic coding tasks. However, to achieve full automation, LLMs should be able to generate production-quality, self-contained application modules. To evaluate the capabilities of LLMs in solving this challenge, we introduce BaxBench, a novel evaluation benchmark consisting of 392 tasks for the generation of backend applications. We focus on backends for three critical reasons: (i) they are practically relevant, building the core components of most modern web and cloud software, (ii) they are difficult to get right, requiring multiple functions and files to achieve the desired functionality, and (iii) they are security-critical, as they are exposed to untrusted third-parties, making secure solutions that prevent deployment-time attacks an imperative. BaxBench validates the functionality of the generated applications with comprehensive test cases, and assesses their security exposure by executing end-to-end exploits. Our experiments reveal key limitations of current LLMs in both functionality and security: (i) even the best model, OpenAI o1, achieves a mere 62% on code correctness; (ii) on average, we could successfully execute security exploits on around half of the correct programs generated by each LLM; and (iii) in less popular backend frameworks, models further struggle to generate correct and secure applications. Progress on BaxBench signifies important steps towards autonomous and secure software development with LLMs.",
+      "authors": [
+        "Mark Vero",
+        "Niels Mündler",
+        "Victor Chibotaru",
+        "Veselin Raychev",
+        "Maximilian Baader",
+        "Nikola Jovanović",
+        "Jingxuan He",
+        "Martin Vechev"
+      ],
+      "primary_category": "large language model",
+      "categories": [
+        "large language model",
+        "large language models",
+        "LLM",
+        "code generation",
+        "code security",
+        "security",
+        "benchmark"
+      ],
+      "published": "2025-05-01T13:22:07.229+00:00",
+      "link": "https://openreview.net/forum?id=il3KRr4H9u",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "ndss-2025-tz-datashield-automated-data-protection-for-embedded-systems-via-data-flow-based-compartmentalization",
+      "source": "NDSS-2025-Accepted",
+      "title": "TZ-DATASHIELD: Automated Data Protection for Embedded Systems via Data-Flow-Based Compartmentalization",
+      "abstract": "As reliance on embedded systems grows in critical domains such as healthcare, industrial automation, and unmanned vehicles, securing the data on micro-controller units (MCUs) becomes increasingly crucial. These systems face significant challenges related to computational power and energy constraints, complicating efforts to maintain the confidentiality and integrity of sensitive data. Previous methods have utilized compartmentalization techniques to protect this sensitive data, yet they remain vulnerable to breaches by strong adversaries exploiting privileged software. In this paper, we introduce TZ-DATASHIELD, a novel LLVM compiler tool that enhances ARM TrustZone with sensitive data flow (SDF) compartmentalization, offering robust protection against strong adversaries in MCU-based systems. We address three primary challenges: the limitations of existing compartment units, inadequate isolation within the Trusted Execution Environment (TEE), and the exposure of shared data to potential attacks. TZ-DATASHIELD addresses these challenges by implementing a fine-grained compartmentalization approach that focuses on sensitive data flow, ensuring data confidentiality and integrity, and developing a novel intra-TEE isolation mechanism that validates compartment access to TEE resources at runtime. Our prototype enables firmware developers to annotate source code to generate TrustZone-ready firmware images automatically. Our evaluation using real-world MCU applications demonstrates that TZ-DATASHIELD achieves up to 80.8% compartment memory and 88.6% ROP gadget reductions within the TEE address space. It incurs an average runtime overhead of 14.7% with CFI and DFI enforcement, and 7.6% without these measures. As reliance on embedded systems grows in critical domains such as healthcare, industrial automation, and unmanned vehicles, securing the data on micro-controller units (MCUs) becomes increasingly crucial. These systems face significant challenges related to computational power and energy constraints, complicating efforts to maintain the confidentiality and integrity of sensitive data. Previous methods have utilized compartmentalization techniques to protect this sensitive data, yet they remain vulnerable to breaches by strong adversaries exploiting privileged software. In this paper, we introduce TZ-DATASHIELD, a novel LLVM compiler tool that enhances ARM TrustZone with sensitive data flow (SDF) compartmentalization, offering robust protection against strong adversaries in MCU-based systems. We address three primary challenges: the limitations of existing compartment units, inadequate isolation within the Trusted Execution Environment (TEE), and the exposure of shared data to potential attacks. TZ-DATASHIELD addresses these challenges by implementing a fine-grained compartmentalization approach that focuses on sensitive data flow, ensuring data confidentiality and integrity, and developing a novel intra-TEE isolation mechanism that validates compartment access to TEE resources at runtime. Our prototype enables firmware developers to annotate source code to generate TrustZone-ready firmware images automatically. Our evaluation using real-world MCU applications demonstrates that TZ-DATASHIELD achieves up to 80.8% compartment memory and 88.6% ROP gadget reductions within the TEE address space. It incurs an average runtime overhead of 14.7% with CFI and DFI enforcement, and 7.6% without these measures.",
+      "authors": [
+        "Zelun Kong",
+        "Minkyung Park",
+        "Le Guan",
+        "Ning Zhang",
+        "Chung Hwan Kim"
+      ],
+      "primary_category": "ndss",
+      "categories": [
+        "ndss",
+        "security"
+      ],
+      "published": "2025-01-01T00:00:00+00:00",
+      "link": "https://www.ndss-symposium.org/ndss-paper/tz-datashield-automated-data-protection-for-embedded-systems-via-data-flow-based-compartmentalization/",
+      "pdf_url": "https://www.ndss-symposium.org/wp-content/uploads/2025-563-paper.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "ndss-2026-adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles",
+      "source": "NDSS-2026-Accepted",
+      "title": "ADGFUZZ: Assignment Dependency-Guided Fuzzing for Robotic Vehicles",
+      "abstract": "Robotic vehicles (RVs) play an increasingly vital role in modern society, with widespread applications in both commercial and military contexts. RV control software is the core of RV systems, which maintains proper operation by continuously computing the vehicle's internal state, sensor readings, and external inputs to adjust the system's behavior accordingly. However, the vast combination space of configurable parameters, command inputs, and environment-sensed data in RV software introduces significant security risks to the system. Existing fuzzing techniques face substantial challenges in effectively exploring this vast input space while uncovering deep bugs. To address these challenges, we propose ADGFuzz, a novel fuzzing framework specifically designed to detect assignment statement bugs in RV control software. ADGFuzz statically constructs an Assignment Dependency Graph (ADG) to capture inter-variable dependencies within the program. These dependencies are then propagated to the RV input space by leveraging naming similarities, resulting in a targeted set of inputs referred to as the matched input set (MIS). Building upon this, ADGFuzz performs entropy-aware fuzzing over the MISs, thereby enhancing the overall efficiency of bug discovery. In our evaluation, ADGFuzz uncovered 87 unique bugs across three RV types, 78 of which were previously unknown. All found bugs were responsibly disclosed to the developers, and 16 have been confirmed for fixing.",
+      "authors": [
+        "Yuncheng Wang",
+        "Yaowen Zheng",
+        "Puzhuo Liu",
+        "Dongliang Fang",
+        "Jiaxing Cheng",
+        "Dingyi Shi",
+        "Limin Sun"
+      ],
+      "primary_category": "ndss",
+      "categories": [
+        "ndss",
+        "security"
+      ],
+      "published": "2026-01-01T00:00:00+00:00",
+      "link": "https://www.ndss-symposium.org/ndss-paper/adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles/",
+      "pdf_url": "https://www.ndss-symposium.org/wp-content/uploads/2026-s1014-paper.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "ndss-2025-propertygpt-llm-driven-formal-verification-of-smart-contracts-through-retrieval-augmented-property-generation",
+      "source": "NDSS-2025-Accepted",
+      "title": "PropertyGPT: LLM-driven Formal Verification of Smart Contracts through Retrieval-Augmented Property Generation",
+      "abstract": "Formal verification is a technique that can prove the correctness of a system with respect to a certain specification or property. It is especially valuable for security-sensitive smart contracts that manage billions in cryptocurrency assets. Although existing research has developed various static verification tools (or provers) for smart contracts, a key missing component is the automated generation of comprehensive properties, including invariants, pre-/post-conditions, and rules. Hence, industry-leading players like Certora have to rely on their own or crowdsourced experts to manually write properties case by case. With recent advances in large language models (LLMs), this paper explores the potential of leveraging state-of-the-art LLMs, such as GPT-4, to transfer existing human-written properties (e.g., those from Certora auditing reports) and automatically generate customized properties for unknown code. To this end, we embed existing properties into a vector database and retrieve a reference property for LLM-based in-context learning to generate a new property for a given code. While this basic process is relatively straightforward, ensuring that the generated properties are (i) compilable, (ii) appropriate, and (iii) verifiable presents challenges. To address (i), we use the compilation and static analysis feedback as an external oracle to guide LLMs in iteratively revising the generated properties. For (ii), we consider multiple dimensions of similarity to rank the properties and employ a weighted algorithm to identify the top-K properties as the final result. For (iii), we design a dedicated prover to formally verify the correctness of the generated properties. We have implemented these strategies into a novel LLM-based property generation tool called PropertyGPT. Our experiments show that PropertyGPT can generate comprehensive and high-quality properties, achieving an 80% recall compared to the ground truth. It successfully detected 26 CVEs/attack incidents out of 37 tested and also uncovered 12 zero-day vulnerabilities, leading to $8,256 in bug bounty rewards. Formal verification is a technique that can prove the correctness of a system with respect to a certain specification or property. It is especially valuable for security-sensitive smart contracts that manage billions in cryptocurrency assets. Although existing research has developed various static verification tools (or provers) for smart contracts, a key missing component is the automated generation of comprehensive properties, including invariants, pre-/post-conditions, and rules. Hence, industry-leading players like Certora have to rely on their own or crowdsourced experts to manually write properties case by case. With recent advances in large language models (LLMs), this paper explores the potential of leveraging state-of-the-art LLMs, such as GPT-4, to transfer existing human-written properties (e.g., those from Certora auditing reports) and automatically generate customized properties for unknown code. To this end, we embed existing properties into a vector database and retrieve a reference property for LLM-based in-context learning to generate a new property for a given code. While this basic process is relatively straightforward, ensuring that the generated properties are (i) compilable, (ii) appropriate, and (iii) verifiable presents challenges. To address (i), we use the compilation and static analysis feedback as an external oracle to guide LLMs in iteratively revising the generated properties. For (ii), we consider multiple dimensions of similarity to rank the properties and employ a weighted algorithm to identify the top-K properties as the final result. For (iii), we design a dedicated prover to formally verify the correctness of the generated properties. We have implemented these strategies into a novel LLM-based property generation tool called PropertyGPT. Our experiments show that PropertyGPT can generate comprehensive and high-quality properties, achieving an 80% recall compared to the ground truth. It successfully detected 26 CVEs/attack incidents out of 37 tested and also uncovered 12 zero-day vulnerabilities, leading to $8,256 in bug bounty rewards.",
+      "authors": [
+        "Ye Liu",
+        "Yue Xue",
+        "Daoyuan Wu",
+        "Yuqiang Sun",
+        "Yi Li",
+        "Miaolei Shi",
+        "Yang Liu"
+      ],
+      "primary_category": "ndss",
+      "categories": [
+        "ndss",
+        "security"
+      ],
+      "published": "2025-01-01T00:00:00+00:00",
+      "link": "https://www.ndss-symposium.org/ndss-paper/propertygpt-llm-driven-formal-verification-of-smart-contracts-through-retrieval-augmented-property-generation/",
+      "pdf_url": "https://www.ndss-symposium.org/wp-content/uploads/2025-1357-paper.pdf",
+      "tags": [
+        "keyword:safe-coding"
+      ]
+    },
+    {
+      "id": "ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases",
+      "source": "IEEE-SP-2026-Accepted",
+      "title": "The Secrets Must Not Flow: Scaling Security Verification to Large Codebases",
+      "abstract": "Existing program verifiers can prove advanced properties about security protocol implementations, but are difficult to scale to large codebases because of the manual effort required. We develop a novel methodology called *Diodon* that addresses this challenge by splitting the codebase into the protocol implementation (the *Core*) and the remainder (the *Application*). This split allows us to apply powerful semi-automated verification techniques to the security-critical Core, while fully-automatic static analyses scale the verification to the entire codebase by ensuring that the Application cannot invalidate the security properties proved for the Core. The static analyses achieve that by proving *I/O independence*, i.e., that the I/O operations within the Application are independent of the Core's security-relevant data (such as keys), and that the Application meets the Core's requirements. We have proved Diodon sound by first showing that we can safely allow the Application to perform I/O independent of the security protocol, and second that manual verification and static analyses soundly compose. We evaluate Diodon on two case studies: an implementation of the signed Diffie-Hellman key exchange and a large (100k+ LoC) production Go codebase implementing a key exchange protocol for which we obtained secrecy and injective agreement guarantees by verifying a Core of about 1% of the code with the auto-active program verifier Gobra in less than three person months.",
+      "authors": [
+        "Linard Arquint",
+        "Samarth Kishor",
+        "Jason R. Koenig",
+        "Joey Dodds",
+        "Daniel Kroening",
+        "Peter Müller"
+      ],
+      "primary_category": "ieee_sp",
+      "categories": [
+        "ieee_sp",
+        "security"
+      ],
+      "published": "2026-01-01T00:00:00+00:00",
+      "link": "http://arxiv.org/abs/2507.00595v2",
+      "pdf_url": "https://arxiv.org/pdf/2507.00595v2",
+      "tags": [
+        "keyword:safe-coding"
+      ]
+    },
+    {
+      "id": "ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias",
+      "source": "NDSS-2026-Accepted",
+      "title": "Trust Me, I Know This Function: Hijacking LLM Static Analysis using Bias",
+      "abstract": "Large Language Models (LLMs) are increasingly trusted to perform automated code review and static analysis at scale, supporting tasks such as vulnerability detection, summarization, and refactoring. In this paper, we identify and exploit a critical vulnerability in LLM-based code analysis: an abstraction bias that causes models to overgeneralize familiar programming patterns and overlook small, meaningful bugs. Adversaries can exploit this blind spot to hijack the control flow of the LLM’s interpretation with minimal edits and without affecting actual runtime behavior. We refer to this attack as a Familiar Pattern Attack (FPA). We develop a fully automated, black-box algorithm that discovers and injects FPAs into target code. Our evaluation shows that FPAs are not only effective against basic and reasoning models, but are also transferable across model families (OpenAI, Anthropic, Google), and universal across programming languages (Python, C, Rust, Go). Moreover, FPAs remain effective even when models are explicitly warned about the attack via robust system prompts. Finally, we explore positive, defensive uses of FPAs and discuss their broader implications for the reliability and safety of code-oriented LLMs. Large Language Models (LLMs) are increasingly trusted to perform automated code review and static analysis at scale, supporting tasks such as vulnerability detection, summarization, and refactoring. In this paper, we identify and exploit a critical vulnerability in LLM-based code analysis: an abstraction bias that causes models to overgeneralize familiar programming patterns and overlook small, meaningful bugs. Adversaries can exploit this blind spot to hijack the control flow of the LLM’s interpretation with minimal edits and without affecting actual runtime behavior. We refer to this attack as a Familiar Pattern Attack (FPA). We develop a fully automated, black-box algorithm that discovers and injects FPAs into target code. Our evaluation shows that FPAs are not only effective against basic and reasoning models, but are also transferable across model families (OpenAI, Anthropic, Google), and universal across programming languages (Python, C, Rust, Go). Moreover, FPAs remain effective even when models are explicitly warned about the attack via robust system prompts. Finally, we explore positive, defensive uses of FPAs and discuss their broader implications for the reliability and safety of code-oriented LLMs.",
+      "authors": [
+        "Shir Bernstein",
+        "David Beste",
+        "Daniel Ayzenshteyn",
+        "Lea Schönherr",
+        "Yisroel Mirsky"
+      ],
+      "primary_category": "ndss",
+      "categories": [
+        "ndss",
+        "security"
+      ],
+      "published": "2026-01-01T00:00:00+00:00",
+      "link": "https://www.ndss-symposium.org/ndss-paper/trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias/",
+      "pdf_url": "https://www.ndss-symposium.org/wp-content/uploads/2026-f2066-paper.pdf",
+      "tags": [
+        "keyword:safe-coding"
+      ]
+    },
+    {
+      "id": "aaai-2025-34604",
+      "source": "AAAI-2025-Accepted",
+      "title": "VERSE: Verification-based Self-Play for Code Instructions",
+      "abstract": "Instruction-tuned Code Large Language Models (Code LLMs) have excelled in diverse code-related tasks, such as program synthesis, automatic program repair, and code explanation. To collect training datasets for instruction-tuning, a popular method involves having models autonomously generate instructions and corresponding responses. However, the direct generation of responses does not ensure functional correctness, a crucial requirement for generating responses to code instructions. To overcome this, we present Verification-Based Self-Play (VERSE), aiming to enhance model proficiency in generating correct responses. VERSE establishes a robust verification framework that covers various code instructions. Employing VERSE, Code LLMs engage in self-play to generate instructions and corresponding verifications. They evaluate execution results and self-consistency as verification outcomes, using them as scores to rank generated data for self-training. Experiments show that VERSE improves multiple base Code LLMs (average 7.6%) across various languages and tasks on many benchmarks, affirming its effectiveness.",
+      "authors": [
+        "Hao Jiang",
+        "Qi Liu",
+        "Rui Li",
+        "Yuze Zhao",
+        "Yixiao Ma",
+        "Shengyu Ye",
+        "Junyu Lu",
+        "Yu Su"
+      ],
+      "primary_category": "AAAI-25 Technical Tracks 23",
+      "categories": [
+        "AAAI-2025",
+        "AAAI-25 Technical Tracks 23"
+      ],
+      "published": "2025-04-11T00:00:00+00:00",
+      "link": "https://ojs.aaai.org/index.php/AAAI/article/view/34604",
+      "pdf_url": "https://ojs.aaai.org/index.php/AAAI/article/download/34604/36759",
+      "tags": [
+        "keyword:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-icml-2025-tu8qkx4dmi",
+      "source": "ICML-2025-Accepted",
+      "title": "AlphaVerus: Bootstrapping Formally Verified Code Generation through Self-Improving Translation and Treefinement",
+      "abstract": "Automated code generation with large language models has gained significant traction, but there remains no guarantee of the correctness of generated code. We aim to use formal verification to provide mathematical guarantees that the generated code is correct. However, generating formally verified code with LLMs is hindered by the scarcity of training data and the complexity of formal proofs. To tackle this challenge, we introduce AlphaVerus, a self-improving framework that bootstraps formally verified code generation by iteratively translating programs from a higher-resource language and leveraging feedback from a verifier. AlphaVerus operates in three phases: exploration of candidate translations, Treefinement -- a novel tree search algorithm for program refinement using verifier feedback, and filtering misaligned specifications and programs to prevent reward hacking. Through this iterative process, AlphaVerus enables the LLaMA-3.1-70B model to generate verified code without human intervention or model finetuning. AlphaVerus shows an ability to generate formally verified solutions for HumanEval and MBPP, laying the groundwork for truly trustworthy code-generation agents.",
+      "authors": [
+        "Pranjal Aggarwal",
+        "Bryan Parno",
+        "Sean Welleck"
+      ],
+      "primary_category": "formal verification",
+      "categories": [
+        "formal verification",
+        "code generation",
+        "self-improvement",
+        "inference compute"
+      ],
+      "published": "2025-05-01T13:20:07.817+00:00",
+      "link": "https://openreview.net/forum?id=tU8QKX4dMI",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-gp2vgxwroe",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Rethinking Verification for LLM Code Generation: From Generation to Testing",
+      "abstract": "Large language models (LLMs) have recently achieved notable success in code‑generation benchmarks such as HumanEval and LiveCodeBench. However, a detailed examination reveals that these evaluation suites often comprise only a limited number of homogeneous test cases, resulting in subtle faults going undetected. This not only artificially inflates measured performance but also compromises accurate reward estimation in reinforcement learning frameworks utilizing verifiable rewards (RLVR). To address these critical shortcomings, we systematically investigate the test-case generation (TCG) task by proposing multi-dimensional metrics designed to rigorously quantify test-suite thoroughness. Furthermore, we introduce a human-LLM collaborative method (SAGA), leveraging human programming expertise with LLM reasoning capability, aimed at significantly enhancing both the coverage and the quality of generated test cases. In addition, we develop a TCGBench to facilitate the study of the TCG task. Experiments show that SAGA achieves a detection rate of 90.62\\% and a verifier accuracy of 32.58\\% on TCGBench. The Verifier Accuracy (Verifier Acc) of the code generation evaluation benchmark synthesized by SAGA is 10.78\\% higher than that of LiveCodeBench-v6. These results demonstrate the effectiveness of our proposed method. We hope this work contributes to building a scalable foundation for reliable LLM code evaluation, further advancing RLVR in code generation, and paving the way for automated adversarial test synthesis and adaptive benchmark integration.",
+      "authors": [
+        "Zihan Ma",
+        "Taolin Zhang",
+        "Maosongcao",
+        "Junnan Liu",
+        "Wenwei Zhang",
+        "Minnan Luo",
+        "Songyang Zhang",
+        "Kai Chen"
+      ],
+      "primary_category": "Test Case Generation",
+      "categories": [
+        "Test Case Generation",
+        "LLM Code Evaluation",
+        "Human-LLM Collaboration"
+      ],
+      "published": "2025-09-18T17:38:55.197+00:00",
+      "link": "https://openreview.net/forum?id=Gp2vgxWROE",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-vac4sa96ei",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Towards Reliable Code-as-Policies: A Neuro-Symbolic Framework for Embodied Task Planning",
+      "abstract": "Recent advances in large language models (LLMs) have enabled the automatic generation of executable code for task planning and control in embodied agents such as robots, demonstrating the potential of LLM-based embodied intelligence. However, these LLM-based code-as-policies approaches often suffer from limited environmental grounding, particularly in dynamic or partially observable settings, leading to suboptimal task success rates due to incorrect or incomplete code generation. In this work, we propose a neuro-symbolic embodied task planning framework that incorporates explicit symbolic verification and interactive validation processes during code generation. In the validation phase, the framework generates exploratory code that actively interacts with the environment to acquire missing observations while preserving task-relevant states. This integrated process enhances the grounding of generated code, resulting in improved task reliability and success rates in complex environments. We evaluate our framework on RLBench and in real-world settings across dynamic, partially observable scenarios. Experimental results demonstrate that our framework improves task success rates by 46.2\\% over Code as Policies baselines and attains over 86.8\\% executability of task-relevant actions, thereby enhancing the reliability of task planning in dynamic environments.",
+      "authors": [
+        "Sanghyun Ahn",
+        "Wonje Choi",
+        "Junyong Lee",
+        "Jinwoo Park",
+        "Honguk Woo"
+      ],
+      "primary_category": "neuro-symbolic",
+      "categories": [
+        "neuro-symbolic",
+        "embodied task planning",
+        "large language model"
+      ],
+      "published": "2025-09-18T17:46:00.368+00:00",
+      "link": "https://openreview.net/forum?id=VaC4sa96EI",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-icml-2025-dkryimuqa9",
+      "source": "ICML-2025-Accepted",
+      "title": "ShieldAgent: Shielding Agents via Verifiable Safety Policy Reasoning",
+      "abstract": "Autonomous agents powered by foundation models have seen widespread adoption across various real-world applications. However, they remain highly vulnerable to malicious instructions and attacks, which can result in severe consequences such as privacy breaches and financial losses. More critically, existing guardrails for LLMs are not applicable due to the complex and dynamic nature of agents. To tackle these challenges, we propose ShieldAgent, the first guardrail agent designed to enforce explicit safety policy compliance for the action trajectory of other protected agents through logical reasoning. Specifically, ShieldAgent first constructs a safety policy model by extracting verifiable rules from policy documents and structuring them into a set of action-based probabilistic rule circuits. Given the action trajectory of the protected agent, ShieldAgent retrieves relevant rule circuits and generates a shielding plan, leveraging its comprehensive tool library and executable code for formal verification. In addition, given the lack of guardrail benchmarks for agents, we introduce ShieldAgent-Bench, a dataset with 3K safety-related pairs of agent instructions and action trajectories, collected via SOTA attacks across 6 web environments and 7 risk categories. Experiments show that ShieldAgent achieves SOTA on ShieldAgent-Bench and three existing benchmarks, outperforming prior methods by 11.3% on average with a high recall of 90.1%. Additionally, ShieldAgent reduces API queries by 64.7% and inference time by 58.2%, demonstrating its high precision and efficiency in safeguarding agents. Our project is available and continuously maintained here: https://shieldagent-aiguard.github.io/",
+      "authors": [
+        "Zhaorun Chen",
+        "Mintong Kang",
+        "Bo Li"
+      ],
+      "primary_category": "LLM Agent Safety",
+      "categories": [
+        "LLM Agent Safety",
+        "LLM Guardrail Agent",
+        "Policy Compliance",
+        "Automated Logic Reasoning"
+      ],
+      "published": "2025-05-01T13:22:08.884+00:00",
+      "link": "https://openreview.net/forum?id=DkRYImuQA9",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-ly5dnrigcz",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "QiMeng-CodeV-R1: Reasoning-Enhanced Verilog Generation",
+      "abstract": "Large language models (LLMs) trained via reinforcement learning with verifiable reward (RLVR) have achieved breakthroughs on tasks with explicit, automatable verification, such as software programming and mathematical problems. Extending RLVR to electronic design automation (EDA), especially automatically generating hardware description languages (HDLs) like Verilog from natural-language (NL) specifications, however, poses three key challenges: the lack of automated and accurate verification environments, the scarcity of high-quality NL-code pairs, and the prohibitive computation cost of RLVR. To this end, we introduce CodeV-R1, an RLVR framework for training Verilog generation LLMs. First, we develop a rule-based testbench generator that performs robust equivalence checking against golden references. Second, we propose a round-trip data synthesis method that pairs open-source Verilog snippets with LLM-generated NL descriptions, verifies code–NL–code consistency via the generated testbench, and filters out inequivalent examples to yield a high-quality dataset. Third, we employ a two-stage \"distill-then-RL\" training pipeline: distillation for the cold start of reasoning abilities, followed by adaptive DAPO, our novel RLVR algorithm that can reduce training cost by adaptively adjusting sampling rate. The resulting model, CodeV-R1-7B, achieves 68.6 \\% and 72.9 \\% pass@1 on VerilogEval v2 and RTLLM v1.1, respectively, surpassing prior state-of-the-art by 12$\\sim$20 \\%, while even exceeding the performance of 671B DeepSeek-R1 on RTLLM. We have released our model, training code, and dataset to facilitate research in EDA and LLM communities.",
+      "authors": [
+        "Yaoyu Zhu",
+        "Di Huang",
+        "Hanqi Lyu",
+        "Xiaoyun Zhang",
+        "Chongxiao Li",
+        "Wenxuan Shi",
+        "Yutong Wu",
+        "Jianan Mu",
+        "Jinghua Wang",
+        "Yang zhao",
+        "Pengwei Jin",
+        "Shuyao Cheng",
+        "shengwen Liang",
+        "Xishan Zhang",
+        "Rui Zhang",
+        "Zidong Du",
+        "Qi Guo",
+        "Xing Hu",
+        "Yunji Chen"
+      ],
+      "primary_category": "LLM",
+      "categories": [
+        "LLM",
+        "Code Generation",
+        "Verilog"
+      ],
+      "published": "2025-09-18T17:42:28.668+00:00",
+      "link": "https://openreview.net/forum?id=ly5DnRIgCZ",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-cl45xdncok",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "SpecMAS: A Multi-Agent System for Self-Verifying System Generation via Formal Model Checking",
+      "abstract": "We present SpecMAS, a novel multi-agent system that autonomously constructs and formally verifies executable system models from natural language specifications. Given a Standard Operating Procedure (SOP) describing a target system, SpecMAS parses the specification, identifies relevant operational modes, variables, transitions, and properties, and generates a formal model in NuSMV code syntax, an industry-standard symbolic model checker. A dedicated reasoning agent extracts both explicit and implicit properties from the SOP, and verification is performed via temporal logic model checking. If any properties fail to verify, an autonomous debugging agent analyzes counterexamples and iteratively corrects the model until all properties are satisfied. This closed-loop system design guarantees provable correctness by construction and advances the state of the art in automated, interpretable, and deployable verification pipelines. We demonstrate the generality, correctness, and practical feasibility of SpecMAS across a set of representative case studies and propose a new benchmark dataset for the evaluation and comparison of model checking performance.",
+      "authors": [
+        "Rishabh Agrawal",
+        "Kaushik Tushar Ranade",
+        "Aja Khanal",
+        "Kalyan Shankar Basu",
+        "Apurva Narayan"
+      ],
+      "primary_category": "Multi-agent systems",
+      "categories": [
+        "Multi-agent systems",
+        "formal verification",
+        "temporal logic",
+        "specification generation",
+        "model-checking",
+        "Large Language Models"
+      ],
+      "published": "2025-09-18T17:44:20.911+00:00",
+      "link": "https://openreview.net/forum?id=Cl45XdnCoK",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-icml-2024-mgtzmayhvg",
+      "source": "ICML-2024-Public",
+      "title": "Instruction Tuning for Secure Code Generation",
+      "abstract": "Modern language models (LMs) have gained widespread acceptance in everyday and professional contexts, particularly in programming. An essential procedure enabling this adoption is instruction tuning, which substantially enhances LMs' practical utility by training them to follow user instructions and human preferences. However, existing instruction tuning schemes overlook a crucial aspect: the security of generated code. As a result, even the state-of-the-art instruction-tuned LMs frequently produce unsafe code, posing significant security risks. In this work, we introduce SafeCoder to address this gap. SafeCoder performs security-centric fine-tuning using a diverse and high-quality dataset that we collected using an automated pipeline. We integrate the security fine-tuning with standard instruction tuning, to facilitate a joint optimization of both security and utility. Despite its simplicity, we show that SafeCoder is effective across a variety of popular LMs and datasets. It is able to drastically improve security (by about 30%), while preserving utility.",
+      "authors": [
+        "Jingxuan He",
+        "Mark Vero",
+        "Gabriela Krasnopolska",
+        "Martin Vechev"
+      ],
+      "primary_category": "ICML.cc/2024/Conference",
+      "categories": [],
+      "published": "2024-05-02T00:41:47.061+00:00",
+      "link": "https://openreview.net/forum?id=MgTzMaYHvG",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-3nza35a6i4",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Training Language Models to Generate Quality Code with Program Analysis Feedback",
+      "abstract": "Code generation with large language models (LLMs), often termed vibe coding, is increasingly adopted in production but fails to ensure code quality, particularly in security (e.g., SQL injection vulnerabilities) and maintainability (e.g., missing type annotations). Existing methods, such as supervised fine-tuning and rule-based post-processing, rely on labor-intensive annotations or brittle heuristics, limiting their scalability and effectiveness. We propose REAL (Reinforcement rEwards from Automated anaLysis), a reinforcement learning framework that trains LLMs to generate production-quality code using program analysis–guided feedback. Specifically, REAL integrates two automated signals: (1) static analyzers detecting security and maintainability defects and (2) unit tests ensuring functional correctness. Unlike prior work, our framework is prompt-agnostic and reference-free, enabling scalable supervision without manual intervention. Experiments across multiple datasets and model scales demonstrate that REAL outperforms state-of-the-art methods in simultaneous assessments of functionality and code quality. Our work bridges the gap between rapid prototyping and production-ready code, enabling LLMs to deliver both speed and quality.",
+      "authors": [
+        "Feng Yao",
+        "Zilong Wang",
+        "Liyuan Liu",
+        "Junxia Cui",
+        "Li Zhong",
+        "Xiaohan Fu",
+        "Haohui Mai",
+        "Vish Krishnan",
+        "Jianfeng Gao",
+        "Jingbo Shang"
+      ],
+      "primary_category": "Code Generation",
+      "categories": [
+        "Code Generation",
+        "Reinforcement Learning",
+        "Program Analysis"
+      ],
+      "published": "2025-09-18T17:39:33.634+00:00",
+      "link": "https://openreview.net/forum?id=3nza35A6I4",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-icml-2025-ym19zwky7w",
+      "source": "ICML-2025-Accepted",
+      "title": "ProSec: Fortifying Code LLMs with Proactive Security Alignment",
+      "abstract": "While recent code-specific large language models (LLMs) have greatly enhanced their code generation capabilities, the safety of these models remains under-explored, posing potential risks as insecure code generated by these models may introduce vulnerabilities into real-world systems. Existing methods collect security-focused datasets from real-world vulnerabilities for instruction tuning in order to mitigate such issues. However, they are largely constrained by the data sparsity of vulnerable code, and have limited applicability in the multi-stage post-training workflows of modern LLMs. In this paper, we propose ProSec, a novel proactive security alignment approach designed to\nalign code LLMs with secure coding practices. ProSec systematically exposes the vulnerabilities in a code LLM by synthesizing vulnerability-inducing coding scenarios from Common Weakness Enumerations (CWEs) and generates fixes to vulnerable code snippets, allowing the model to learn secure practices through preference learning objectives. The scenarios synthesized by ProSec trigger 25× more vulnerable code than a normal instruction-tuning dataset, resulting in a security-focused alignment dataset 7× larger than the previous work. Experiments show that models trained with ProSec are 25.2% to 35.4% more secure compared to previous work without degrading models' utility.",
+      "authors": [
+        "Xiangzhe Xu",
+        "Zian Su",
+        "Jinyao Guo",
+        "Kaiyuan Zhang",
+        "Zhenting Wang",
+        "Xiangyu Zhang"
+      ],
+      "primary_category": "code language model",
+      "categories": [
+        "code language model",
+        "code generation safety",
+        "alignment training"
+      ],
+      "published": "2025-05-01T13:12:45.791+00:00",
+      "link": "https://openreview.net/forum?id=Ym19zWky7W",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "anthology-2025.acl-long.849",
+      "source": "ACL-2025-Long",
+      "title": "Can You Really Trust Code Copilot? Evaluating Large Language Models from a Code Security Perspective",
+      "abstract": "Code security and usability are both essential for various coding assistant applications driven by large language models (LLMs). Current code security benchmarks focus solely on single evaluation task and paradigm, such as code completion and generation, lacking comprehensive assessment across dimensions like secure code generation, vulnerability repair and discrimination. In this paper, we first propose CoV-Eval, a multi-task benchmark covering various tasks such as code completion, vulnerability repair, vulnerability detection and classification, for comprehensive evaluation of LLM code security. Besides, we developed VC-Judge, an improved judgment model that aligns closely with human experts and can review LLM-generated programs for vulnerabilities in a more efficient and reliable way. We conduct a comprehensive evaluation of 20 proprietary and open-source LLMs. Overall, while most LLMs identify vulnerable codes well, they still tend to generate insecure codes and struggle with recognizing specific vulnerability types and performing repairs. Extensive experiments and qualitative analyses reveal key challenges and optimization directions, offering insights for future research in LLM code security.",
+      "authors": [
+        "Yutao Mou",
+        "Xiao Deng",
+        "Yuxiao Luo",
+        "Shikun Zhang",
+        "Wei Ye"
+      ],
+      "primary_category": "ACL-2025-Long",
+      "categories": [
+        "ACL-2025-Long"
+      ],
+      "published": "2025-07-01T00:00:00+00:00",
+      "link": "https://aclanthology.org/2025.acl-long.849/",
+      "pdf_url": "https://aclanthology.org/2025.acl-long.849.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "ieee-sp-2025-sv-trusteval-c-evaluating-structure-and-semantic-reasoning-in-large-language-models-for-source-code-vulnerability-analys",
+      "source": "IEEE-SP-2025-CSDL",
+      "title": "SV-TrustEval-C: Evaluating Structure and Semantic Reasoning in Large Language Models for Source Code Vulnerability Analysis",
+      "abstract": "As Large Language Models (LLMs) evolve in understanding and generating code, accurately evaluating their reliability in analyzing source code vulnerabilities becomes in-creasingly vital. While studies have examined LLM capabilities in tasks like vulnerability detection and repair, they often over-look the importance of both structure and semantic reasoning crucial for trustworthy vulnerability analysis. To address this gap, we introduce SV-TRUSTEVAL-C, a benchmark designed to evaluate LLMs' abilities for vulnerability analysis of code written in the C programming language through two key di-mensions: structure reasoning-assessing how models identify relationships between code elements under varying data and control flow complexities; and semantic reasoning-examining their logical consistency in scenarios where code is structurally and semantically perturbed. Our results show that current LLMs are far from satisfactory in understanding complex code relationships and that their vulnerability analyses rely more on pattern matching than on robust logical reasoning. These findings underscore the effectiveness of the SV-TRUSTEVAL-C benchmark and highlight critical areas for enhancing the reasoning capabilities and trustworthiness of LLMs in real-world vulnerability analysis tasks. Our ini-tial benchmark dataset is available at https://huggingface.co/datasets/LLMs4CodeSecurity/SV-TrustEval-C-1.0",
+      "authors": [
+        "Yansong Li",
+        "Paula Branco",
+        "Alexander M. Hoole",
+        "Manish Marwah",
+        "Hari Manassery Koduvely",
+        "Guy-Vincent Jourdan",
+        "Stephan Jou"
+      ],
+      "primary_category": "ieee_sp",
+      "categories": [
+        "ieee_sp",
+        "security"
+      ],
+      "published": "2025-05-01T00:00:00+00:00",
+      "link": "http://arxiv.org/abs/2505.20630v1",
+      "pdf_url": "https://arxiv.org/pdf/2505.20630v1",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "ijcai-2025-895",
+      "source": "IJCAI-2025-Accepted",
+      "title": "SecV: LLM-based Secure Verilog Generation with Clue-Guided Exploration on Hardware-CWE Knowledge Graph",
+      "abstract": "",
+      "authors": [
+        "(PDF |   Details)"
+      ],
+      "primary_category": "IJCAI-2025",
+      "categories": [
+        "IJCAI-2025"
+      ],
+      "published": "2025-08-01T00:00:00+00:00",
+      "link": "https://www.ijcai.org/proceedings/2025/895",
+      "pdf_url": "https://www.ijcai.org/proceedings/2025/0895.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "anthology-2025.emnlp-main.1071",
+      "source": "EMNLP-2025-Main",
+      "title": "A Sequential Multi-Stage Approach for Code Vulnerability Detection via Confidence- and Collaboration-based Decision Making",
+      "abstract": "While large language models (LLMs) have shown strong capabilities across diverse domains, their application to code vulnerability detection holds great potential for identifying security flaws and improving software safety. In this paper, we propose a sequential multi-stage approach via confidence- and collaboration-based decision making (ConfColl). The system adopts a three-stage sequential classification framework, proceeding through a single agent, retrieval-augmented generation (RAG) with external examples, and multi-agent reasoning enhanced with RAG. The decision process selects among these strategies to balance performance and cost, with the process terminating at any stage where a high-certainty prediction is achieved. Experiments on a benchmark dataset and a low-resource language demonstrate the effectiveness of our framework in enhancing code vulnerability detection performance.",
+      "authors": [
+        "Chung-Nan Tsai",
+        "Xin Wang",
+        "Cheng-Hsiung Lee",
+        "Ching-sheng Lin"
+      ],
+      "primary_category": "EMNLP-2025-Main",
+      "categories": [
+        "EMNLP-2025-Main"
+      ],
+      "published": "2025-11-01T00:00:00+00:00",
+      "link": "https://aclanthology.org/2025.emnlp-main.1071/",
+      "pdf_url": "https://aclanthology.org/2025.emnlp-main.1071.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "ieee-sp-2024-syztrust-state-aware-fuzzing-on-trusted-os-designed-for-iot-devices",
+      "source": "IEEE-SP-2024-CSDL",
+      "title": "SyzTrust: State-aware Fuzzing on Trusted OS Designed for IoT Devices",
+      "abstract": "Trusted Execution Environments (TEEs) embedded in IoT devices provide a deployable solution to secure IoT applications at the hardware level. By design, in TEEs, the Trusted Operating System (Trusted OS) is the primary component. It enables the TEE to use security-based design techniques, such as data encryption and identity authentication. Once a Trusted OS has been exploited, the TEE can no longer ensure security. However, Trusted OSes for IoT devices have received little security analysis, which is challenging from several perspectives: (1) Trusted OSes are closed-source and have an unfavorable environment for sending test cases and collecting feedback. (2) Trusted OSes have complex data structures and require a stateful workflow, which limits existing vulnerability detection tools.To address the challenges, we present SyzTrust, the first state-aware fuzzing framework for vetting the security of resource-limited Trusted OSes. SyzTrust adopts a hardware-assisted framework to enable fuzzing Trusted OSes directly on IoT devices as well as tracking state and code coverage non-invasively. SyzTrust utilizes composite feedback to guide the fuzzer to effectively explore more states as well as to increase the code coverage. We evaluate SyzTrust on Trusted OSes from three major vendors: Samsung, Tsinglink Cloud, and Ali Cloud. These systems run on Cortex M23/33 MCUs, which provide the necessary abstraction for embedded TEEs. We discovered 70 previously unknown vulnerabilities in their Trusted OSes, receiving 10 new CVEs so far. Furthermore, compared to the baseline, SyzTrust has demonstrated significant improvements, including 66% higher code coverage, 651% higher state coverage, and 31% improved vulnerability-finding capability. We report all discovered new vulnerabilities to vendors and open source SyzTrust.",
+      "authors": [
+        "Qinying Wang",
+        "Boyu Chang",
+        "Shouling Ji",
+        "Yuan Tian",
+        "Xuhong Zhang",
+        "Binbin Zhao",
+        "Gaoning Pan",
+        "Chenyang Lyu",
+        "Mathias Payer",
+        "Wenhai Wang",
+        "Raheem Beyah"
+      ],
+      "primary_category": "ieee_sp",
+      "categories": [
+        "ieee_sp",
+        "security"
+      ],
+      "published": "2024-05-01T00:00:00+00:00",
+      "link": "https://www.computer.org/csdl/proceedings-article/sp/2024/313000a070/1RjEaG9OpTa",
+      "pdf_url": "https://www.computer.org/csdl/pds/api/csdl/proceedings/download-article/1RjEaG9OpTa/pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "ieee-sp-2024-automated-synthesis-of-effect-graph-policies-for-microservice-aware-stateful-system-call-specialization",
+      "source": "IEEE-SP-2024-CSDL",
+      "title": "Automated Synthesis of Effect Graph Policies for Microservice-Aware Stateful System Call Specialization",
+      "abstract": "We present a hybrid program analysis framework that automates the synthesis of stateful system call policies that describe admissible behaviors of containerized programs. Given a container image as input, the framework generates a reference policy that encodes a security automaton obtained by symbolically micro-executing the corresponding container's binary entrypoint under the constraints extracted from the container image metadata and environment.We demonstrate the utility and practicality of our approach by synthesizing security policies for 25 challenges in the DARPA Cyber Grand Challenge (CGC) corpus, 5 real-world containerized programs, including the widely used NGINX web server, and a complete microservice application from public benchmarks. We run each program or microservice using both benign and attack scenarios under the protection of a runtime policy monitor. Furthermore, we evaluate our approach by comparing our synthesized policies to those generated by four state-of-the-art system call specialization tools. Our results demonstrate that our techniques can scale to large programs and accurately extract concise reference application models for security monitoring.",
+      "authors": [
+        "William Blair",
+        "Frederico Araujo",
+        "Teryl Taylor",
+        "Jiyong Jang"
+      ],
+      "primary_category": "ieee_sp",
+      "categories": [
+        "ieee_sp",
+        "security"
+      ],
+      "published": "2024-05-01T00:00:00+00:00",
+      "link": "https://www.computer.org/csdl/proceedings-article/sp/2024/313000a064/1RjEaBpaMSc",
+      "pdf_url": "https://www.computer.org/csdl/pds/api/csdl/proceedings/download-article/1RjEaBpaMSc/pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "ijcai-2025-867",
+      "source": "IJCAI-2025-Accepted",
+      "title": "Advancing Embodied Agent Security: From Safety Benchmarks to Input Moderation",
+      "abstract": "",
+      "authors": [
+        "(PDF |   Details)"
+      ],
+      "primary_category": "IJCAI-2025",
+      "categories": [
+        "IJCAI-2025"
+      ],
+      "published": "2025-08-01T00:00:00+00:00",
+      "link": "https://www.ijcai.org/proceedings/2025/867",
+      "pdf_url": "https://www.ijcai.org/proceedings/2025/0867.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "anthology-2025.emnlp-main.1305",
+      "source": "EMNLP-2025-Main",
+      "title": "Subtle Risks, Critical Failures: A Framework for Diagnosing Physical Safety of LLMs for Embodied Decision Making",
+      "abstract": "Large Language Models (LLMs) are increasingly used for decision making in embodied agents, yet existing safety evaluations often rely on coarse success rates and domain-specific setups, making it difficult to diagnose why and where these models fail. This obscures our understanding of embodied safety and limits the selective deployment of LLMs in high-risk physical environments. We introduce SAFEL, the framework for systematically evaluating the physical safety of LLMs in embodied decision making. SAFEL assesses two key competencies: (1) rejecting unsafe commands via the Command Refusal Test, and (2) generating safe and executable plans via the Plan Safety Test. Critically, the latter is decomposed into functional modules, goal interpretation, transition modeling, action sequencing enabling fine-grained diagnosis of safety failures. To support this framework, we introduce EMBODYGUARD, a PDDL-grounded benchmark containing 942 LLM-generated scenarios covering both overtly malicious and contextually hazardous instructions. Evaluation across 13 state-of-the-art LLMs reveals that while models often reject clearly unsafe commands, they struggle to anticipate and mitigate subtle, situational risks. Our results highlight critical limitations in current LLMs and provide a foundation for more targeted, modular improvements in safe embodied reasoning.",
+      "authors": [
+        "Yejin Son",
+        "Minseo Kim",
+        "Sungwoong Kim",
+        "Seungju Han",
+        "Jian Kim",
+        "Dongju Jang",
+        "Youngjae Yu",
+        "Chan Young Park"
+      ],
+      "primary_category": "EMNLP-2025-Main",
+      "categories": [
+        "EMNLP-2025-Main"
+      ],
+      "published": "2025-11-01T00:00:00+00:00",
+      "link": "https://aclanthology.org/2025.emnlp-main.1305/",
+      "pdf_url": "https://aclanthology.org/2025.emnlp-main.1305.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "ijcai-2025-1189",
+      "source": "IJCAI-2025-Accepted",
+      "title": "Safety of Embodied Navigation: A Survey",
+      "abstract": "",
+      "authors": [
+        "(PDF |   Details)"
+      ],
+      "primary_category": "IJCAI-2025",
+      "categories": [
+        "IJCAI-2025"
+      ],
+      "published": "2025-08-01T00:00:00+00:00",
+      "link": "https://www.ijcai.org/proceedings/2025/1189",
+      "pdf_url": "https://www.ijcai.org/proceedings/2025/1189.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-dt940locbt",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "SafeVLA: Towards Safety Alignment of Vision-Language-Action Model via Constrained Learning",
+      "abstract": "Vision-language-action models (VLAs) show potential as generalist robot policies. However, these models pose extreme safety challenges during real-world deployment, including the risk of harm to the environment, the robot itself, and humans. *How can safety constraints be explicitly integrated into VLAs?* We address this by exploring an integrated safety approach (ISA), systematically **modeling** safety requirements, then actively **eliciting** diverse unsafe behaviors, effectively **constraining** VLA policies via safe reinforcement learning, and rigorously **assuring** their safety through targeted evaluations. Leveraging the constrained Markov decision process (CMDP) paradigm, ISA optimizes VLAs from a min-max perspective against elicited safety risks. Thus, policies aligned through this comprehensive approach achieve the following key features: (I) effective **safety-performance trade-offs**, reducing the cumulative cost of safety violations by 83.58\\% compared to the state-of-the-art method, while also maintaining task success rate (+3.85\\%). (II) strong **safety assurance**, with the ability to mitigate long-tail risks and handle extreme failure scenarios. (III) robust **generalization** of learned safety behaviors to various out-of-distribution perturbations. The effectiveness is evaluated on long-horizon mobile manipulation tasks.",
+      "authors": [
+        "Borong Zhang",
+        "Yuhao Zhang",
+        "Jiaming Ji",
+        "Yingshan Lei",
+        "Josef Dai",
+        "Yuanpei Chen",
+        "Yaodong Yang"
+      ],
+      "primary_category": "Vision-Language-Action Models",
+      "categories": [
+        "Vision-Language-Action Models",
+        "Safety Alignment",
+        "Large-Scale Constrained Learning"
+      ],
+      "published": "2025-09-18T17:40:32.713+00:00",
+      "link": "https://openreview.net/forum?id=dt940loCBT",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "ijcai-2025-1168",
+      "source": "IJCAI-2025-Accepted",
+      "title": "A Comprehensive Survey on Physical Risk Control in the Era of Foundation Model-enabled Robotics",
+      "abstract": "",
+      "authors": [
+        "(PDF |   Details)"
+      ],
+      "primary_category": "IJCAI-2025",
+      "categories": [
+        "IJCAI-2025"
+      ],
+      "published": "2025-08-01T00:00:00+00:00",
+      "link": "https://www.ijcai.org/proceedings/2025/1168",
+      "pdf_url": "https://www.ijcai.org/proceedings/2025/1168.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "anthology-2025.findings-acl.784",
+      "source": "ACL-2025-Findings",
+      "title": "Enhancing LLM Agent Safety via Causal Influence Prompting",
+      "abstract": "As autonomous agents powered by large language models (LLMs) continue to demonstrate potential across various assistive tasks, ensuring their safe and reliable behavior is crucial for preventing unintended consequences. In this work, we introduce CIP, a novel technique that leverages causal influence diagrams (CIDs) to identify and mitigate risks arising from agent decision-making. CIDs provide a structured representation of cause-and-effect relationships, enabling agents to anticipate harmful outcomes and make safer decisions. Our approach consists of three key steps: (1) initializing a CID based on task specifications to outline the decision-making process, (2) guiding agent interactions with the environment using the CID, and (3) iteratively refining the CID based on observed behaviors and outcomes. Experimental results demonstrate that our method effectively enhances safety in both code execution and mobile device control tasks.",
+      "authors": [
+        "Dongyoon Hahm",
+        "Woogyeol Jin",
+        "June Suk Choi",
+        "Sungsoo Ahn",
+        "Kimin Lee"
+      ],
+      "primary_category": "ACL-2025-Findings",
+      "categories": [
+        "ACL-2025-Findings"
+      ],
+      "published": "2025-07-01T00:00:00+00:00",
+      "link": "https://aclanthology.org/2025.findings-acl.784/",
+      "pdf_url": "https://aclanthology.org/2025.findings-acl.784.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-qbpb7g1sea",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "Let a Neural Network be Your Invariant",
+      "abstract": "Safety verification ensures that a system avoids undesired behaviour. \nLiveness complements safety, ensuring that the system also achieves its\ndesired objectives.  A complete specification of functional correctness must\ncombine both safety and liveness.  Proving with mathematical\ncertainty that a system satisfies a safety property demands presenting an\nappropriate inductive invariant of the system, whereas proving liveness\nrequires showing a measure of progress witnessed by a ranking function. \nNeural model checking has recently introduced a data-driven approach to the\nformal verification of reactive systems, albeit focusing on ranking\nfunctions and thus addressing liveness properties only.  In this paper, we\nextend and generalise neural model checking to additionally encompass\ninductive invariants and thus safety properties as well.  Given a system and\na linear temporal logic specification of safety and liveness, our approach\nalternates a learning and a checking component towards the construction of a\nprovably sound neural certificate.  Our new method introduces a neural\ncertificate architecture that jointly represents inductive invariants as\nproofs of safety, and ranking functions as proofs of liveness.  Moreover,\nour new architecture is amenable to training using constraint solvers,\naccelerating prior neural model checking work otherwise based on gradient\ndescent. We experimentally demonstrate that our method is orders of\nmagnitude faster than the state-of-the-art model checkers on pure liveness\nand combined safety and liveness verification tasks written in\nSystemVerilog, while enabling the verification of richer properties than was\npreviously possible for neural model checking.",
+      "authors": [
+        "Mirco Giacobbe",
+        "Daniel Kroening",
+        "Abhinandan Pal",
+        "Michael Tautschnig"
+      ],
+      "primary_category": "Neural Model Checking",
+      "categories": [
+        "Neural Model Checking",
+        "Inductive Invariants",
+        "Safety Verification"
+      ],
+      "published": "2025-09-18T17:43:18.535+00:00",
+      "link": "https://openreview.net/forum?id=qBPb7g1SEa",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries",
+      "source": "NDSS-2026-Accepted",
+      "title": "Automated Code Annotation with LLMs for Establishing TEE Boundaries",
+      "abstract": "Modern systems increasingly rely on Trusted Execution Environments (TEEs), such as Intel SGX and ARM TrustZone, to securely isolate sensitive code and reduce the Trusted Computing Base (TCB). However, identifying the precise regions of code especially those involving cryptographic logic that should reside within a TEE remains challenging, as it requires deep manual inspection and is not supported by automated tools yet. To solve this open problem, we propose LLM based Code Annotation Logic (LLM-CAL), a tool that automates the identification of security-sensitive code regions with a focus on cryptographic implementations by leveraging most recent and advanced Large Language Models (LLMs). Our approach leverages foundational LLMs (Gemma-2B, CodeGemma-2B, and LLaMA7B), which we fine-tuned using a newly collected and manually labeled dataset of over 4,000 C source files. We encode local context features, global semantic information, and structural metadata into compact input sequences that guide the model in capturing subtle patterns of security sensitivity in code. The fine-tuning process is based on quantized LoRA—a parameter-efficient technique that introduces lightweight, trainable adapters into the LLM architecture. To support practical deployment, we developed a scalable pipeline for data preprocessing and inference. LLM-CAL achieves an F1 score of 98.40% and a recall of 97.50% in identifying sensitive and non-sensitive code. It represents the first effort to automate the annotation of cryptographic security-sensitive code for TEE-enabled platforms, aiming to minimize the Trusted Computing Base (TCB) and optimize TEE usage to enhance overall system security.",
+      "authors": [
+        "Varun Gadey",
+        "Melanie Melanie Gotz",
+        "Christoph Sendner",
+        "Sampo Sovio",
+        "Alexandra Dmitrienko"
+      ],
+      "primary_category": "ndss",
+      "categories": [
+        "ndss",
+        "security"
+      ],
+      "published": "2026-01-01T00:00:00+00:00",
+      "link": "https://www.ndss-symposium.org/ndss-paper/automated-code-annotation-with-llms-for-establishing-tee-boundaries/",
+      "pdf_url": "https://www.ndss-symposium.org/wp-content/uploads/2026-s709-paper.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "anthology-2025.acl-long.1490",
+      "source": "ACL-2025-Long",
+      "title": "Benchmarking LLMs and LLM-based Agents in Practical Vulnerability Detection for Code Repositories",
+      "abstract": "Large Language Models (LLMs) have shown promise in software vulnerability detection, particularly on function-level benchmarks like Devign and BigVul. However, real-world detection requires interprocedural analysis, as vulnerabilities often emerge through multi-hop function calls rather than isolated functions. While repository-level benchmarks like ReposVul and VulEval introduce interprocedural context, they remain computationally expensive, lack pairwise evaluation of vulnerability fixes, and explore limited context retrieval, limiting their practicality.We introduce JITVul, a JIT vulnerability detection benchmark linking each function to its vulnerability-introducing and fixing commits. Built from 879 CVEs spanning 91 vulnerability types, JITVul enables comprehensive evaluation of detection capabilities. Our results show that ReAct Agents, leveraging thought-action-observation and interprocedural context, perform better than LLMs in distinguishing vulnerable from benign code. While prompting strategies like Chain-of-Thought help LLMs, ReAct Agents require further refinement. Both methods show inconsistencies, either misidentifying vulnerabilities or over-analyzing security guards, indicating significant room for improvement.",
+      "authors": [
+        "Alperen Yildiz",
+        "Sin G Teo",
+        "Yiling Lou",
+        "Yebo Feng",
+        "Chong Wang",
+        "Dinil Mon Divakaran"
+      ],
+      "primary_category": "ACL-2025-Long",
+      "categories": [
+        "ACL-2025-Long"
+      ],
+      "published": "2025-07-01T00:00:00+00:00",
+      "link": "https://aclanthology.org/2025.acl-long.1490/",
+      "pdf_url": "https://aclanthology.org/2025.acl-long.1490.pdf",
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-icml-2025-jsybqtojs4",
+      "source": "ICML-2025-Accepted",
+      "title": "Black-Box Adversarial Attacks on LLM-Based Code Completion",
+      "abstract": "Modern code completion engines, powered by large language models (LLMs), assist millions of developers with their strong capabilities to generate functionally correct code. Due to this popularity, it is crucial to investigate the security implications of relying on LLM-based code completion. In this work, we demonstrate that state-of-the-art black-box LLM-based code completion engines can be stealthily biased by adversaries to significantly increase their rate of insecure code generation. We present the first attack, named INSEC, that achieves this goal. INSEC works by injecting an attack string as a short comment in the completion input. The attack string is crafted through a query-based optimization procedure starting from a set of carefully designed initialization schemes. We demonstrate INSEC's broad applicability and effectiveness by evaluating it on various state-of-the-art open-source models and black-box commercial services (e.g., OpenAI API and GitHub Copilot). On a diverse set of security-critical test cases, covering 16 CWEs across 5 programming languages, INSEC increases the rate of generated insecure code by more than 50%, while maintaining the functional correctness of generated code. We consider INSEC practical - it requires low resources and costs less than 10 US dollars to develop on commodity hardware. Moreover, we showcase the attack's real-world deployability, by developing an IDE plug-in that stealthily injects INSEC into the GitHub Copilot extension.",
+      "authors": [
+        "Slobodan Jenko",
+        "Niels Mündler",
+        "Jingxuan He",
+        "Mark Vero",
+        "Martin Vechev"
+      ],
+      "primary_category": "code completion",
+      "categories": [
+        "code completion",
+        "security",
+        "code security",
+        "adversarial attacks",
+        "black-box",
+        "large language models",
+        "large language model"
+      ],
+      "published": "2025-05-01T13:16:43.942+00:00",
+      "link": "https://openreview.net/forum?id=jSYBqtOJS4",
+      "pdf_url": null,
+      "tags": [
+        "keyword:safe-coding",
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "anthology-2025.findings-emnlp.1041",
+      "source": "EMNLP-2025-Findings",
+      "title": "Localizing Malicious Outputs from CodeLLM",
+      "abstract": "We introduce FreqRank, a mutation-based defense to localize malicious components in LLM outputs and their corresponding backdoor triggers. FreqRank assumes that the malicious sub-string(s) consistently appear in outputs for triggered inputs and uses a frequency-based ranking system to identify them. Our ranking system then leverages this knowledge to localize the backdoor triggers present in the inputs. We create nine malicious models through fine-tuning or custom instructions for three downstream tasks, namely, code completion (CC), code generation (CG), and code summarization (CS), and show that they have an average attack success rate (ASR) of 86.6%. Furthermore, FreqRank’s ranking system highlights the malicious outputs as one of the top five suggestions in 98% of cases. We also demonstrate that FreqRank’s effectiveness scales as the number of mutants increases and show that FreqRank is capable of localizing the backdoor trigger effectively even with a limited number of triggered samples. Finally, we show that our approach is 35-50% more effective than other defense methods.",
+      "authors": [
+        "Mayukh Borana",
+        "Junyi Liang",
+        "Sai Sathiesh Rajan",
+        "Sudipta Chattopadhyay"
+      ],
+      "primary_category": "EMNLP-2025-Findings",
+      "categories": [
+        "EMNLP-2025-Findings"
+      ],
+      "published": "2025-11-01T00:00:00+00:00",
+      "link": "https://aclanthology.org/2025.findings-emnlp.1041/",
+      "pdf_url": "https://aclanthology.org/2025.findings-emnlp.1041.pdf",
+      "tags": [
+        "keyword:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-neurips-2025-nzwjvpco4f",
+      "source": "NeurIPS-2025-Accepted",
+      "title": "InstructFlow: Adaptive Symbolic Constraint-Guided Code Generation for Long-Horizon Planning",
+      "abstract": "Long-horizon planning in robotic manipulation tasks requires translating underspecified, symbolic goals into executable control programs satisfying spatial, temporal, and physical constraints. However, language model-based planners often struggle with long-horizon task decomposition, robust constraint satisfaction, and adaptive failure recovery. We introduce InstructFlow, a multi-agent framework that establishes a symbolic, feedback-driven flow of information for code generation in robotic manipulation tasks. InstructFlow employs a InstructFlow Planner to construct and traverse a hierarchical instruction graph that decomposes goals into semantically meaningful subtasks, while a Code Generator generates executable code snippets conditioned on this graph. Crucially, when execution failures occur, a Constraint Generator analyzes feedback and induces symbolic constraints, which are propagated back into the instruction graph to guide targeted code refinement without regenerating from scratch. This dynamic, graph-guided flow enables structured, interpretable, and failure-resilient planning, significantly improving task success rates and robustness across diverse manipulation benchmarks, especially in constraint-sensitive and long-horizon scenarios.",
+      "authors": [
+        "Haotian Chi",
+        "Zeyu Feng",
+        "Yueming Lyu",
+        "Chengqi Zheng",
+        "Linbo Luo",
+        "Yew-Soon Ong",
+        "Ivor Tsang",
+        "Hechang Chen",
+        "Yi Chang",
+        "Haiyan Yin"
+      ],
+      "primary_category": "Code generation; Task planning; Large language models",
+      "categories": [
+        "Code generation; Task planning; Large language models"
+      ],
+      "published": "2025-09-18T17:42:35.308+00:00",
+      "link": "https://openreview.net/forum?id=nzwjvpCO4F",
+      "pdf_url": null,
+      "tags": [
+        "query:safe-coding"
+      ]
+    },
+    {
+      "id": "openreview-icml-2024-kvim5k8pcp",
+      "source": "ICML-2024-Public",
+      "title": "AI Control: Improving Safety Despite Intentional Subversion",
+      "abstract": "As large language models (LLMs) become more powerful and are deployed more autonomously, it will be increasingly important to prevent them from causing harmful outcomes. To do so, safety measures either aim at making LLMs try to avoid harmful outcomes or aim at preventing LLMs from causing harmful outcomes, even if they try to cause them. In this paper, we focus on this second layer of defense. We develop and evaluate pipelines of safety techniques (protocols) that try to ensure safety despite intentional subversion - an approach we call AI control. We investigate a setting in which we want to solve a sequence of programming problems without ever submitting subtly wrong code, using access to a powerful but untrusted model (in our case, GPT-4), access to a less powerful trusted model (in our case, GPT-3.5), and limited access to high-quality trusted labor. We investigate a range of protocols and red-team them by exploring strategies that the untrusted model could use to subvert them. We find that using the trusted model to edit untrusted-model code or using the untrusted model as a monitor substantially improves on simple baselines.",
+      "authors": [
+        "Ryan Greenblatt",
+        "Buck Shlegeris",
+        "Kshitij Sachan",
+        "Fabien Roger"
+      ],
+      "primary_category": "ICML.cc/2024/Conference",
+      "categories": [],
+      "published": "2024-05-02T00:39:19.237+00:00",
+      "link": "https://openreview.net/forum?id=KviM5k8pcP",
+      "pdf_url": null,
+      "tags": [
+        "query:safe-coding"
+      ]
+    }
+  ],
+  "queries": [
+    {
+      "type": "intent_query",
+      "tag": "safe-coding",
+      "paper_tag": "query:safe-coding",
+      "query_text": "ensuring security and safety in AI generated code",
+      "sim_scores": {
+        "ijcai-2025-895": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-vuoy5kacg5": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-neurips-2025-qqhqiqons0": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "ijcai-2025-867": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-icml-2025-jsybqtojs4": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "openreview-icml-2024-kvim5k8pcp": {
+          "score": 0.013888888888888888,
+          "rank": 12
+        },
+        "openreview-icml-2024-mgtzmayhvg": {
+          "score": 0.0136986301369863,
+          "rank": 13
+        },
+        "openreview-neurips-2025-3nza35a6i4": {
+          "score": 0.012987012987012988,
+          "rank": 17
+        },
+        "openreview-icml-2025-ym19zwky7w": {
+          "score": 0.012345679012345678,
+          "rank": 21
+        },
+        "anthology-2025.acl-long.849": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection": {
+          "score": 0.011904761904761904,
+          "rank": 24
+        },
+        "ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "anthology-2025.acl-long.1490": {
+          "score": 0.010869565217391304,
+          "rank": 32
+        },
+        "openreview-icml-2025-tu8qkx4dmi": {
+          "score": 0.010752688172043012,
+          "rank": 33
+        },
+        "openreview-icml-2025-il3krr4h9u": {
+          "score": 0.010526315789473684,
+          "rank": 35
+        },
+        "openreview-neurips-2025-cl45xdncok": {
+          "score": 0.01020408163265306,
+          "rank": 38
+        },
+        "anthology-2025.emnlp-main.1071": {
+          "score": 0.009523809523809525,
+          "rank": 45
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-icml-2025-ym19zwky7w",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-icml-2024-mgtzmayhvg",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-3nza35a6i4",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-icml-2025-jsybqtojs4",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "anthology-2025.acl-long.849",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "anthology-2025.emnlp-main.1305",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-vuoy5kacg5",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2024-kvim5k8pcp",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.findings-emnlp.1219",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.emnlp-main.1071",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-gp2vgxwroe",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-qqhqiqons0",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.findings-acl.1197",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.findings-acl.784",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-qbpb7g1sea",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ijcai-2025-867",
+          "score": 0.6388587937883712,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ijcai-2025-895",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.findings-emnlp.1041",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2025-tu8qkx4dmi",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2025-il3krr4h9u",
+          "score": 0.49392712550607265,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ndss-2025-propertygpt-llm-driven-formal-verification-of-smart-contracts-through-retrieval-augmented-property-generation",
+          "score": 0.49392712550607265,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ieee-sp-2025-sv-trusteval-c-evaluating-structure-and-semantic-reasoning-in-large-language-models-for-source-code-vulnerability-analys",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-vac4sa96ei",
+          "score": 0.4411571334648256,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-icml-2025-dkryimuqa9",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "aaai-2025-34604",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "anthology-2025.acl-long.1490",
+          "score": 0.3668882557771445,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ieee-sp-2024-automated-synthesis-of-effect-graph-policies-for-microservice-aware-stateful-system-call-specialization",
+          "score": 0.32035835650293487,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-dt940locbt",
+          "score": 0.25462134764460337,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-cl45xdncok",
+          "score": 0.1933160472486314,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ly5dnrigcz",
+          "score": 0.15469146238377016,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-nzwjvpco4f",
+          "score": 0.15469146238377016,
+          "star_rating": 3
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "safe-coding",
+      "paper_tag": "query:safe-coding",
+      "query_text": "methods for secure software development in autonomous robotics",
+      "sim_scores": {
+        "ijcai-2025-867": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "ijcai-2025-895": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "ndss-2025-tz-datashield-automated-data-protection-for-embedded-systems-via-data-flow-based-compartmentalization": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "openreview-neurips-2025-qqhqiqons0": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "openreview-neurips-2025-vuoy5kacg5": {
+          "score": 0.013888888888888888,
+          "rank": 12
+        },
+        "ndss-2026-adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles": {
+          "score": 0.012987012987012988,
+          "rank": 17
+        },
+        "ieee-sp-2024-automated-synthesis-of-effect-graph-policies-for-microservice-aware-stateful-system-call-specialization": {
+          "score": 0.012658227848101266,
+          "rank": 19
+        },
+        "ijcai-2025-1168": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "openreview-icml-2025-dkryimuqa9": {
+          "score": 0.012345679012345678,
+          "rank": 21
+        },
+        "openreview-neurips-2025-dt940locbt": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2025-cl45xdncok": {
+          "score": 0.01,
+          "rank": 40
+        },
+        "openreview-neurips-2025-nzwjvpco4f": {
+          "score": 0.009900990099009901,
+          "rank": 41
+        },
+        "ieee-sp-2024-syztrust-state-aware-fuzzing-on-trusted-os-designed-for-iot-devices": {
+          "score": 0.009615384615384616,
+          "rank": 44
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "ndss-2026-adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-dt940locbt",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "ndss-2025-tz-datashield-automated-data-protection-for-embedded-systems-via-data-flow-based-compartmentalization",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "anthology-2025.findings-emnlp.1219",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-cl45xdncok",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-nzwjvpco4f",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "ijcai-2025-1168",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2024-kvim5k8pcp",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-vac4sa96ei",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2025-dkryimuqa9",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ijcai-2025-867",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ijcai-2025-895",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.emnlp-main.1071",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ieee-sp-2024-syztrust-state-aware-fuzzing-on-trusted-os-designed-for-iot-devices",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-3nza35a6i4",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-vuoy5kacg5",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-qbpb7g1sea",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.emnlp-main.1305",
+          "score": 0.6388587937883712,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-qqhqiqons0",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ieee-sp-2024-automated-synthesis-of-effect-graph-policies-for-microservice-aware-stateful-system-call-specialization",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2024-mgtzmayhvg",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2025-il3krr4h9u",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2025-tu8qkx4dmi",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-icml-2025-ym19zwky7w",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ijcai-2025-1189",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "anthology-2025.findings-acl.784",
+          "score": 0.32035835650293487,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ly5dnrigcz",
+          "score": 0.29792429792429775,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-gp2vgxwroe",
+          "score": 0.25462134764460337,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ndss-2025-propertygpt-llm-driven-formal-verification-of-smart-contracts-through-retrieval-augmented-property-generation",
+          "score": 0.23371647509578536,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "aaai-2025-34604",
+          "score": 0.15469146238377016,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias",
+          "score": 0.0823211875843454,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "anthology-2025.acl-long.849",
+          "score": 0.015799015799015898,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "openreview-icml-2025-jsybqtojs4",
+          "score": 0.0,
+          "star_rating": 1
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "safe-coding",
+      "paper_tag": "query:safe-coding",
+      "query_text": "safe code generation techniques for embodied intelligent systems",
+      "sim_scores": {
+        "ijcai-2025-867": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-vac4sa96ei": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "anthology-2025.emnlp-main.1305": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "ijcai-2025-895": {
+          "score": 0.014084507042253521,
+          "rank": 11
+        },
+        "openreview-neurips-2025-nzwjvpco4f": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2025-cl45xdncok": {
+          "score": 0.013333333333333334,
+          "rank": 15
+        },
+        "openreview-neurips-2025-vuoy5kacg5": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "anthology-2025.findings-acl.784": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "openreview-neurips-2025-qbpb7g1sea": {
+          "score": 0.00980392156862745,
+          "rank": 42
+        },
+        "ijcai-2025-1189": {
+          "score": 0.009523809523809525,
+          "rank": 45
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-icml-2024-mgtzmayhvg",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-vac4sa96ei",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-vuoy5kacg5",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-nzwjvpco4f",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "anthology-2025.emnlp-main.1305",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-3nza35a6i4",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ijcai-2025-895",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-gp2vgxwroe",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ijcai-2025-867",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2025-ym19zwky7w",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.findings-emnlp.1219",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2025-tu8qkx4dmi",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ijcai-2025-1189",
+          "score": 0.6388587937883712,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.emnlp-main.1071",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.findings-acl.1197",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2024-kvim5k8pcp",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.findings-acl.784",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.acl-long.849",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-cl45xdncok",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2025-jsybqtojs4",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-icml-2025-il3krr4h9u",
+          "score": 0.4411571334648256,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ly5dnrigcz",
+          "score": 0.4411571334648256,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-qqhqiqons0",
+          "score": 0.41577409931840303,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ndss-2025-propertygpt-llm-driven-formal-verification-of-smart-contracts-through-retrieval-augmented-property-generation",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "aaai-2025-34604",
+          "score": 0.3668882557771445,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-dt940locbt",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries",
+          "score": 0.32035835650293487,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-icml-2025-dkryimuqa9",
+          "score": 0.29792429792429775,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ieee-sp-2024-automated-synthesis-of-effect-graph-policies-for-microservice-aware-stateful-system-call-specialization",
+          "score": 0.2760180995475112,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ieee-sp-2025-sv-trusteval-c-evaluating-structure-and-semantic-reasoning-in-large-language-models-for-source-code-vulnerability-analys",
+          "score": 0.25462134764460337,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "anthology-2025.findings-emnlp.1041",
+          "score": 0.23371647509578536,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias",
+          "score": 0.21328671328671328,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases",
+          "score": 0.1933160472486314,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-qbpb7g1sea",
+          "score": 0.15469146238377016,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ndss-2025-tz-datashield-automated-data-protection-for-embedded-systems-via-data-flow-based-compartmentalization",
+          "score": 0.1360089186176142,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ndss-2026-adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles",
+          "score": 0.0483743061062648,
+          "star_rating": 2
+        },
+        {
+          "paper_id": "ijcai-2025-1168",
+          "score": 0.0,
+          "star_rating": 1
+        }
+      ]
+    },
+    {
+      "type": "intent_query",
+      "tag": "safe-coding",
+      "paper_tag": "query:safe-coding",
+      "query_text": "safety verification for code produced by language models",
+      "sim_scores": {
+        "anthology-2025.findings-acl.1197": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        },
+        "openreview-icml-2024-mgtzmayhvg": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "anthology-2025.acl-long.849": {
+          "score": 0.01282051282051282,
+          "rank": 18
+        },
+        "openreview-neurips-2025-3nza35a6i4": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "openreview-icml-2024-kvim5k8pcp": {
+          "score": 0.011904761904761904,
+          "rank": 24
+        },
+        "openreview-icml-2025-ym19zwky7w": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        },
+        "anthology-2025.acl-long.1490": {
+          "score": 0.010869565217391304,
+          "rank": 32
+        },
+        "openreview-neurips-2025-qbpb7g1sea": {
+          "score": 0.010752688172043012,
+          "rank": 33
+        },
+        "openreview-neurips-2025-vuoy5kacg5": {
+          "score": 0.010309278350515464,
+          "rank": 37
+        },
+        "ieee-sp-2025-sv-trusteval-c-evaluating-structure-and-semantic-reasoning-in-large-language-models-for-source-code-vulnerability-analys": {
+          "score": 0.00909090909090909,
+          "rank": 50
+        }
+      },
+      "ranked": [
+        {
+          "paper_id": "openreview-icml-2024-mgtzmayhvg",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "anthology-2025.findings-acl.1197",
+          "score": 1.0,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-icml-2025-tu8qkx4dmi",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-gp2vgxwroe",
+          "score": 0.9586435070306036,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-icml-2025-ym19zwky7w",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "anthology-2025.emnlp-main.1305",
+          "score": 0.9185999185999183,
+          "star_rating": 5
+        },
+        {
+          "paper_id": "openreview-neurips-2025-qbpb7g1sea",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-vuoy5kacg5",
+          "score": 0.8798076923076922,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "aaai-2025-34604",
+          "score": 0.8422090729783037,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.acl-long.849",
+          "score": 0.8057498057498057,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.emnlp-main.1071",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2024-kvim5k8pcp",
+          "score": 0.7703788748564866,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ndss-2025-propertygpt-llm-driven-formal-verification-of-smart-contracts-through-retrieval-augmented-property-generation",
+          "score": 0.73604826546003,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2025-dkryimuqa9",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ieee-sp-2025-sv-trusteval-c-evaluating-structure-and-semantic-reasoning-in-large-language-models-for-source-code-vulnerability-analys",
+          "score": 0.702712746191007,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-qqhqiqons0",
+          "score": 0.6703296703296702,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-3nza35a6i4",
+          "score": 0.6388587937883712,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-vac4sa96ei",
+          "score": 0.608262108262108,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-icml-2025-jsybqtojs4",
+          "score": 0.578503688092729,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "openreview-neurips-2025-ly5dnrigcz",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias",
+          "score": 0.5495495495495496,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.findings-acl.784",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.acl-long.1490",
+          "score": 0.5213675213675214,
+          "star_rating": 4
+        },
+        {
+          "paper_id": "anthology-2025.findings-emnlp.1219",
+          "score": 0.49392712550607265,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries",
+          "score": 0.46719946719946726,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection",
+          "score": 0.41577409931840303,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "anthology-2025.findings-emnlp.1041",
+          "score": 0.3910256410256411,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-icml-2025-il3krr4h9u",
+          "score": 0.3668882557771445,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-dt940locbt",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ijcai-2025-895",
+          "score": 0.3433395872420263,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-cl45xdncok",
+          "score": 0.2760180995475112,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ijcai-2025-867",
+          "score": 0.23371647509578536,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "openreview-neurips-2025-nzwjvpco4f",
+          "score": 0.11772814998621459,
+          "star_rating": 3
+        },
+        {
+          "paper_id": "ieee-sp-2024-automated-synthesis-of-effect-graph-policies-for-microservice-aware-stateful-system-call-specialization",
+          "score": 0.0483743061062648,
+          "star_rating": 2
+        }
+      ]
+    },
+    {
+      "type": "keyword",
+      "tag": "safe-coding",
+      "paper_tag": "keyword:safe-coding",
+      "query_text": "automated code safety",
+      "sim_scores": {
+        "ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "anthology-2025.findings-emnlp.1219": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "safe-coding",
+      "paper_tag": "keyword:safe-coding",
+      "query_text": "automated techniques to ensure code safety",
+      "sim_scores": {
+        "ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "openreview-icml-2024-mgtzmayhvg": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "anthology-2025.findings-emnlp.1041": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "anthology-2025.acl-long.1490": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2025-qqhqiqons0": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "anthology-2025.emnlp-main.1071": {
+          "score": 0.013157894736842105,
+          "rank": 16
+        },
+        "anthology-2025.acl-long.849": {
+          "score": 0.012658227848101266,
+          "rank": 19
+        },
+        "openreview-neurips-2025-vuoy5kacg5": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "openreview-icml-2025-ym19zwky7w": {
+          "score": 0.011494252873563218,
+          "rank": 27
+        },
+        "ieee-sp-2025-sv-trusteval-c-evaluating-structure-and-semantic-reasoning-in-large-language-models-for-source-code-vulnerability-analys": {
+          "score": 0.011235955056179775,
+          "rank": 29
+        },
+        "ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "safe-coding",
+      "paper_tag": "keyword:safe-coding",
+      "query_text": "code generation verification",
+      "sim_scores": {
+        "aaai-2025-34604": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-icml-2025-tu8qkx4dmi": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2025-gp2vgxwroe": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "openreview-neurips-2025-vac4sa96ei": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "openreview-icml-2025-dkryimuqa9": {
+          "score": 0.012987012987012988,
+          "rank": 17
+        },
+        "openreview-neurips-2025-ly5dnrigcz": {
+          "score": 0.012345679012345678,
+          "rank": 21
+        },
+        "openreview-neurips-2025-cl45xdncok": {
+          "score": 0.010526315789473684,
+          "rank": 35
+        },
+        "ndss-2025-propertygpt-llm-driven-formal-verification-of-smart-contracts-through-retrieval-augmented-property-generation": {
+          "score": 0.010309278350515464,
+          "rank": 37
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "safe-coding",
+      "paper_tag": "keyword:safe-coding",
+      "query_text": "code security verification",
+      "sim_scores": {
+        "ndss-2025-propertygpt-llm-driven-formal-verification-of-smart-contracts-through-retrieval-augmented-property-generation": {
+          "score": 0.013888888888888888,
+          "rank": 12
+        },
+        "ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases": {
+          "score": 0.0136986301369863,
+          "rank": 13
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "safe-coding",
+      "paper_tag": "keyword:safe-coding",
+      "query_text": "embodied intelligence safety",
+      "sim_scores": {}
+    },
+    {
+      "type": "keyword",
+      "tag": "safe-coding",
+      "paper_tag": "keyword:safe-coding",
+      "query_text": "generation of code that adheres to safety specifications",
+      "sim_scores": {
+        "openreview-icml-2024-mgtzmayhvg": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection": {
+          "score": 0.015151515151515152,
+          "rank": 6
+        },
+        "openreview-neurips-2025-vuoy5kacg5": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        },
+        "openreview-neurips-2025-3nza35a6i4": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "openreview-icml-2025-tu8qkx4dmi": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "openreview-icml-2025-ym19zwky7w": {
+          "score": 0.011764705882352941,
+          "rank": 25
+        },
+        "anthology-2025.acl-long.849": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "ieee-sp-2025-sv-trusteval-c-evaluating-structure-and-semantic-reasoning-in-large-language-models-for-source-code-vulnerability-analys": {
+          "score": 0.011111111111111112,
+          "rank": 30
+        },
+        "ijcai-2025-895": {
+          "score": 0.01,
+          "rank": 40
+        },
+        "anthology-2025.emnlp-main.1071": {
+          "score": 0.009615384615384616,
+          "rank": 44
+        },
+        "openreview-neurips-2025-cl45xdncok": {
+          "score": 0.009345794392523364,
+          "rank": 47
+        },
+        "openreview-neurips-2025-qqhqiqons0": {
+          "score": 0.00909090909090909,
+          "rank": 50
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "safe-coding",
+      "paper_tag": "keyword:safe-coding",
+      "query_text": "practices for developing secure software applications",
+      "sim_scores": {
+        "ijcai-2025-895": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "ieee-sp-2024-syztrust-state-aware-fuzzing-on-trusted-os-designed-for-iot-devices": {
+          "score": 0.014084507042253521,
+          "rank": 11
+        },
+        "openreview-neurips-2025-qqhqiqons0": {
+          "score": 0.013888888888888888,
+          "rank": 12
+        },
+        "ieee-sp-2024-automated-synthesis-of-effect-graph-policies-for-microservice-aware-stateful-system-call-specialization": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases": {
+          "score": 0.010101010101010102,
+          "rank": 39
+        },
+        "ndss-2025-tz-datashield-automated-data-protection-for-embedded-systems-via-data-flow-based-compartmentalization": {
+          "score": 0.009900990099009901,
+          "rank": 41
+        },
+        "openreview-neurips-2025-vuoy5kacg5": {
+          "score": 0.009615384615384616,
+          "rank": 44
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "safe-coding",
+      "paper_tag": "keyword:safe-coding",
+      "query_text": "safe code generation",
+      "sim_scores": {
+        "openreview-neurips-2025-vuoy5kacg5": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "anthology-2025.findings-emnlp.1219": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "anthology-2025.findings-acl.1197": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2025-qqhqiqons0": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "safe-coding",
+      "paper_tag": "keyword:safe-coding",
+      "query_text": "safety considerations in embodied artificial intelligence systems",
+      "sim_scores": {
+        "ijcai-2025-867": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "anthology-2025.emnlp-main.1305": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "ijcai-2025-1189": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2025-vac4sa96ei": {
+          "score": 0.015384615384615385,
+          "rank": 5
+        },
+        "openreview-neurips-2025-dt940locbt": {
+          "score": 0.014084507042253521,
+          "rank": 11
+        },
+        "ijcai-2025-1168": {
+          "score": 0.0136986301369863,
+          "rank": 13
+        },
+        "anthology-2025.findings-acl.784": {
+          "score": 0.013333333333333334,
+          "rank": 15
+        },
+        "anthology-2025.findings-emnlp.1219": {
+          "score": 0.012345679012345678,
+          "rank": 21
+        },
+        "openreview-neurips-2025-qbpb7g1sea": {
+          "score": 0.012048192771084338,
+          "rank": 23
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "safe-coding",
+      "paper_tag": "keyword:safe-coding",
+      "query_text": "secure software development",
+      "sim_scores": {
+        "openreview-icml-2025-il3krr4h9u": {
+          "score": 0.01639344262295082,
+          "rank": 1
+        },
+        "openreview-neurips-2025-qqhqiqons0": {
+          "score": 0.014492753623188406,
+          "rank": 9
+        },
+        "ndss-2025-tz-datashield-automated-data-protection-for-embedded-systems-via-data-flow-based-compartmentalization": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "ndss-2026-adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles": {
+          "score": 0.01098901098901099,
+          "rank": 31
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "safe-coding",
+      "paper_tag": "keyword:safe-coding",
+      "query_text": "verification methods for code generated by AI",
+      "sim_scores": {
+        "openreview-neurips-2025-cl45xdncok": {
+          "score": 0.015873015873015872,
+          "rank": 3
+        },
+        "openreview-icml-2025-tu8qkx4dmi": {
+          "score": 0.014285714285714285,
+          "rank": 10
+        },
+        "openreview-neurips-2025-ly5dnrigcz": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "openreview-neurips-2025-qbpb7g1sea": {
+          "score": 0.013333333333333334,
+          "rank": 15
+        },
+        "openreview-neurips-2025-3nza35a6i4": {
+          "score": 0.01282051282051282,
+          "rank": 18
+        },
+        "openreview-neurips-2025-gp2vgxwroe": {
+          "score": 0.012658227848101266,
+          "rank": 19
+        },
+        "aaai-2025-34604": {
+          "score": 0.01098901098901099,
+          "rank": 31
+        },
+        "openreview-neurips-2025-vuoy5kacg5": {
+          "score": 0.010416666666666666,
+          "rank": 36
+        }
+      }
+    },
+    {
+      "type": "keyword",
+      "tag": "safe-coding",
+      "paper_tag": "keyword:safe-coding",
+      "query_text": "verification of code to prevent security vulnerabilities",
+      "sim_scores": {
+        "ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases": {
+          "score": 0.016129032258064516,
+          "rank": 2
+        },
+        "ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection": {
+          "score": 0.015625,
+          "rank": 4
+        },
+        "openreview-neurips-2025-vuoy5kacg5": {
+          "score": 0.014925373134328358,
+          "rank": 7
+        },
+        "anthology-2025.acl-long.849": {
+          "score": 0.014705882352941176,
+          "rank": 8
+        },
+        "openreview-neurips-2025-qqhqiqons0": {
+          "score": 0.013513513513513514,
+          "rank": 14
+        },
+        "ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries": {
+          "score": 0.0125,
+          "rank": 20
+        },
+        "anthology-2025.acl-long.1490": {
+          "score": 0.012195121951219513,
+          "rank": 22
+        },
+        "openreview-icml-2025-jsybqtojs4": {
+          "score": 0.011627906976744186,
+          "rank": 26
+        },
+        "ijcai-2025-895": {
+          "score": 0.010869565217391304,
+          "rank": 32
+        },
+        "ieee-sp-2024-automated-synthesis-of-effect-graph-policies-for-microservice-aware-stateful-system-call-specialization": {
+          "score": 0.010416666666666666,
+          "rank": 36
+        },
+        "openreview-icml-2025-tu8qkx4dmi": {
+          "score": 0.010309278350515464,
+          "rank": 37
+        },
+        "openreview-icml-2025-ym19zwky7w": {
+          "score": 0.01020408163265306,
+          "rank": 38
+        },
+        "anthology-2025.emnlp-main.1071": {
+          "score": 0.010101010101010102,
+          "rank": 39
+        },
+        "anthology-2025.findings-emnlp.1041": {
+          "score": 0.01,
+          "rank": 40
+        },
+        "openreview-icml-2024-mgtzmayhvg": {
+          "score": 0.009900990099009901,
+          "rank": 41
+        },
+        "ieee-sp-2024-syztrust-state-aware-fuzzing-on-trusted-os-designed-for-iot-devices": {
+          "score": 0.009433962264150943,
+          "rank": 46
+        }
+      }
+    }
+  ],
+  "global_candidate_ids": [
+    "ijcai-2025-895",
+    "openreview-neurips-2025-vuoy5kacg5",
+    "ijcai-2025-867",
+    "openreview-neurips-2025-vac4sa96ei",
+    "openreview-neurips-2025-91h9csvdwl",
+    "anthology-2025.findings-acl.66",
+    "ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias",
+    "anthology-2025.findings-emnlp.1219",
+    "ijcai-2025-814",
+    "ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection",
+    "anthology-2025.acl-long.621",
+    "ndss-2026-protocolguard-detecting-protocol-non-compliance-bugs-via-llm-guided-static-analysis-and-dynamic-verification",
+    "ndss-2024-abusing-the-ethereum-smart-contract-verification-services-for-fun-and-profit",
+    "ndss-2025-llmpirate-llms-for-black-box-hardware-ip-piracy",
+    "anthology-2025.acl-long.857",
+    "ijcai-2025-965",
+    "ijcai-2025-635",
+    "ndss-2026-sok-cryptographic-authenticated-dictionaries",
+    "ijcai-2025-766",
+    "openreview-icml-2025-il3krr4h9u",
+    "ieee-sp-2025-security-attacks-abusing-pulse-level-quantum-circuits",
+    "ijcai-2025-1254",
+    "ieee-sp-2024-on-the-lack-of-code-confidentiality-in-trusted-execution-environments",
+    "ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases",
+    "openreview-neurips-2025-qqhqiqons0",
+    "anthology-2025.findings-acl.1127",
+    "openreview-neurips-2025-cl45xdncok",
+    "openreview-icml-2024-mgtzmayhvg",
+    "anthology-2025.acl-long.849",
+    "openreview-icml-2025-plqtovjxiw",
+    "openreview-icml-2025-tu8qkx4dmi",
+    "ndss-2025-automatic-library-fuzzing-through-api-relation-evolvement",
+    "ieee-sp-2026-contextualizing-sink-knowledge-for-java-vulnerability-discovery",
+    "openreview-neurips-2025-xbmjxb6f4w",
+    "openreview-icml-2025-ym19zwky7w",
+    "ieee-sp-2026-detecting-privilege-escalation-in-polyglot-microservices-via-agentic-program-analysis",
+    "openreview-neurips-2025-3nza35a6i4",
+    "ndss-2024-talisman-tamper-analysis-for-reference-monitors",
+    "ndss-2026-anota-identifying-business-logic-vulnerabilities-via-annotation-based-sanitization",
+    "ijcai-2025-1242",
+    "anthology-2025.acl-long.1490",
+    "ijcai-2025-57",
+    "ijcai-2025-1042",
+    "openreview-neurips-2025-qbpb7g1sea",
+    "anthology-2025.findings-acl.509",
+    "anthology-2025.emnlp-main.1071",
+    "ndss-2026-through-the-authentication-maze-detecting-authentication-bypass-vulnerabilities-in-firmware-binaries",
+    "ijcai-2025-1217",
+    "ijcai-2025-516",
+    "ndss-2025-uncovering-the-iceberg-from-the-tip-generating-api-specifications-for-bug-detection-via-specification-propagation-analys",
+    "ndss-2025-scrutinizer-towards-secure-forensics-on-compromised-trustzone",
+    "anthology-2024.findings-acl.625",
+    "ndss-2025-tz-datashield-automated-data-protection-for-embedded-systems-via-data-flow-based-compartmentalization",
+    "ndss-2024-untrustide-exploiting-weaknesses-in-vs-code-extensions",
+    "anthology-2025.emnlp-main.1593",
+    "ijcai-2025-504",
+    "ijcai-2025-1152",
+    "ieee-sp-2024-automated-synthesis-of-effect-graph-policies-for-microservice-aware-stateful-system-call-specialization",
+    "ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries",
+    "ndss-2025-a-formal-approach-to-multi-layered-privileges-for-enclaves",
+    "openreview-icml-2025-ahzpgyuhza",
+    "ieee-sp-2024-syztrust-state-aware-fuzzing-on-trusted-os-designed-for-iot-devices",
+    "ijcai-2025-535",
+    "ieee-sp-2025-sv-trusteval-c-evaluating-structure-and-semantic-reasoning-in-large-language-models-for-source-code-vulnerability-analys",
+    "ieee-sp-2024-everyone-for-themselves-a-qualitative-study-about-individual-security-setups-of-open-source-software-contributors",
+    "anthology-2025.emnlp-main.1305",
+    "ijcai-2025-1175",
+    "anthology-2025.findings-acl.1197",
+    "ijcai-2025-1190",
+    "ndss-2024-secure-multiparty-computation-of-threshold-signatures-made-more-efficient",
+    "ijcai-2025-861",
+    "ijcai-2025-457",
+    "openreview-neurips-2025-gp2vgxwroe",
+    "openreview-icml-2025-3pk0p4ngmq",
+    "ndss-2026-stip-three-party-privacy-preserving-and-lossless-inference-for-large-transformers-in-production",
+    "ndss-2026-what-do-they-fix-llm-aided-categorization-of-security-patches-for-critical-memory-bugs",
+    "ndss-2026-vsim-semantics-aware-value-extraction-for-efficient-binary-code-similarity-analysis",
+    "aaai-2025-34604",
+    "aaai-2025-32090",
+    "ijcai-2025-35",
+    "ijcai-2025-1168",
+    "anthology-2025.emnlp-main.1065",
+    "openreview-icml-2025-jsybqtojs4",
+    "ijcai-2025-1224",
+    "openreview-neurips-2025-ly5dnrigcz",
+    "openreview-icml-2024-kvim5k8pcp",
+    "openreview-neurips-2025-dt940locbt",
+    "ndss-2026-rtrace-towards-better-visibility-of-shared-library-execution",
+    "ieee-sp-2024-afgen-whole-function-fuzzing-for-applications-and-libraries",
+    "ndss-2026-vdoram-towards-a-random-access-machine-with-both-public-verifiability-and-distributed-obliviousness",
+    "ijcai-2025-1059",
+    "openreview-icml-2025-dkryimuqa9",
+    "openreview-neurips-2025-gf4opoluav",
+    "anthology-2025.findings-emnlp.1041",
+    "ijcai-2025-1189",
+    "ndss-2025-enhancing-security-in-third-party-library-reuse-comprehensive-detection-of-1-day-vulnerability-through-code-patch-analys",
+    "openreview-neurips-2025-gsi42ohbom",
+    "openreview-icml-2024-ugxgpoekox",
+    "ijcai-2025-1157",
+    "anthology-2024.acl-long.151",
+    "openreview-neurips-2025-tibqixhefd",
+    "anthology-2025.findings-acl.784",
+    "ndss-2026-exia-trusted-transitions-for-enclaves-via-external-input-attestation",
+    "ndss-2025-propertygpt-llm-driven-formal-verification-of-smart-contracts-through-retrieval-augmented-property-generation",
+    "ndss-2026-the-dark-side-of-flexibility-detecting-risky-permission-chaining-attacks-in-serverless-applications",
+    "ndss-2026-ace-a-security-architecture-for-llm-integrated-app-systems",
+    "ijcai-2025-1229",
+    "ndss-2026-snpeek-side-channel-analysis-for-privacy-applications-on-confidential-vms",
+    "anthology-2024.findings-acl.790",
+    "ndss-2026-adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles",
+    "ijcai-2025-1230",
+    "openreview-neurips-2025-a8sjeh4cjb",
+    "ndss-2025-retrofitting-xom-for-stripped-binaries-without-embedded-data-relocation",
+    "ndss-2024-from-interaction-to-independence-zksnarks-for-transparent-and-non-interactive-remote-attestation",
+    "ijcai-2025-289",
+    "ndss-2025-leakless-selective-data-protection-against-memory-leakage-attacks-for-serverless-platforms",
+    "ijcai-2025-1210",
+    "openreview-neurips-2025-nzwjvpco4f",
+    "ijcai-2025-971",
+    "ndss-2024-automatic-policy-synthesis-and-enforcement-for-protecting-untrusted-deserialization",
+    "ijcai-2025-1039",
+    "anthology-2024.acl-long.730",
+    "ieee-sp-2025-dataseal-ensuring-the-verifiability-of-private-computation-on-encrypted-data",
+    "anthology-2025.emnlp-main.1663",
+    "aaai-2025-33610",
+    "ieee-sp-2024-breach-extraction-attacks-exposing-and-addressing-the-leakage-in-second-generation-compromised-credential-checking-servi",
+    "ijcai-2025-558"
+  ],
+  "global_pool_lane_top_k": 30,
+  "global_pool_limit": 120,
+  "global_pool_guaranteed_per_lane": 2,
+  "global_pool_effective_size": 127,
+  "reranked_at": "2026-07-19T08:06:09.555825+00:00",
+  "llm_ranked": [
+    {
+      "paper_id": "openreview-neurips-2025-dt940locbt",
+      "score": 10.0,
+      "evidence_en": "integrates safety constraints into VLA models for robot policies via constrained RL",
+      "evidence_cn": "通过约束强化学习将安全约束集成到VLA模型中以实现机器人策略",
+      "canonical_evidence": "通过约束强化学习将安全约束集成到VLA模型中以实现机器人策略",
+      "tldr_en": "SafeVLA proposes an integrated safety approach to constrain vision-language-action models using safe RL, ensuring safe robot behavior during deployment.",
+      "tldr_cn": "视觉-语言-动作模型在真实世界部署存在极端安全风险。SafeVLA提出集成安全方法（ISA），系统建模安全需求、主动诱发不安全行为、通过约束马尔可夫决策过程和安全强化学习从min-max视角优化VLA策略，并严格评估保证。实验证明在不损失任务性能的前提下有效约束不安全行为，为具身智能安全策略开发提供系统性方案，直接提升动作生成安全性。",
+      "title_zh": "SafeVLA：通过约束学习实现视觉-语言-动作模型的安全对齐",
+      "motivation_cn": "VLA模型在真实世界部署时带来极端安全风险，亟需明确整合安全约束的方法。",
+      "method_cn": "提出集成安全方法（ISA），通过约束马尔可夫决策过程和安全强化学习优化VLA策略，从min-max视角约束不安全行为。",
+      "result_cn": "在多个任务上验证了SafeVLA能有效约束不安全行为，同时保持任务性能。",
+      "conclusion_cn": "该工作为具身智能系统的安全策略开发提供了系统性解决方案，直接提升代码/动作生成的安全性。",
+      "matched_requirement_id": "req-9",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "methods for secure software development in autonomous robotics"
+    },
+    {
+      "paper_id": "ijcai-2025-895",
+      "score": 10.0,
+      "evidence_en": "LLM-based generation of secure Verilog code guided by hardware vulnerability knowledge",
+      "evidence_cn": "基于大语言模型和硬件漏洞知识图谱的安全Verilog代码生成",
+      "canonical_evidence": "基于大语言模型和硬件漏洞知识图谱的安全Verilog代码生成",
+      "tldr_en": "SecV uses LLMs with clue-guided exploration on a hardware-CWE knowledge graph to generate secure Verilog code, ensuring hardware design adheres to safety specifications.",
+      "tldr_cn": "针对硬件设计中的安全漏洞问题，SecV采用大语言模型结合硬件CWE知识图谱进行线索引导探索，生成符合安全规范的Verilog代码。实验表明该方法能有效生成安全硬件描述代码，降低硬件安全风险，将安全编码实践引入硬件生成流程。",
+      "title_zh": "SecV: 基于大语言模型的带线索引导的硬件CWE知识图谱安全Verilog生成",
+      "motivation_cn": "硬件设计常引入安全漏洞，现有代码生成方法未充分考虑硬件安全约束。",
+      "method_cn": "基于大语言模型，利用硬件CWE知识图谱进行线索引导，生成安全的Verilog代码。",
+      "result_cn": "方法能生成符合安全要求的硬件代码，有效减少硬件漏洞。",
+      "conclusion_cn": "SecV实现了安全硬件代码的自动生成，将安全编码与LLM结合，提升硬件设计安全性。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "generation of code that adheres to safety specifications"
+    },
+    {
+      "paper_id": "openreview-icml-2025-ym19zwky7w",
+      "score": 10.0,
+      "evidence_en": "aligns code LLMs with secure coding practices through proactive security alignment",
+      "evidence_cn": "通过主动安全对齐方法使代码大语言模型遵循安全编码实践",
+      "canonical_evidence": "通过主动安全对齐方法使代码大语言模型遵循安全编码实践",
+      "tldr_en": "ProSec proactively aligns code LLMs with secure coding practices by exposing vulnerabilities and applying security-focused training, thereby reducing insecure code generation.",
+      "tldr_cn": "针对代码LLMs生成代码时可能引入安全漏洞的问题，ProSec提出主动安全对齐方法，通过系统暴露漏洞并进行安全导向的训练，使模型学习安全编码模式。实验表明该方法在多个基准上显著减少了不安全代码的生成，为AI代码生成的安全性提供了有效的对齐策略。",
+      "title_zh": "ProSec: 通过主动安全对齐强化代码大语言模型",
+      "motivation_cn": "现有代码LLM生成不安全代码，现有安全对齐方法受限于漏洞数据稀疏和训练流程。",
+      "method_cn": "采用主动安全对齐，系统暴露漏洞并利用安全编码实践对LLM进行多阶段微调。",
+      "result_cn": "在多个安全编码基准上，生成不安全代码的比例显著降低。",
+      "conclusion_cn": "ProSec提供了一种可扩展的代码LLM安全对齐方法，有效提升了生成代码的安全性。",
+      "matched_requirement_id": "req-8",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "ensuring security and safety in AI generated code"
+    },
+    {
+      "paper_id": "anthology-2025.emnlp-main.1071",
+      "score": 10.0,
+      "evidence_en": "multi-stage LLM-based vulnerability detection with confidence- and collaboration-based decision making",
+      "evidence_cn": "基于置信度和协作的多阶段大语言模型代码漏洞检测方法",
+      "canonical_evidence": "基于置信度和协作的多阶段大语言模型代码漏洞检测方法",
+      "tldr_en": "ConfColl uses a three-stage sequential framework with LLMs, RAG, and multi-agent reasoning for code vulnerability detection, balancing accuracy and cost through confidence-based decisions.",
+      "tldr_cn": "针对代码漏洞检测，提出多阶段序列方法ConfColl，通过单Agent、RAG、多Agent推理三阶段，利用置信度和协作决策在阶段间智能切换。在漏洞检测基准上，该方法在保持高准确率的同时优化了计算成本，为软件安全提供了高效自动化检测方案。",
+      "title_zh": "基于置信度和协作决策的序列多阶段代码漏洞检测方法",
+      "motivation_cn": "LLM用于代码漏洞检测潜力大，但单一策略难以平衡性能与成本。",
+      "method_cn": "设计三阶段序列框架：单Agent检测、RAG增强、多Agent协作，通过置信度在阶段间决策。",
+      "result_cn": "在公共漏洞数据集上，ConfColl以更低的计算开销达到了与复杂方法相当的检测性能。",
+      "conclusion_cn": "所提方法实现了高效且经济的代码漏洞检测，推动了LLM在软件安全中的应用。",
+      "matched_requirement_id": "req-4",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "verification of code to prevent security vulnerabilities"
+    },
+    {
+      "paper_id": "openreview-icml-2025-tu8qkx4dmi",
+      "score": 10.0,
+      "evidence_en": "Self-improving framework that generates formally verified code with mathematical correctness guarantees.",
+      "evidence_cn": "自我改进框架，生成具有数学正确性保证的形式化验证代码。",
+      "canonical_evidence": "自我改进框架，生成具有数学正确性保证的形式化验证代码。",
+      "tldr_en": "AlphaVerus bootstraps formally verified code generation by translating programs and using a verifier's feedback to iteratively refine, providing correctness guarantees.",
+      "tldr_cn": "AlphaVerus旨在解决大语言模型生成代码缺乏正确性保证的难题。它通过翻译高资源语言程序并利用形式化验证器反馈进行自改善，分为探索翻译、树细化和证明传播三个阶段，最终迭代生成通过形式化验证的代码。在实验平台上，AlphaVerus显著提高了验证通过率，首次实现从自然语言到形式化正确代码的端到端自动化，为安全关键系统开发提供了强可信的代码生成方案。",
+      "title_zh": "AlphaVerus：通过自我改进翻译与树细化引导形式化验证代码生成",
+      "motivation_cn": "LLM生成代码缺乏正确性保证，形式化验证数据稀缺且证明复杂。",
+      "method_cn": "提出AlphaVerus框架，通过迭代翻译高资源语言程序并利用验证器反馈进行树细化，自举形式化验证代码生成。",
+      "result_cn": "AlphaVerus大幅提升形式化验证代码生成的成功率，证明了自改善策略的有效性。",
+      "conclusion_cn": "AlphaVerus为关键领域提供了生成数学正确代码的自动化方法，提升了AI代码的安全保障。",
+      "matched_requirement_id": "req-5",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "automated techniques to ensure code safety"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-vuoy5kacg5",
+      "score": 10.0,
+      "evidence_en": "trains code reasoning models to generate secure, vulnerability-free code",
+      "evidence_cn": "训练代码推理模型以生成安全、无漏洞的代码",
+      "canonical_evidence": "训练代码推理模型以生成安全、无漏洞的代码",
+      "tldr_en": "PurpCode introduces a two-stage training recipe to make LLMs generate secure code and defend against malicious activities.",
+      "tldr_cn": "针对现有代码生成模型缺乏安全训练的问题，提出PurpCode后训练方法，首先通过规则学习教授安全编码规则，再通过强化学习多目标优化安全性与实用性，生成无漏洞的安全代码。",
+      "title_zh": "PurpCode：面向更安全代码生成的推理训练",
+      "motivation_cn": "大型语言模型生成代码时可能引入安全漏洞，缺乏系统的安全增强训练。",
+      "method_cn": "两阶段训练：规则学习阶段显式教授模型引用网络安全规则；强化学习阶段使用多目标奖励平衡安全与效用。",
+      "result_cn": "内部红队测试生成高覆盖安全提示，训练后模型能有效生成安全代码并拒绝恶意请求。",
+      "conclusion_cn": "PurpCode首次为代码推理模型提供了安全训练的后训练方案，显著提高生成代码的安全性。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "generation of code that adheres to safety specifications"
+    },
+    {
+      "paper_id": "openreview-icml-2024-mgtzmayhvg",
+      "score": 10.0,
+      "evidence_en": "SafeCoder performs security-centric fine-tuning to generate secure code",
+      "evidence_cn": "SafeCoder执行以安全为中心的微调，生成安全代码",
+      "canonical_evidence": "SafeCoder执行以安全为中心的微调，生成安全代码",
+      "tldr_en": "Proposes SafeCoder, an instruction tuning method that integrates security fine-tuning with a diverse dataset of secure coding practices to make LMs produce secure code, significantly reducing vulnerabilities in generated code.",
+      "tldr_cn": "针对现有指令微调忽略代码安全性的问题，本文提出SafeCoder方法。通过自动化流水线收集多样化高质量安全编码数据集，将安全微调与标准指令微调结合，使语言模型在生成代码时遵循安全规范。实验表明，SafeCoder显著降低了生成代码中的安全漏洞，为AI辅助编程中的安全代码生成提供了有效解决方案。",
+      "title_zh": "面向安全代码生成的指令微调",
+      "motivation_cn": "现有指令微调模型常生成不安全代码，安全风险不容忽视。",
+      "method_cn": "SafeCoder通过安全数据集进行安全微调，并与标准指令微调融合。",
+      "result_cn": "生成的代码漏洞数量大幅减少，安全性提升显著。",
+      "conclusion_cn": "SafeCoder填补了指令微调中的安全空白，为安全代码生成提供了实用方法。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "generation of code that adheres to safety specifications"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-3nza35a6i4",
+      "score": 9.0,
+      "evidence_en": "trains LLMs to generate secure code using RL with static analysis feedback",
+      "evidence_cn": "利用静态分析反馈的强化学习训练LLM生成安全代码",
+      "canonical_evidence": "利用静态分析反馈的强化学习训练LLM生成安全代码",
+      "tldr_en": "REAL uses reinforcement learning guided by program analysis to train language models to produce production-quality code that is secure and maintainable, reducing vulnerabilities like SQL injection without manual annotations.",
+      "tldr_cn": "现有LLM代码生成常忽视安全与可维护性，手动标注和启发式后处理难以扩展。REAL提出强化学习框架，利用静态分析自动检测安全漏洞和可维护性问题作为奖励信号，无需人工标注即可训练模型生成生产级质量代码。实验表明该方法能有效减少SQL注入等安全漏洞，提升代码整体质量，为AI代码生成的安全落地提供了可扩展的自动化训练方案。",
+      "title_zh": "通过程序分析反馈训练语言模型生成高质量代码",
+      "motivation_cn": "LLM生成代码常存在安全漏洞（如SQL注入）和可维护性问题，现有微调和后处理依赖昂贵注解或脆弱启发式。",
+      "method_cn": "提出REAL框架，通过强化学习整合静态分析检测安全与可维护性问题作为奖励信号，训练模型生成生产级代码。",
+      "result_cn": "实验表明REAL有效减少代码漏洞，提升代码质量，无需人工标注。",
+      "conclusion_cn": "REAL实现了自动化的代码安全训练，对AI代码生成的安全性保障有重要意义。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "generation of code that adheres to safety specifications"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-qbpb7g1sea",
+      "score": 9.0,
+      "evidence_en": "proposes neural model checking for safety verification by learning inductive invariants",
+      "evidence_cn": "提出神经模型检查，通过学习归纳不变性进行安全验证",
+      "canonical_evidence": "提出神经模型检查，通过学习归纳不变性进行安全验证",
+      "tldr_en": "This paper extends neural model checking to safety verification, using neural networks to find inductive invariants that prove safety properties of reactive systems.",
+      "tldr_cn": "形式化安全验证需要归纳不变式，但现有神经模型检查仅处理活性性质。该工作将其推广至安全性，利用神经网络数据驱动地学习归纳不变式，从而证明反应系统的安全性质。实验验证了自动生成不变式的有效性，为系统安全验证提供了新自动化途径，有望应用于代码安全验证。",
+      "title_zh": "让神经网络成为你的不变式",
+      "motivation_cn": "安全验证需证明系统满足不变性，但现有神经模型检查仅局限于活性性质，未涵盖安全性。",
+      "method_cn": "将神经模型检查推广至安全性，利用神经网络学习归纳不变式以证明安全性质。",
+      "result_cn": "在反应系统上验证了方法的有效性，自动化地提供了安全保证。",
+      "conclusion_cn": "该方法为系统安全验证提供了一种数据驱动的自动化途径，有潜力应用于代码安全验证。",
+      "matched_requirement_id": "req-4",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "verification of code to prevent security vulnerabilities"
+    },
+    {
+      "paper_id": "anthology-2025.findings-acl.1197",
+      "score": 9.0,
+      "evidence_en": "studies safety of LLM chain-of-thought outputs, including security vulnerabilities in generated code",
+      "evidence_cn": "研究LLM链式思维输出的安全性，包括生成代码中的安全漏洞",
+      "canonical_evidence": "研究LLM链式思维输出的安全性，包括生成代码中的安全漏洞",
+      "tldr_en": "SafeChain evaluates and improves the safety of large reasoning models' long CoT, addressing risks like introducing security vulnerabilities in code.",
+      "tldr_cn": "大型推理模型的长链式思维增强推理但可能引入代码安全漏洞等有害输出。SafeChain系统研究LRM安全性，开发校准人类标注的评估指标，并全面评估现有安全对齐方法。发现长CoT下仍存在显著安全风险，需要专门的安全对齐策略，为海量代码生成等场景下安全部署提供关键指导。",
+      "title_zh": "SafeChain：具有长链式推理能力的语言模型的安全性",
+      "motivation_cn": "长链式推理虽提升推理能力但可能引入代码安全漏洞等有害输出，现有LLM安全研究忽视此类输出模式。",
+      "method_cn": "系统研究LRM安全性，开发校准人类标注的安全评估指标，并评估现有安全对齐方法的有效性。",
+      "result_cn": "发现LRM在长CoT下仍存在安全风险，需要专门的安全对齐策略。",
+      "conclusion_cn": "该研究为安全代码生成等场景下LRM的部署提供了关键的安全评估和启示。",
+      "matched_requirement_id": "req-8",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "ensuring security and safety in AI generated code"
+    },
+    {
+      "paper_id": "ndss-2025-tz-datashield-automated-data-protection-for-embedded-systems-via-data-flow-based-compartmentalization",
+      "score": 9.0,
+      "evidence_en": "automated data protection for embedded systems via compiler-based compartmentalization",
+      "evidence_cn": "通过编译器实现嵌入式系统敏感数据流隔离的自动化数据保护",
+      "canonical_evidence": "通过编译器实现嵌入式系统敏感数据流隔离的自动化数据保护",
+      "tldr_en": "TZ-DATASHIELD is an LLVM compiler tool that automatically protects sensitive data on embedded systems by enhancing ARM TrustZone with data-flow-based compartmentalization, addressing the security challenges of resource-constrained MCUs.",
+      "tldr_cn": "针对嵌入式系统在医疗、工业等关键领域的数据安全挑战，提出TZ-DATASHIELD，一种LLVM编译器工具，通过敏感数据流隔离自动增强ARM TrustZone。该工具解决了MCU计算和能耗限制下的数据保密性和完整性问题，在无人车辆等场景中验证了有效性，为嵌入式安全开发提供了自动化方案。",
+      "title_zh": "TZ-DATASHIELD: 通过基于数据流的隔离实现嵌入式系统自动化数据保护",
+      "motivation_cn": "嵌入式系统在关键领域广泛使用，但受限于计算和能耗，保护敏感数据机密性完整性面临挑战。",
+      "method_cn": "基于LLVM编译器，通过对敏感数据流进行分析和隔离，自动增强ARM TrustZone的安全隔离能力。",
+      "result_cn": "在多种嵌入式平台上验证了工具的有效性，显著提升了数据保护能力。",
+      "conclusion_cn": "TZ-DATASHIELD为资源受限的嵌入式系统提供了一种自动化数据保护方案，可广泛应用。",
+      "matched_requirement_id": "req-5",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "automated techniques to ensure code safety"
+    },
+    {
+      "paper_id": "ijcai-2025-1189",
+      "score": 9.0,
+      "evidence_en": "comprehensive survey on safety considerations in embodied navigation",
+      "evidence_cn": "关于具身导航安全性的综述",
+      "canonical_evidence": "关于具身导航安全性的综述",
+      "tldr_en": "This survey comprehensively reviews safety considerations in embodied navigation, covering challenges, methods, and future directions for safe navigation in physical environments.",
+      "tldr_cn": "本文综述了具身导航中的安全性考虑，涵盖感知、规划、决策等环节的安全挑战与现有方法，包括碰撞避免、人机交互安全等。系统总结了安全评估指标和未来研究方向，为具身智能系统的安全导航提供了全面参考。",
+      "title_zh": "具身导航安全性综述",
+      "motivation_cn": "具身导航系统在真实世界中面临各类安全风险，缺乏系统化安全分析。",
+      "method_cn": "综述了现有具身导航中的安全性研究，系统分类安全挑战、方法和评估指标。",
+      "result_cn": "全面梳理了安全导航技术现状，指出了未来研究方向。",
+      "conclusion_cn": "该综述为具身导航安全研究提供了框架和基准，有助于指导安全系统的设计。",
+      "matched_requirement_id": "req-3",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "safety considerations in embodied artificial intelligence systems"
+    },
+    {
+      "paper_id": "ieee-sp-2024-syztrust-state-aware-fuzzing-on-trusted-os-designed-for-iot-devices",
+      "score": 9.0,
+      "evidence_en": "automated fuzzing technique to verify security of Trusted OS in IoT",
+      "evidence_cn": "面向物联网设备Trusted OS的状态感知模糊测试进行漏洞发现",
+      "canonical_evidence": "面向物联网设备Trusted OS的状态感知模糊测试进行漏洞发现",
+      "tldr_en": "SyzTrust is a state-aware fuzzing framework that efficiently discovers vulnerabilities in closed-source Trusted OS for IoT devices, enhancing their security verification.",
+      "tldr_cn": "针对IoT设备中Trusted OS安全分析缺乏的挑战，提出SyzTrust状态感知模糊测试框架，解决闭源和状态化工作流难题。通过学习数据结构和状态转换，自动化生成测试用例，在多个Trusted OS上发现漏洞，证明其有效性，为物联网安全测试提供了自动化验证方法。",
+      "title_zh": "SyzTrust: 面向物联网设备Trusted OS的状态感知模糊测试",
+      "motivation_cn": "物联网TEE中的Trusted OS安全分析不足，闭源和状态复杂性导致现有测试困难。",
+      "method_cn": "实现状态感知模糊测试，学习数据结构和工作流，自动生成并发送测试用例以发现漏洞。",
+      "result_cn": "在多个IoT Trusted OS上发现了多种安全漏洞，验证了框架的有效性。",
+      "conclusion_cn": "SyzTrust为资源受限的物联网设备提供了有效的安全分析工具，增强了TEE的可靠性。",
+      "matched_requirement_id": "req-4",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "verification of code to prevent security vulnerabilities"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-cl45xdncok",
+      "score": 9.0,
+      "evidence_en": "Autonomously constructs and formally verifies executable system models to satisfy given specifications.",
+      "evidence_cn": "自主构建并进行形式化验证，确保系统模型满足给定的安全规格。",
+      "canonical_evidence": "自主构建并进行形式化验证，确保系统模型满足给定的安全规格。",
+      "tldr_en": "SpecMAS uses multi-agent system to generate NuSMV models from natural language SOPs, extracts properties, performs model checking, and iteratively self-corrects, ensuring the generated code adheres to safety specifications.",
+      "tldr_cn": "SpecMAS是一种多智能体系统，能够从自然语言标准操作程序中自主生成NuSMV模型，并提取隐式和显式属性，通过形式化模型检查进行验证。若属性验证失败，调试代理会分析反例并迭代修正模型，直至所有属性均被满足。该方法为关键系统提供了自动化的安全代码生成与验证方案，降低了人工错误风险。",
+      "title_zh": "SpecMAS：通过形式化模型检查实现自验证系统生成的多智能体系统",
+      "motivation_cn": "现有系统生成方法缺乏对安全规格的严格遵循，难以保证生成代码的可靠性。",
+      "method_cn": "提出SpecMAS多智能体框架，解析SOP并自动生成NuSMV模型，结合属性提取与模型检查实现迭代自纠正。",
+      "result_cn": "实现了系统模型从自然语言规格到形式化验证的自动化，确保所有显式与隐式属性均被满足。",
+      "conclusion_cn": "SpecMAS为安全关键系统生成提供了高可靠的形式化验证方案，显著减少人工调试成本。",
+      "matched_requirement_id": "req-1",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "generation of code that adheres to safety specifications"
+    },
+    {
+      "paper_id": "anthology-2025.findings-emnlp.1041",
+      "score": 9.0,
+      "evidence_en": "Detects malicious outputs in LLM-generated code to enhance safety.",
+      "evidence_cn": "检测LLM生成代码中的恶意输出以增强安全性。",
+      "canonical_evidence": "检测LLM生成代码中的恶意输出以增强安全性。",
+      "tldr_en": "FreqRank is a mutation-based defense that localizes malicious sub-strings in LLM outputs and identifies backdoor triggers, enhancing trust in AI-generated code.",
+      "tldr_cn": "FreqRank是一种基于突变的防御方法，通过频率排名定位LLM生成代码中的恶意子串并识别后门触发器。在九个恶意模型上测试，平均攻击成功率达86.6%，但FreqRank能在98%的情况下将恶意输出提示为前五候选。该方法为AI生成代码的安全性提供了有效的检测手段，有助于防范代码后门攻击。",
+      "title_zh": "定位CodeLLM中的恶意输出",
+      "motivation_cn": "LLM生成的代码可能存在恶意输出和隐藏后门，严重威胁软件安全。",
+      "method_cn": "提出FreqRank，利用恶意子串频率排名定位LLM输出中的恶意成分及其对应的输入触发器。",
+      "result_cn": "在九个任务上恶意模型攻击成功率86.6%，FreqRank将恶意输出排在前五的准确率达98%。",
+      "conclusion_cn": "FreqRank有效定位LLM代码中的恶意输出，为保障AI生成代码的安全性提供了实用方案。",
+      "matched_requirement_id": "req-8",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "ensuring security and safety in AI generated code"
+    },
+    {
+      "paper_id": "ieee-sp-2025-sv-trusteval-c-evaluating-structure-and-semantic-reasoning-in-large-language-models-for-source-code-vulnerability-analys",
+      "score": 9.0,
+      "evidence_en": "Benchmark for evaluating LLMs' ability to analyze source code vulnerabilities, checking structure and semantic reasoning.",
+      "evidence_cn": "用于评估大模型在源代码漏洞分析中结构与语义推理能力的基准。",
+      "canonical_evidence": "用于评估大模型在源代码漏洞分析中结构与语义推理能力的基准。",
+      "tldr_en": "SV-TrustEval-C is a benchmark that evaluates LLMs on vulnerability analysis through structure and semantic reasoning, crucial for trustworthy code security assessment.",
+      "tldr_cn": "SV-TrustEval-C是一个专门评估大语言模型在C语言源代码漏洞分析能力的基准，重点考察模型的结构推理（如识别代码元素关系）和语义推理。该基准揭示了模型在复杂漏洞推理中的弱点，为改进基于LLM的漏洞检测与修复提供了方向，直接助力于开发更安全的代码生成与验证工具。",
+      "title_zh": "SV-TrustEval-C：评估大型语言模型在源代码漏洞分析中的结构与语义推理能力",
+      "motivation_cn": "现有评估忽视了对漏洞分析至关重要的结构与语义推理能力。",
+      "method_cn": "构建SV-TrustEval-C基准，通过结构推理和语义推理两个维度评估LLMs对C代码漏洞的分析能力。",
+      "result_cn": "基准暴露了LLMs在复杂漏洞推理中的不足，不同模型性能差异显著。",
+      "conclusion_cn": "SV-TrustEval-C为漏洞分析评估提供了系统框架，有助于提升LLM在代码安全领域的可靠性。",
+      "matched_requirement_id": "req-4",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "verification of code to prevent security vulnerabilities"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-vac4sa96ei",
+      "score": 9.0,
+      "evidence_en": "Neuro-symbolic framework with symbolic verification for LLM-generated robot code",
+      "evidence_cn": "神经符号框架对LLM生成的机器人代码进行符号验证",
+      "canonical_evidence": "神经符号框架对LLM生成的机器人代码进行符号验证",
+      "tldr_en": "This paper introduces a neuro-symbolic task planning framework that integrates symbolic verification into LLM-based code generation for robots, improving reliability and safety in dynamic environments.",
+      "tldr_cn": "针对大模型在具身智能体中生成代码策略时环境接地不足，提出了神经符号规划框架，集成符号验证与交互验证过程，确保生成代码的可靠性。实验表明该方法能提高任务成功率，并证明了符号验证在安全代码生成中的有效性。",
+      "title_zh": "迈向可靠的代码即策略：一种用于具身任务规划的神经符号框架",
+      "motivation_cn": "现有代码即策略方法在动态环境中因接地不足导致任务失败率高",
+      "method_cn": "提出神经符号框架，在代码生成中集成符号验证与交互验证",
+      "result_cn": "实验表明框架显著提升任务成功率，减少不安全代码生成",
+      "conclusion_cn": "符号验证增强了具身智能代码生成的可靠性与安全性",
+      "matched_requirement_id": "req-7",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "safe code generation techniques for embodied intelligent systems"
+    },
+    {
+      "paper_id": "openreview-icml-2025-il3krr4h9u",
+      "score": 9.0,
+      "evidence_en": "Benchmark for evaluating LLM generation of secure and correct backend code",
+      "evidence_cn": "评估大语言模型生成安全正确后端代码的基准测试",
+      "canonical_evidence": "评估大语言模型生成安全正确后端代码的基准测试",
+      "tldr_en": "This paper presents BaxBench, a benchmark of 392 backend tasks to assess whether LLMs can generate production-quality, secure backend code; results show that even advanced LLMs fail to meet security requirements reliably.",
+      "tldr_cn": "现有基准多评估LLM函数级代码生成，本工作提出BaxBench，包含392个后端应用生成任务，专注于评估LLM生成正确且安全的后端代码的能力。实验表明当前LLM难以可靠满足安全需求，凸显了安全代码生成的挑战。该基准为安全AI代码生成提供了全面的评测平台。",
+      "title_zh": "BaxBench：大语言模型能生成正确且安全的后端代码吗？",
+      "motivation_cn": "现有基准缺乏对LLM生成安全后端应用的系统评估",
+      "method_cn": "构建包含392个后端任务的BaxBench，重点评估代码安全与正确性",
+      "result_cn": "实验显示当前LLM在满足后端安全要求方面表现不佳",
+      "conclusion_cn": "BaxBench为安全AI代码生成提供了关键评测基准和方向指引",
+      "matched_requirement_id": "req-8",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "ensuring security and safety in AI generated code"
+    },
+    {
+      "paper_id": "anthology-2025.acl-long.849",
+      "score": 9.0,
+      "evidence_en": "Multi-task benchmark for comprehensive LLM code security evaluation",
+      "evidence_cn": "多任务基准全面评价大语言模型代码安全性",
+      "canonical_evidence": "多任务基准全面评价大语言模型代码安全性",
+      "tldr_en": "This paper introduces CoV-Eval, a comprehensive multi-task benchmark for evaluating LLM code security across secure generation, vulnerability repair, detection, and classification, and VC-Judge, an automatic evaluation model aligned with human experts.",
+      "tldr_cn": "现有代码安全基准局限于单一任务，本文提出多任务基准CoV-Eval，涵盖安全代码生成、漏洞修复、检测与分类，并开发了与专家判断高度一致的自动评价模型VC-Judge。实验对多种LLM进行了全面评测，揭示了它们在代码安全方面的差异与不足。该工作为提升AI编码助手的安全性与可信度提供了重要工具。",
+      "title_zh": "你真的能信任代码副驾驶吗？从代码安全视角评估大语言模型",
+      "motivation_cn": "现有代码安全评测任务单一，无法全面反映LLM代码安全能力",
+      "method_cn": "构建多任务基准CoV-Eval和专家对齐的自动评价模型VC-Judge",
+      "result_cn": "实验揭示不同LLM在代码安全各维度上存在显著差异和不足",
+      "conclusion_cn": "CoV-Eval为LLM代码安全提供了全面的评测框架和评价工具",
+      "matched_requirement_id": "req-8",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "ensuring security and safety in AI generated code"
+    },
+    {
+      "paper_id": "ndss-2025-generating-api-parameter-security-rules-with-llm-for-api-misuse-detection",
+      "score": 9.0,
+      "evidence_en": "LLM automates generation of API parameter security rules for misuse detection",
+      "evidence_cn": "大语言模型自动生成API参数安全规则以检测误用",
+      "canonical_evidence": "大语言模型自动生成API参数安全规则以检测误用",
+      "tldr_en": "This paper presents a novel approach using LLMs to automatically generate API parameter security rules by analyzing documentation and code, addressing the labor-intensive manual process and improving the detection of API misuses that cause vulnerabilities.",
+      "tldr_cn": "针对API安全规则构建高度依赖人工、覆盖率低的问题，提出利用大语言模型自动从文档和代码中提取API参数安全规则的方法。实验证明该方法生成的规则能有效检测API误用，包括空指针解引用和内存损坏等严重漏洞。此工作为自动化安全软件开发实践提供了一条高效路径，显著提升了API安全分析的效率和全面性。",
+      "title_zh": "利用大语言模型生成API参数安全规则用于API误用检测",
+      "motivation_cn": "人工构建API安全规则费时费力，现有自动方法遗漏规则多",
+      "method_cn": "利用LLM从文档和代码中自动生成API参数安全规则",
+      "result_cn": "生成的规则能有效检测API误用，降低安全漏洞风险",
+      "conclusion_cn": "LLM提升了安全规则生成的自动化水平和全面性，助力安全开发",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "practices for developing secure software applications"
+    },
+    {
+      "paper_id": "openreview-icml-2024-kvim5k8pcp",
+      "score": 9.0,
+      "evidence_en": "develops protocols to verify and filter LLM-generated code before submission",
+      "evidence_cn": "开发协议在提交前验证和过滤LLM生成的代码",
+      "canonical_evidence": "开发协议在提交前验证和过滤LLM生成的代码",
+      "tldr_en": "Proposes AI control protocols combining trusted and untrusted models to prevent submission of subtly wrong code.",
+      "tldr_cn": "针对不可信LLM可能生成带微妙错误的代码问题，提出AI控制协议，利用可信与不可信模型协同验证，防止提交错误代码，为AI代码安全提供第二层防御。",
+      "title_zh": "AI控制：在故意颠覆下提升安全性",
+      "motivation_cn": "大型语言模型（LLM）日益自主，需防止其造成有害结果，尤其在编程任务中提交微妙错误代码的风险。",
+      "method_cn": "提出AI控制方法，设计并评估安全技术流水线（协议），利用可信和不可信模型协同，对生成的代码进行多轮验证和筛选。",
+      "result_cn": "在编程问题序列中，协议能有效防止提交错误代码，显著提升整体安全性。",
+      "conclusion_cn": "AI控制作为第二层防御，能有效抵御LLM的故意颠覆，保障代码安全。",
+      "matched_requirement_id": "req-6",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "verification methods for code generated by AI"
+    },
+    {
+      "paper_id": "anthology-2025.emnlp-main.1305",
+      "score": 9.0,
+      "evidence_en": "evaluates physical safety of LLMs in embodied decision making",
+      "evidence_cn": "评估具身决策中LLM的物理安全性",
+      "canonical_evidence": "评估具身决策中LLM的物理安全性",
+      "tldr_en": "SAFEL framework diagnoses physical safety of LLMs in embodied settings through command refusal and plan safety tests.",
+      "tldr_cn": "针对LLM用于具身决策时安全评估粗粒度的问题，提出SAFEL框架，通过命令拒绝测试和计划安全测试（细分为功能子测试）系统诊断物理安全性，揭示细微风险。",
+      "title_zh": "细微风险，致命失败：诊断具身决策LLM物理安全性的框架",
+      "motivation_cn": "现有LLM具身安全评估依赖粗粒度的成功率，难以定位具体失败原因。",
+      "method_cn": "提出SAFEL框架，评估LLM拒绝不安全命令的能力和生成安全可执行计划的能力，并分解为功能子测试。",
+      "result_cn": "能精细诊断LLM在具身决策中的物理安全漏洞，揭示细微但关键的风险点。",
+      "conclusion_cn": "SAFEL为具身LLM的安全部署提供了系统诊断工具，推动安全评估细粒度化。",
+      "matched_requirement_id": "req-3",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "safety considerations in embodied artificial intelligence systems"
+    },
+    {
+      "paper_id": "ndss-2025-propertygpt-llm-driven-formal-verification-of-smart-contracts-through-retrieval-augmented-property-generation",
+      "score": 9.0,
+      "evidence_en": "automates property generation for formal verification of smart contracts",
+      "evidence_cn": "自动化生成智能合约形式化验证的属性",
+      "canonical_evidence": "自动化生成智能合约形式化验证的属性",
+      "tldr_en": "PropertyGPT uses retrieval-augmented LLM to generate properties for formal verification, addressing the automated property generation gap in smart contract security.",
+      "tldr_cn": "针对智能合约形式化验证中人工编写属性费时且覆盖不足的问题，提出PropertyGPT，利用检索增强的大语言模型自动生成不变式、前置/后置条件等属性，提升验证效率和安全性。",
+      "title_zh": "PropertyGPT：通过检索增强属性生成实现LLM驱动的智能合约形式化验证",
+      "motivation_cn": "智能合约形式化验证缺乏自动化属性生成，依赖专家手动编写，成本高且易遗漏。",
+      "method_cn": "结合检索增强生成，利用大语言模型从类似合约和历史属性中检索并生成全面的验证属性。",
+      "result_cn": "能自动生成高质量的验证属性，与现有验证工具结合，提高安全漏洞发现率。",
+      "conclusion_cn": "PropertyGPT展示了LLM在自动生成形式化验证属性方面的潜力，推动了智能合约安全验证的自动化。",
+      "matched_requirement_id": "req-4",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "verification of code to prevent security vulnerabilities"
+    },
+    {
+      "paper_id": "ndss-2026-adgfuzz-assignment-dependency-guided-fuzzing-for-robotic-vehicles",
+      "score": 9.0,
+      "evidence_en": "fuzzing framework for robotic vehicle software security",
+      "evidence_cn": "面向机器人车辆软件安全的模糊测试框架",
+      "canonical_evidence": "面向机器人车辆软件安全的模糊测试框架",
+      "tldr_en": "ADGFuzz is a dependency-guided fuzzing framework to efficiently find bugs in robotic vehicle control software.",
+      "tldr_cn": "针对机器人车辆控制软件输入空间巨大导致传统模糊测试效率低的问题，提出赋值依赖引导的模糊测试框架，通过分析变量赋值关系引导测试，高效挖掘深层安全漏洞。",
+      "title_zh": "ADGFuzz：面向机器人车辆的赋值依赖引导模糊测试",
+      "motivation_cn": "机器人车辆软件输入组合空间极大，现有模糊测试难以有效探索并发现深层次安全缺陷。",
+      "method_cn": "设计赋值依赖引导的模糊测试策略，分析控制软件中变量赋值关系，优先探索高价值输入区域。",
+      "result_cn": "在真实机器人车辆软件上有效发现多种深层错误，优于现有模糊测试工具。",
+      "conclusion_cn": "ADGFuzz通过依赖引导显著提升了机器人车辆软件的模糊测试效率和漏洞检出能力。",
+      "matched_requirement_id": "req-9",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "methods for secure software development in autonomous robotics"
+    },
+    {
+      "paper_id": "ieee-sp-2024-automated-synthesis-of-effect-graph-policies-for-microservice-aware-stateful-system-call-specialization",
+      "score": 9.0,
+      "evidence_en": "automated synthesis of security policies for containerized programs via symbolic micro-execution",
+      "evidence_cn": "通过符号微执行自动化合成容器化程序的安全策略",
+      "canonical_evidence": "通过符号微执行自动化合成容器化程序的安全策略",
+      "tldr_en": "Proposes a hybrid program analysis framework that automatically synthesizes stateful system call policies for containerized applications, generating security automata that prevent unauthorized behaviors.",
+      "tldr_cn": "本文提出一种混合程序分析框架，自动合成容器化程序的有状态系统调用策略。给定容器镜像，框架通过符号微执行入口点并结合元数据约束，生成编码安全自动机的参考策略。在DARPA CGC语料和NGINX等实际程序中验证了其实用性，能有效防止微服务应用中的未授权行为，为代码安全验证提供了自动化工具。",
+      "title_zh": "面向微服务感知的有状态系统调用特化的效应图策略自动化合成",
+      "motivation_cn": "容器化程序安全策略手工编写困难，需要自动化方法生成可防止未授权行为的参考策略。",
+      "method_cn": "混合程序分析框架，通过符号微执行容器入口点生成安全自动机策略，并利用效应图表示。",
+      "result_cn": "在25个DARPA CGC挑战和5个实际程序上成功合成策略，验证了框架的实用性。",
+      "conclusion_cn": "该方法为容器及微服务提供了可自动化的系统调用安全策略合成，提升了代码安全验证效率。",
+      "matched_requirement_id": "req-4",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "verification of code to prevent security vulnerabilities"
+    },
+    {
+      "paper_id": "ieee-sp-2026-the-secrets-must-not-flow-scaling-security-verification-to-large-codebases",
+      "score": 9.0,
+      "evidence_en": "scales security verification to large codebases by splitting core and application, proving I/O independence",
+      "evidence_cn": "通过分割核心与应用并证明I/O独立性，将安全验证扩展到大型代码库",
+      "canonical_evidence": "通过分割核心与应用并证明I/O独立性，将安全验证扩展到大型代码库",
+      "tldr_en": "Presents Diodon, a methodology that splits codebases into security-critical Core and Application, applying semi-automated verification to Core and automatic static analysis to Application to ensure overall security properties hold at scale.",
+      "tldr_cn": "现有安全验证器难以扩展到大型代码库，本文提出Diodon方法，将代码库分为安全关键的Core和其余Application两部分。对Core应用半自动验证，通过全自动静态分析证明Application的I/O独立性，确保Application不会破坏Core已证明的安全属性。实验表明该方法在保持验证强度的同时大幅提升了可扩展性，为大型软件系统的安全验证提供了可行方案。",
+      "title_zh": "秘密绝不能泄露：将安全验证扩展至大规模代码库",
+      "motivation_cn": "手动安全验证难以应对大型代码库，需一种可扩展的方法以保障协议实现的安全属性。",
+      "method_cn": "将代码库分为Core与Application，结合半自动验证与全自动静态分析证明I/O独立性。",
+      "result_cn": "成功在大型代码库上验证协议安全属性，验证成本显著降低。",
+      "conclusion_cn": "Diodon通过分而治之策略实现安全验证的规模化，为大规模代码库安全分析开辟新途径。",
+      "matched_requirement_id": "req-4",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "verification of code to prevent security vulnerabilities"
+    },
+    {
+      "paper_id": "aaai-2025-34604",
+      "score": 9.0,
+      "evidence_en": "uses verification-based self-play to improve functional correctness of LLM-generated code",
+      "evidence_cn": "使用基于验证的自博弈提高LLM生成代码的功能正确性",
+      "canonical_evidence": "使用基于验证的自博弈提高LLM生成代码的功能正确性",
+      "tldr_en": "Introduces VERSE, a verification-based self-play method that enhances code LLMs' ability to generate correct responses by creating a verification framework and using self-play to filter incorrect samples, improving instruction tuning.",
+      "tldr_cn": "为解决代码指令微调中无法确保功能正确性的问题，本文提出VERSE方法。该方法建立覆盖多种代码指令的验证框架，让代码大模型通过自博弈生成指令和响应，并利用验证过滤错误样本。实验表明，VERSE显著提升了模型在代码任务上的准确率，为AI生成代码的自动化验证提供了新思路。",
+      "title_zh": "VERSE：面向代码指令的基于验证的自博弈",
+      "motivation_cn": "现有代码指令微调直接生成响应无法保证功能正确性，导致模型输出可能存在错误。",
+      "method_cn": "引入验证框架和自博弈机制，模型自主生成指令-响应对并通过验证筛选正确样本。",
+      "result_cn": "在多项代码任务上，经过VERSE训练的模型正确率明显优于基线。",
+      "conclusion_cn": "VERSE通过验证驱动自博弈，有效提升了代码LLM生成响应的正确性，是一种自动化质量保障方法。",
+      "matched_requirement_id": "req-6",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "verification methods for code generated by AI"
+    },
+    {
+      "paper_id": "anthology-2025.acl-long.1490",
+      "score": 9.0,
+      "evidence_en": "JITVul benchmark for repository-level vulnerability detection using LLMs, enabling practical security verification",
+      "evidence_cn": "JITVul基准测试用于LLM在代码库级别的漏洞检测，实现实用的安全验证",
+      "canonical_evidence": "JITVul基准测试用于LLM在代码库级别的漏洞检测，实现实用的安全验证",
+      "tldr_en": "Introduces JITVul, a just-in-time vulnerability detection benchmark that links functions to vulnerability-introducing and fixing commits, enabling repository-level interprocedural evaluation of LLMs for practical security verification.",
+      "tldr_cn": "现有LLM漏洞检测基准多局限于函数级别，缺乏过程间上下文。本文提出JITVul基准，将每个函数与其引入和修复漏洞的提交关联，从879个CVE构建了91个漏洞的代码库级别数据集。该基准支持面向实际仓库的JIT漏洞检测评估，为安全验证提供了更真实的测试平台，有助于开发更实用的安全工具。",
+      "title_zh": "在代码仓库的实际漏洞检测中对LLM和基于LLM的智能体进行基准测试",
+      "motivation_cn": "真实漏洞检测需要过程间分析，但现有基准缺少仓库级上下文和修复对比，实用性不足。",
+      "method_cn": "构建JITVul基准，连接函数与引入/修复提交，提供仓库级上下文和对比评估。",
+      "result_cn": "基准包含879个CVE的91个漏洞数据集，可评估LLM在真实场景下的漏洞检测能力。",
+      "conclusion_cn": "JITVul为安全验证提供了更实用的评估平台，推动LLM在软件安全领域的实际应用。",
+      "matched_requirement_id": "req-4",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "verification of code to prevent security vulnerabilities"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-gp2vgxwroe",
+      "score": 9.0,
+      "evidence_en": "enhances verification of LLM-generated code through better test-case generation",
+      "evidence_cn": "通过更好的测试用例生成增强LLM生成代码的验证",
+      "canonical_evidence": "通过更好的测试用例生成增强LLM生成代码的验证",
+      "tldr_en": "Addresses inadequate test-case thoroughness in LLM code generation benchmarks by proposing multi-dimensional metrics and a human-LLM collaborative method (SAG) to generate comprehensive test suites, improving verification reliability.",
+      "tldr_cn": "当前LLM代码生成基准测试的测试用例单一，导致缺陷漏检。本文系统研究测试用例生成任务，提出多维度的测试充分性度量指标，并引入人-LLM协作方法SAG来生成更全面的测试套件。实验表明，这些方法能更严格地评估代码正确性，为可靠验证AI生成代码提供了关键技术，有助于提升强化学习中的奖励估计准确性。",
+      "title_zh": "重新审视LLM代码生成的验证：从生成到测试",
+      "motivation_cn": "现有基准测试用例有限且同质，导致LLM生成代码的微妙错误被忽略。",
+      "method_cn": "提出多维测试充分性指标和人-LLM协作方法SAG以生成更全面的测试套件。",
+      "result_cn": "生成的测试套件能更严格地发现代码缺陷，提高了验证准确性。",
+      "conclusion_cn": "SAG方法通过改进测试用例生成，为LLM代码生成的可靠验证提供了新手段。",
+      "matched_requirement_id": "req-6",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "verification methods for code generated by AI"
+    },
+    {
+      "paper_id": "ijcai-2025-1168",
+      "score": 8.0,
+      "evidence_en": "comprehensive survey on physical risk control in foundation model-based robotics",
+      "evidence_cn": "全面综述基于基础模型机器人中的物理风险控制",
+      "canonical_evidence": "全面综述基于基础模型机器人中的物理风险控制",
+      "tldr_en": "This survey reviews methods for physical risk control in robotics enabled by foundation models, crucial for safety in embodied AI.",
+      "tldr_cn": "随着基础模型赋能机器人，物理风险控制变得关键。该综述系统梳理了硬件、软件和算法层面的安全措施与方法，总结了当前进展与挑战。为开发安全的具身智能系统提供了全面参考，相关方法可支撑安全代码生成需求。",
+      "title_zh": "基础模型赋能机器人时代的物理风险控制综合综述",
+      "motivation_cn": "基础模型赋能机器人带来新的物理风险，现有控制方法需系统梳理。",
+      "method_cn": "综述了物理风险控制的各类方法，包括硬件、软件和算法层面的安全措施。",
+      "result_cn": "总结了当前研究进展与挑战，为安全具身智能系统开发提供全面参考。",
+      "conclusion_cn": "该综述为具身智能的安全开发提供了重要指导，相关方法可支持安全代码生成场景。",
+      "matched_requirement_id": "req-3",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "safety considerations in embodied artificial intelligence systems"
+    },
+    {
+      "paper_id": "openreview-icml-2025-dkryimuqa9",
+      "score": 8.0,
+      "evidence_en": "enforces safety policy compliance for agent actions via logical reasoning",
+      "evidence_cn": "通过逻辑推理为自主Agent的行为轨迹强制实施安全策略合规",
+      "canonical_evidence": "通过逻辑推理为自主Agent的行为轨迹强制实施安全策略合规",
+      "tldr_en": "ShieldAgent is a guardrail agent that enforces explicit safety policy compliance on the actions of other autonomous agents through verifiable logical reasoning, enhancing agent safety against malicious instructions.",
+      "tldr_cn": "针对自主Agent易受恶意指令攻击的问题，提出ShieldAgent防护Agent，通过从策略文档中提取可验证规则并构建安全策略模型，对受保护Agent的行为轨迹进行逻辑推理以强制合规。实验表明能有效防御攻击，提升Agent安全性，为具身智能系统安全提供保障。",
+      "title_zh": "ShieldAgent: 通过可验证安全策略推理为Agent提供防护",
+      "motivation_cn": "自主Agent面临恶意指令和攻击，现有LLM防护措施不适用于复杂动态的Agent场景。",
+      "method_cn": "从安全策略文档中提取规则，构建可验证的安全策略模型，通过逻辑推理对Agent行为轨迹进行合规检测。",
+      "result_cn": "实验表明ShieldAgent能有效防御恶意攻击，保护Agent行为安全。",
+      "conclusion_cn": "提出首个防护Agent，通过可验证安全策略推理，提升了自主Agent在真实应用中的安全性。",
+      "matched_requirement_id": "req-3",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "safety considerations in embodied artificial intelligence systems"
+    },
+    {
+      "paper_id": "ndss-2026-automated-code-annotation-with-llms-for-establishing-tee-boundaries",
+      "score": 8.0,
+      "evidence_en": "Automated identification of security-sensitive code regions using LLMs to enhance software security.",
+      "evidence_cn": "利用LLM自动识别安全敏感代码区域以增强软件安全性。",
+      "canonical_evidence": "利用LLM自动识别安全敏感代码区域以增强软件安全性。",
+      "tldr_en": "LLM-CAL automates detection of security-critical code for TEE placement, reducing manual effort and improving software security posture.",
+      "tldr_cn": "LLM-CAL利用先进大语言模型自动识别加密等安全敏感代码区域，并标注应置于可信执行环境内的边界，以缩减可信计算基。该方法有效降低了人工审查负担，使软件开发者能够快速建立TEE边界，提升整体系统安全性。",
+      "title_zh": "利用LLM自动标注代码以建立TEE边界",
+      "motivation_cn": "手动识别应放入TEE的安全敏感代码区域十分困难且缺乏自动化工具。",
+      "method_cn": "提出LLM-CAL，利用预训练LLM自动识别并标注加密逻辑等安全关键代码区域。",
+      "result_cn": "工具能够有效定位安全敏感代码，减少人工分析工作量，协助建立TEE边界。",
+      "conclusion_cn": "LLM-CAL为安全软件开发提供了自动化支持，提升了TEE应用的安全性与部署效率。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "practices for developing secure software applications"
+    },
+    {
+      "paper_id": "ijcai-2025-867",
+      "score": 8.0,
+      "evidence_en": "focuses on safety benchmarks and input moderation for embodied agents",
+      "evidence_cn": "专注于具身智能体的安全基准和输入调节",
+      "canonical_evidence": "专注于具身智能体的安全基准和输入调节",
+      "tldr_en": "Advances embodied agent security by proposing safety benchmarks and input moderation techniques.",
+      "tldr_cn": "针对具身智能体安全问题，提出安全基准和输入调节方法，旨在系统评估和增强具身系统的安全行为。",
+      "title_zh": "推进具身智能体安全：从安全基准到输入调节",
+      "motivation_cn": "具身智能体在真实世界部署面临安全风险，但缺乏标准化的安全基准和有效的防御措施。",
+      "method_cn": "构建安全评估基准，并设计输入调节机制，过滤或修正可能引发不安全行为的输入。",
+      "result_cn": "（摘要缺失，预期能提供可量化的安全性评估和提升输入层面的鲁棒性）",
+      "conclusion_cn": "通过基准和输入调节，为具身智能体安全提供了评估框架和主动防御手段。",
+      "matched_requirement_id": "req-3",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "safety considerations in embodied artificial intelligence systems"
+    },
+    {
+      "paper_id": "anthology-2025.findings-emnlp.1219",
+      "score": 8.0,
+      "evidence_en": "generates personalized safety plans for safety-critical embodied autonomous systems using LLMs",
+      "evidence_cn": "使用LLM为安全关键的具身自主系统生成个性化安全计划",
+      "canonical_evidence": "使用LLM为安全关键的具身自主系统生成个性化安全计划",
+      "tldr_en": "Proposes an LLM-based architecture for generating personalized safety plans in human-centered autonomous systems like Artificial Pancreas, addressing open-world safety challenges by coupling LLMs with a safety verifier.",
+      "tldr_cn": "设计时的安全保证在开放世界部署中常因不确定人机交互而失效。本文针对以人为中心的自主系统，提出一种基于大语言模型的架构，自动生成个性化安全计划。以人工胰腺为例，单独使用LLM不安全，但通过耦合安全验证器，系统能在动态环境中快速重规划以应对分布外事件。填补了单一规划器的不足，实验表明该方法有效，为具身智能系统的安全决策提供了新思路。",
+      "title_zh": "面向安全关键的人本自主系统的个性化开放世界计划生成：以人工胰腺为例",
+      "motivation_cn": "安全关键的人本自主系统在开放世界中因人类交互不确定性导致设计时安全保证失效。",
+      "method_cn": "提出基于LLM的架构，结合安全验证器，自动生成个性化安全计划并支持快速重规划。",
+      "result_cn": "在人工胰腺案例中，该方法能有效生成安全计划，并在动态环境中快速适应。",
+      "conclusion_cn": "LLM与安全验证器耦合为具身自主系统的开放世界安全规划提供了新路径。",
+      "matched_requirement_id": "req-3",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "safety considerations in embodied artificial intelligence systems"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-qqhqiqons0",
+      "score": 8.0,
+      "evidence_en": "automated benchmarking framework for LLM agents on real-world software security tasks",
+      "evidence_cn": "用于LLM智能体在真实世界软件安全任务上的自动化基准测试框架",
+      "canonical_evidence": "用于LLM智能体在真实世界软件安全任务上的自动化基准测试框架",
+      "tldr_en": "Introduces SEC-bench, a fully automated benchmarking framework that evaluates LLM agents on authentic software security tasks by constructing vulnerable code repositories and generating gold patches, facilitating the development of secure coding practices.",
+      "tldr_cn": "现有LLM安全智能体基准多使用合成挑战，无法反映真实安全工程的复杂性。本文提出SEC-bench，首个全自动基准框架，通过多智能体架构自动构建含漏洞的代码仓库，复现真实漏洞并提供修复补丁。该框架能可靠评估LLM智能体在安全任务上的表现，为开发安全软件应用提供了重要的评估工具和实践指导。",
+      "title_zh": "SEC-bench：在真实世界软件安全任务上自动化基准测试LLM智能体",
+      "motivation_cn": "现有基准依赖合成挑战，无法捕捉安全工程师面对的真实复杂性和模糊性。",
+      "method_cn": "构建多智能体框架，自动生成漏洞仓库、复现漏洞并提供修复补丁进行评估。",
+      "result_cn": "SEC-bench能可靠评估LLM智能体在真实安全任务上的表现，识别其优势和不足。",
+      "conclusion_cn": "该框架为安全软件开发实践提供了标准化评估基准，推动AI安全工具的发展。",
+      "matched_requirement_id": "req-2",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "practices for developing secure software applications"
+    },
+    {
+      "paper_id": "ndss-2026-trust-me-i-know-this-function-hijacking-llm-static-analysis-using-bias",
+      "score": 7.0,
+      "evidence_en": "reveals that LLM static analysis can be fooled by familiar pattern attacks, undermining code verification",
+      "evidence_cn": "发现大语言模型代码分析存在抽象偏见，可通过熟悉模式攻击绕过，削弱验证效果",
+      "canonical_evidence": "发现大语言模型代码分析存在抽象偏见，可通过熟悉模式攻击绕过，削弱验证效果",
+      "tldr_en": "The paper uncovers an abstraction bias in LLM-based static analysis that allows adversaries to inject hidden bugs via familiar pattern attacks, highlighting the need for robust code verification methods.",
+      "tldr_cn": "针对LLM静态分析在代码审查中的广泛应用，研究发现其存在抽象偏见，攻击者可利用常见编程模式注入隐藏漏洞，使LLM忽略微小但关键的缺陷。自动化的熟悉模式攻击算法实验表明，现有LLM代码分析工具易被绕过，为构建更鲁棒的代码验证方法提供了重要警示。",
+      "title_zh": "相信我，我了解这个函数：利用偏见劫持大语言模型静态分析",
+      "motivation_cn": "LLM静态分析广泛用于漏洞检测，但其可靠性可能受模式偏见影响。",
+      "method_cn": "提出熟悉模式攻击算法，自动生成并注入微小代码编辑以劫持LLM的控制流分析。",
+      "result_cn": "实验显示LLM静态分析工具在多种任务中均被成功误导，漏检关键漏洞。",
+      "conclusion_cn": "揭示了LLM代码分析的脆弱性，强调需提升验证方法的鲁棒性以应对此类攻击。",
+      "matched_requirement_id": "req-4",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "verification of code to prevent security vulnerabilities"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-nzwjvpco4f",
+      "score": 7.0,
+      "evidence_en": "Generates constraint-satisfying code for robotic manipulation, enhancing safety through symbolic constraints.",
+      "evidence_cn": "为机器人操作生成满足约束的代码，通过符号约束增强安全性。",
+      "canonical_evidence": "为机器人操作生成满足约束的代码，通过符号约束增强安全性。",
+      "tldr_en": "InstructFlow generates executable code for long-horizon robotic tasks by decomposing goals into instruction graphs and applying symbolic constraints, ensuring task feasibility and safety.",
+      "tldr_cn": "InstructFlow针对机器人长时规划任务，通过构建层次化指令图分解目标，并利用符号约束引导代码生成，确保生成的控制程序满足空间、时间和物理约束。该框架包含规划器和代码生成器，并能自适应处理失败恢复。实验结果表明，InstructFlow显著提高了复杂操作任务的成功率，为具身智能系统提供了安全可靠的行为代码生成方案。",
+      "title_zh": "InstructFlow：面向长时规划的自适应符号约束引导代码生成",
+      "motivation_cn": "LLM规划器在长时机器人任务中难以满足复杂约束并自适应纠错。",
+      "method_cn": "提出InstructFlow，使用层次化指令图谱分解目标，并用符号约束引导代码生成与失效恢复。",
+      "result_cn": "在复杂操作任务上，生成代码的约束满足率与任务成功率显著优于基线方法。",
+      "conclusion_cn": "InstructFlow为具身智能生成可执行且安全的控制代码提供了有效途径，增强了机器人任务的可靠性。",
+      "matched_requirement_id": "req-7",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "safe code generation techniques for embodied intelligent systems"
+    },
+    {
+      "paper_id": "openreview-icml-2025-jsybqtojs4",
+      "score": 7.0,
+      "evidence_en": "Black-box attack that biases LLM code completion to produce insecure code",
+      "evidence_cn": "黑盒攻击使LLM代码补全产生不安全代码",
+      "canonical_evidence": "黑盒攻击使LLM代码补全产生不安全代码",
+      "tldr_en": "Presents INSEC, a black-box attack on LLM code completion that biases outputs toward insecure code via injected comments, revealing a critical security flaw in AI coding assistants.",
+      "tldr_cn": "本工作提出首个针对LLM代码补全的黑盒攻击INSEC，通过在输入中注入特制注释，可隐秘地显著增加不安全代码生成率。实验表明主流代码补全引擎均受此攻击影响，揭示了AI辅助编码中的安全脆弱性。该研究强调了在AI代码生成中加强安全防护的紧迫性。",
+      "title_zh": "针对基于大语言模型的代码补全的黑盒对抗攻击",
+      "motivation_cn": "现有LLM代码补全引擎的安全性尚未得到充分研究",
+      "method_cn": "提出黑盒攻击INSEC，通过注入优化后的注释字符串诱导不安全代码生成",
+      "result_cn": "实验证明攻击可显著提高多种代码补全引擎的不安全代码产出率",
+      "conclusion_cn": "LLM代码辅助存在安全隐患，需加强防御措施",
+      "matched_requirement_id": "req-8",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "ensuring security and safety in AI generated code"
+    },
+    {
+      "paper_id": "openreview-neurips-2025-ly5dnrigcz",
+      "score": 6.0,
+      "evidence_en": "RLVR framework with automated verification for generating correct Verilog code",
+      "evidence_cn": "利用自动化验证的RLVR框架生成正确的Verilog代码",
+      "canonical_evidence": "利用自动化验证的RLVR框架生成正确的Verilog代码",
+      "tldr_en": "This paper presents CodeV-R1, a reinforcement learning with verifiable reward framework for Verilog generation that uses a rule-based testbench generator for automated equivalence checking, enabling training of LLMs to produce correct hardware descriptions.",
+      "tldr_cn": "针对硬件设计自动化中缺乏准确验证环境和高质数据的问题，提出CodeV-R1框架，利用基于规则的测试平台生成器进行自动化等价验证，通过RLVR训练LLM生成功能正确的Verilog代码。实验显示该方法显著提升了逻辑等价性检查的通过率，首次将RLVR成功拓展至EDA领域，为安全可靠的硬件代码生成奠定了基础。",
+      "title_zh": "启梦CodeV-R1：推理增强的Verilog生成",
+      "motivation_cn": "将RLVR拓展至硬件生成面临验证环境缺失等挑战",
+      "method_cn": "提出CodeV-R1，基于规则生成测试平台进行自动化RLVR训练",
+      "result_cn": "实验表明生成的Verilog代码逻辑等价性显著提升",
+      "conclusion_cn": "验证驱动的训练保证了代码正确性，推动了安全硬件代码生成",
+      "matched_requirement_id": "req-5",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "automated techniques to ensure code safety"
+    },
+    {
+      "paper_id": "anthology-2025.findings-acl.784",
+      "score": 4.0,
+      "evidence_en": "Uses causal influence diagrams to improve safety of LLM agent decisions.",
+      "evidence_cn": "利用因果影响图提升LLM智能体决策的安全性。",
+      "canonical_evidence": "利用因果影响图提升LLM智能体决策的安全性。",
+      "tldr_en": "CIP employs causal influence diagrams to guide LLM agents in anticipating harmful outcomes and making safer decisions, reducing unintended consequences.",
+      "tldr_cn": "CIP通过因果影响图（CID）增强LLM智能体的安全决策能力。该方法根据任务规范初始化CID，引导智能体与环境交互并迭代细化因果模型，从而预测有害结果并选择更安全的行动。实验表明，CIP能显著降低智能体做出危险决策的风险，为在具身或辅助场景中部署安全LLM智能体提供了新思路。",
+      "title_zh": "通过因果影响提示增强LLM智能体安全性",
+      "motivation_cn": "自主LLM智能体可能做出危险决策，缺乏结构化风险推理。",
+      "method_cn": "提出CIP，使用因果影响图建模决策过程，通过迭代优化提示智能体预测并规避有害结果。",
+      "result_cn": "CIP有效降低了智能体危险行为的发生率，提升了决策的安全可靠性。",
+      "conclusion_cn": "CIP为增强LLM智能体安全性提供了可解释的框架，适用于具身等高风险任务。",
+      "matched_requirement_id": "req-3",
+      "matched_query_tag": "query:safe-coding",
+      "matched_query_text": "safety considerations in embodied artificial intelligence systems"
+    }
+  ],
+  "llm_ranked_at": "2026-07-19T08:12:46.088598+00:00",
+  "display_min_score": 4.0,
+  "pruned_at": "2026-07-19T08:12:46.139162+00:00"
+}
