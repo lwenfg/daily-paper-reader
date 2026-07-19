@@ -1,0 +1,2209 @@
+Title: Foundational Constraint Solving for Expressive Refinement Typing
+
+URL Source: https://arxiv.org/pdf/2607.12226v1
+
+Published Time: Wed, 15 Jul 2026 12:00:21 GMT
+
+Number of Pages: 47
+
+Markdown Content:
+## Foundational Constraint Solving for Expressive Refinement Typing 
+
+JAM KABEER ALI KHAN, Independent, Hong Kong SAR 
+
+PETROS MARKOPOULOS, University of California San Diego, USA 
+
+NICO LEHMANN, University of Chile, Chile 
+
+RANJIT JHALA ∗, University of California San Diego, USA SMT-based program verifiers are hamstrung by two problems: expressiveness , because predictable verification restricts to the boundaries of SMT decidability, and trust , because the solver is a large, unverified artifact whose soundness bugs may quietly compromise every tool built on it. We present Flex , a foundational Constrained Horn Clause (CHC) solver implemented in Lean , that reduces the trusted base to the kernel alone, and allows using Lean ’s entire proof ecosystem to verify low-level systems code, via three contributions. First, Flex 
+
+encodes CHCs as plain Lean propositions where the Horn variables are existentially bound predicates, and shows how to implement CHC solvers as tactics (meta-programs) that compute kernel-checkable proofs of the CHC propositions. Second, we show how to implement two verified CHC generators in Lean : a Floyd-Hoare style generator for an imperative language, and a refinement-type-based generator for a functional calculus, which can be composed with the solving tactics to yield the first end-to-end foundational CHC-based verifiers. Finally, we show how Flex allows us to leapfrog the expressiveness limitations of SMT by unleashing Lean ’s entire ecosystem of proof machinery to prove arbitrary functional correctness properties of various low-level Rust libraries using the Flux refinement type checker, and demonstrate the viability of Flex as a trustworthy CHC backend, by showing it automatically discharges 95 .7% of the CHCs from Flux ’s benchmark suite. Additional Key Words and Phrases: Constraint Horn Clauses, Theorem Provers, Refinement Types, Verification 
+
+1 Introduction 
+
+SMT solvers are the beating heart of automated verification tools [ 2, 22 , 44 , 45 , 48 , 67 , 73 ] that convert messy, impure code into purely logical formulas whose validity, automatically checked by the solver, guarantees the code meets critical correctness and security requirements [ 31 , 43 , 46 , 61 , 79 ]. However, experience shows that SMT solvers are hamstrung by two problems: expressiveness and 
+
+trust . First, the solvers implement decision procedures for a fixed set of decidable theories [ 55 ], and use heuristics to reason about formulas that lie beyond [ 17 ]. While the decision procedures make short work of formulas that arise in proving specifications over integers, arithmetic, or uninterpreted functions, verification becomes a slog for more expressive specifications with quantifiers or user-defined predicates, or even when reasoning with decidable but hard theories like bit-vectors. Here, the incomplete heuristics make solving unpredictable due to “proof instability” [ 49 , 78 ], and the black-box nature of SMT — where it simply says whether a formula is valid or not — leaves the programmer flinging darts in the dark to divine what extra hints the solver might require to complete a proof [ 26 , 53 ]. Second, SMT engines are substantial artifacts: Z3 and CVC4 weigh around half a million lines of C++, with known soundness issues [ 11 , 74 –76 ] — a significant trusted computing base even before accounting for the verification formula generators. 
+
+Flex We present Flex , a new approach to engineering program verifiers using foundational Horn constraint solving. Flex is based on the observation that the task of verification can be split into a front-end that generates Constrained Horn Clauses (CHCs) and a back-end that determines their satisfiability [ 6]. A CHC is a logical formula over a set of Horn variables representing unknown  
+
+> ∗Corresponding author. Authors’ Contact Information: Jam Kabeer Ali Khan, Independent, Hong Kong SAR, jamkhan@connect.hku.hk; Petros Markopoulos, University of California San Diego, San Diego, USA, pmarkopoulos@ucsd.edu; Nico Lehmann, University of Chile, Santiago, Chile, nlehmann@dcc.uchile.cl; Ranjit Jhala, University of California San Diego, San Diego, USA, rjhala@ucsd.edu. arXiv:2607.12226v1 [cs.PL] 14 Jul 2026 1:2 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala
+
+program invariants, which must satisfy requirements captured by conjunctions and implications over those variables. Our key insight is that CHCs are existentially quantified propositions in a foundational logic, such as that of Lean or Rocq or Isabelle . Hence, we can entirely leapfrog the expressiveness and trust limitations of SMT by implementing a CHC solver within a foundational prover, as a meta-program that computes proofs of CHC propositions. In this paper, we develop, implement and evaluate this approach via three contributions. 
+
+1. Foundational Solving (§4) Our first contribution is to show how CHCs can be shallowly embedded as Lean propositions, and then show how existing (SMT-based) CHC solving techniques can be reimagined as tactics that reduce away the Horn variables from the proposition, leaving behind a plain formula that can be discharged with existing Lean machinery. To solve CHCs our tactics must compute witness predicates for the existentially bound Horn variables. Following [ 14 ], we observe that these variables can be partitioned into acyclic variables which can be solved exactly or cyclic variables which must be approximated because they arise respectively from “straight-line” or “looping” code. We show how to compute this partition, and then how to adapt the Fusion [ 14 ]and Predicate Abstraction [ 21 , 62 ] CHC solving algorithms to the foundational setting, where we can parameterize them with extensible oracles that enable synthesizing invariants over user-defined theories. Of course, a foundational kernel will not take any reduction of the Horn variables on faith: it demands proof that the reduction is legitimate. A key contribution of our tactics is to show how to exploit the structure of CHCs and their solutions to automatically construct certificates that the reduced CHC logically implies the original one, yielding the first foundational CHC solver. 
+
+2. Foundational Generation (§5) Our second contribution is to implement two foundational CHC generators , which, when connected with Flex , yield the first end-to-end CHC-based verifiers. As a warmup, we develop a Floyd-Hoare style generator [ 24 , 35 ] for an imperative language Imp ,that follows the textbook recipe [ 56 , 60 ] but crucially uses Horn variables to defer loop-invariant synthesis to the back-end solver. Next, we present the first mechanization of algorithmic refinement typing [ 38 ], by deeply embedding a core functional calculus 𝜆 𝑅𝐾 in Lean , formalizing a big-step operational semantics for it, defining a semantic interpretation for refinement types, implementing a CHC generator that uses Horn variables for unknown refinements , and proving that if the generated CHCs are satisfiable, then the source yields — without getting stuck — a value in its type’s interpretation. Together these verifiers offer a blueprint for how to engineer CHC-based verification tools entirely within a proof assistant. 
+
+3. Expressive Verification (§6) Our final contribution demonstrates Flex ’s ultimate payoff: liberating verification from SMT’s expressiveness and trust limitations by unleashing Lean ’s entire ecosystem of proof machinery — theories, tactics, agents, and all — to prove arbitrary functional correctness properties of low-level Rust code. The Flux verifier uses refinement types to distill impure Rust code — with the classic challenges of mutable state like references and loops, compounded by hairy modern constructs like traits, closures and asynchrony — into purely logical CHCs. Previously, the expressiveness of Flux ’s specifications was carefully restricted to ensure the CHCs fell within the boundaries of SMT decidability. Flex tears down this wall, by using Lean 
+
+as a backend to discharge functional correctness specifications, as illustrated by a variety of case studies: correctness of in-place sorting algorithms; correctness of a hash table with chaining for collision resolution; modular arithmetic and bit-vector properties required for secure memory isolation in the Tock embedded kernel [ 61 ]; and proving that a ring-buffer-backed dequeue from the embedded kernel [ 64 ] never reads from uninitialized memory. Further, we show that Flex is viable as a trustworthy back-end CHC solver that is able to automatically discharge more than 95% 
+
+of the 880 CHCs that arise in Flux ’s existing benchmark suite spanning 20K lines of Rust source. This high degree of automation is made possible by Flex ’s certificate generation machinery which Foundational Constraint Solving for Expressive Refinement Typing 1:3                                       
+
+> fn foreach <F >( lo : usize , hi : usize , mut f:F) where F: FnMut ( usize {v:lo <= v && v < hi }) {let mut i=lo ; while i<hi {f(i ); i+= 1; }}fn dot (n: usize , x :&[ f64 ][ n], y :&[ f64 ][ n ]) -> f64 {let mut res =0.0; let body =|j| {res += x[j] *y[j] }; foreach (0 , n , body ); res }
+
+𝑐 for  ∃𝜅 : Int → Int → Int → Prop .
+
+∀lo hi : Int .
+
+∧ 𝜅 (lo , hi , lo )∧ ∀ 𝑖 : Int .𝜅 (𝑖, hi , lo ) → 𝑖 < hi →∧ lo ≤ 𝑖 ∧ 𝑖 < hi 
+
+∧ 𝜅 (𝑖 + 1, hi , lo )
+
+𝑐 dot  ∃𝜅 : Int → Int → Prop .
+
+∀𝑛 : Int .
+
+∧ ∀ 𝑗 : Int . 𝜅 ( 𝑗, 𝑛 ) → 
+
+𝑗 < 𝑛 
+
+∧ ∀ 𝑣 : Int . (0 ≤ 𝑣 ∧ 𝑣 < 𝑛 ) → 
+
+𝜅 (𝑣, 𝑛 )
+
+Fig. 1. (L) Rust with Flux specifications, (R) verification CHCs generated by Flux 
+
+successfully reduces every acyclic variable across 369 CHCs without search, compared to a baseline of Lean ’s general-purpose grind and aesop which close only 67% and 90% of CHCs while taking 
+
+18 to 34 × longer to complete the proof. 1
+
+2 Overview 
+
+Let us begin with an overview of Flex . We start by recalling how refinement type checking reduces to generating CHC constraints (§ 2.1). Next, we illustrate our first contribution by showing how 
+
+Flex solves the constraints in a foundational setting (§ 2.2). Then, we demonstrate our second contribution where we use Flex ’s solvers to implement foundational verifiers in Lean (§ 2.3). Finally, we conclude by showing how by tapping into Lean ’s full machinery, Flex lets Flux verify arbitrarily expressive specifications of Rust code (§ 2.4). 
+
+2.1 Horn Constraints 
+
+Consider the two Rust functions shown on the left in Fig. 1. The function foreach is a higher-order loop, that takes as input three parameters: a range denoted by a lower bound lo and upper bound 
+
+hi , and a body f. The function uses a while loop to evaluate f(i) for each index i in the supplied range. The function dot takes as input two Rust slices x and y of dimension n, and then computes the dot product of the two slices by invoking foreach on the range [ 0, n), and the closure body that accumulates the contribution of the j𝑡ℎ dimension of each slice. 
+
+Specification: Refinement Types Suppose we wish to statically verify that dot does not panic by performing an out-of-bounds access. To do so, the programmer writes Flux refinement type specifications for each function. The specification for foreach says that the closure f will only be called at indices v that are in the range [lo, hi) , as stipulated by the closure’s precondition: an existential refinement on the input type of f. For dot , the specification requires callers pass in slices 
+
+x and y with n elements, as prescribed by the indexed slice type &[f64][n] .  
+
+> 1Flex can be found at https://github.com/jam-khan/Flex. 1:4 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala
+
+∃𝜅 : Int → Int → Prop .
+
+∀𝑛 : Int .
+
+∧ ∀ 𝑗 : Int . 𝜅 ( 𝑗, 𝑛 ) → 
+
+𝑗 < 𝑛 
+
+∧ ∀ 𝑣 : Int . (0 ≤ 𝑣 ∧ 𝑣 < 𝑛 ) → 
+
+𝜅 (𝑣, 𝑛 )
+
+> zap
+
+−−−−−→∀𝑛 : Int .
+
+∧ ∀ 𝑗 : Int . ∃𝑣. 0 ≤ 𝑣 ∧ 𝑣 < 𝑛 ∧ 𝑗 = 𝑣 →
+
+𝑗 < 𝑛 
+
+∧ ∀ 𝑣 : Int . (0 ≤ 𝑣 ∧ 𝑣 < 𝑛 ) → ⊤
+
+> grind
+
+−−−−→ No goals.            
+
+> Fig. 2. (L) The CHC for dot , (C) zap the acyclic 𝜅 replacing head occurrences with ⊤and body occurrences with the strongest solution, (R) grind then discharges the residual VC to verify dot .
+
+Verification: Constraints To verify both functions in Fig. 1, a refinement type verifier like Flux 
+
+runs the type checker to generate a verification constraint shown on the function’s right. Each constraint is a Constrained Horn Clause (CHC) that comprises the following elements. At the top, a CHC has some number of existentially quantified Horn variables (denoted by 𝜅 ) which represent unknown refinements or invariants. Next, the constraint itself, comprises a sequence of nested (1) universal bindings, corresponding to statically unknown program values; (2) conjunctions ,corresponding to multiple requirements; (3) implications , corresponding to hypotheses about program values; ending in a (4) head obligation that must hold under the preceding hypotheses. 
+
+CHC for foreach The constraint 𝑐 for has one Horn variable 𝜅 : Int → Int → Int → Prop represent-ing the while -loop invariant over the counter i, upper bound hi , and lower bound lo . The first (head) conjunct 𝜅 (lo , hi , lo ) says the invariant must hold at loop entry (when i = lo ). The second conjunct is the inductive step: if the invariant holds at i and the loop guard 𝑖 < hi is true, then we have two head obligations. (a) First, the closure’s precondition lo ≤ 𝑖 ∧ 𝑖 < hi must hold, ensuring f
+
+is called within the specified range. (b) Second, the invariant must be preserved at 𝑖 + 1, as mandated by the head 𝜅 (𝑖 + 1, hi , lo ).
+
+CHC for dot Closures would be quite tiresome to use if programmers had to explicitly anno-tate them with their contracts. To relieve them of this tedium, Flux introduces a Horn variable 
+
+𝜅 : Int → Int → Prop to represent the unknown input refinement for the closure body . The first con-junct of the constraint says that whenever the closure executes with an index j, which is assumed to satisfy the closure’s input refinement 𝜅 ( 𝑗, 𝑛 ), the bound 𝑗 < 𝑛 needed to safely access x[j] and y[j] 
+
+must hold. The second conjunct is obtained from the subtyping obligation between the function type of the argument ( body ) and of the foreach ’s parameter ( f). Specifically, by contravariant input subtyping, the constraint says that since foreach calls the closure with 𝑣 where 0 ≤ 𝑣 ∧ 𝑣 < 𝑛 (as it is called with lo = 0, hi = 𝑛 ), all such values must satisfy the input refinement 𝜅 (𝑣, 𝑛 ).
+
+2.2 Foundational Solvers 
+
+The verification constraints (CHCs) distill Rust’s stateful, temporal, and impure semantics into purely logical propositions — precisely the kind of thing that proof assistants were designed to prove. Except for one major challenge: proofs of CHC propositions must supply explicit witnesses for the existentially bound Horn variables, satisfying the head obligations on those variables. (Indeed, we tried proving some CHCs by hand — and with coding agents — but it was readily apparent that this direct route was utterly impractical.) 
+
+Flex addresses this challenge by reimagining two existing CHC-solving algorithms as rewriting tactics for the foundational setting. 
+
+Cyclic vs Acyclic Variables The Horn variables 𝜅 in CHCs come in two flavors. The variable 𝜅 
+
+may be cyclic , which means, roughly (we defer a precise definition to § 4.1), that it appears in the hypotheses of a clause where it also appears in the head; and otherwise we say it is acyclic . For Foundational Constraint Solving for Expressive Refinement Typing 1:5 
+
+∃𝜅 : Int → Int → Int → Prop .
+
+∀lo hi : Int .
+
+∧ 𝜅 (lo , hi , lo )∧ ∀ 𝑖 : Int .𝜅 (𝑖, hi , lo ) → 𝑖 < hi →∧ lo ≤ 𝑖 ∧ 𝑖 < hi 
+
+∧ 𝜅 (𝑖 + 1, hi , lo )
+
+> fix
+
+−−−−−→∀lo hi : Int .
+
+∧ ⊤ ∧ ∀ 𝑖 : Int .
+
+lo ≤ 𝑖 ∧ 𝑖 ≤ hi → 𝑖 < hi →∧ lo ≤ 𝑖 ∧ 𝑖 < hi 
+
+∧ ⊤ 
+
+> grind
+
+−−−−→ No goals.           
+
+> Fig. 3. (L) The CHC for foreach , (C) fix uses qualifiers to reduce the cyclic 𝜅 , replacing head occurrences with ⊤and body occurrences with the solution, (R) grind then discharges the residual VC to verify foreach .
+
+example, in the constraint 𝑐 for in Fig. 1, 𝜅 is cyclic as it appears in both the hypothesis 𝜅 (𝑖, hi , lo )
+
+and the head 𝜅 (𝑖 + 1, hi , lo ) of the inductive clause. In contrast, the variable 𝜅 in 𝑐 dot is acyclic as it appears only in hypotheses in the first clause and only in head in the second. 
+
+Solving Acyclic Variables For an acyclic variable 𝜅 we can compute an exact closed form solution, perhaps in terms of other variables. The Fusion algorithm of [ 14 ] shows how to compute the 
+
+strongest solution, informally by taking the conjunction of all the hypotheses that occur along the path to each head occurence of that 𝜅 , and then computing the disjunction over all the paths leading to head occurrences of the 𝜅 .In Flex , the above algorithm is implemented in a tactic zap detailed in § 4.2, and shown in action in Fig. 2. On the left, we have the original CHC proposition. First, zap computes the strongest solution by traversing the CHC to the (single) head application of 𝜅 , collecting the hypotheses along the path, and existentially quantifying the universally quantified binders: 
+
+𝜅  𝜆𝑧, 𝑛. ∃𝑣. 0 ≤ 𝑣 ∧ 𝑣 < 𝑛 ∧ 𝑧 = 𝑣 
+
+Next, the zap tactic traverses the CHC, reducing all the head applications of 𝜅 to ⊤ (i.e. , True ) as they are guaranteed to hold by construction, and the body applications of 𝜅 with the computed solution. These reductions are highlighted in gray. The result is a horn variable free verification condition which is discharged by Lean ’s grind tactic. 
+
+Solving Cyclic Variables The Horn variable 𝜅 in 𝑐 for is cyclic: it appears as a hypothesis along the same path where it is the goal. Hence, we cannot apply the technique described above as it would loop indefinitely! Instead, Flex has a fix tactic that implements a form of abstract interpretation called predicate abstraction [21, 28]. This tactic proceeds in three steps. 
+
+Step 1: Qualifiers The fix tactic solves cyclic variables as conjunctions of predicates from a library of qualifier templates [62]. In Flex , a qualifier is any Lean predicate tagged with @[qual] , e.g. ,                                    
+
+> @[ qual ]def q_le (a b:Int ) := a≤b@[ qual ]def q_lt (a b:Int ) := a<b@[ qual ]def q_eq (a b:Int ) := a=b
+
+Step 2: Initial Assignment Next, fix uses the qualifiers to compute an initial assignment which instantiates all the qualifiers with all the possible 𝜅 parameters that yield a well-typed Lean 
+
+predicate. For example, an initial assignment for the variable 𝜅 from 𝑐 for would be 
+
+𝜅 (𝑧, hi , lo )  {𝑧 ≤ hi , hi ≤ 𝑧, 𝑧 ≤ lo , lo ≤ 𝑧, . . . 𝑧 < hi , hi < 𝑧, 𝑧 < lo , lo < 𝑧, . . . }
+
+Step 3: Weaken till Fixpoint Finally, fix enters an iterative weakening loop where we use an 
+
+oracle — which could be grind or any other theory specific decision procedure in Lean — to 
+
+discard candidates that cannot be proven to hold at some CHC head. Once we have eliminated the impossible, whatever candidates remain, must be the truth. Hence, fix returns a solution comprising 1:6 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+Constraint Solution Certificate 
+
+𝑐 1 ∧ 𝑐 2 sol 𝑐 1 ∨ sol 𝑐 2 inl / inr 
+
+∀𝑥 . 𝑐 ∃𝑥 . sol 𝑐 ⟨𝑥, ·⟩ 
+
+𝑝 → 𝑐 𝑝 ∧ sol 𝑐 ⟨ℎ, ·⟩ 
+
+𝜅 (𝑡 ) Ó𝑖 𝑧 𝑖 = 𝑡 𝑖 ⟨rfl , . . . , rfl ⟩                                                        
+
+> ∃𝜅 :Int →Int →Int →Int →Prop
+> ∀𝑛 :Int .(2≤𝑛 ∧fib (𝑛 )<MAX ∧𝑛 <MAX ) → ∧𝜅 (1,2,2, 𝑛 )∧ ∀ prev curr 𝑖 :Int .𝜅 (prev ,curr , 𝑖, 𝑛 ) → ∧𝑖 ≥𝑛 →curr =fib (𝑛 )∧𝑖 <𝑛 →prev +curr ≤MAX ∧
+> 𝜅 (curr ,prev +curr , 𝑖 +1, 𝑛 )
+> Fig. 4. (L) Triad of Constraints, Solutions and Certificates (§ 4.3); (R) CHC from fib_loop in Fig. 7.
+
+the conjunction of all the candidates that remain standing. For our example, two candidates remain, yielding the solution 𝜅  𝜆𝑧, hi , lo .lo ≤ 𝑧 ∧ 𝑧 ≤ hi . Like zap , fix uses the computed solution to reduce away 𝜅 by replacing head occurrences with ⊤ and body occurrences with the computed fixpoint, as shown in Fig. 3, yielding a plain VC that can be discharged by grind .
+
+Certifying Reductions A key challenge that Flex addresses is that in the foundational setting, we cannot blithely rewrite the constraint with an alleged solution: instead, we must conclusively prove that the reduction is legitimate. Thus, whenever Flex ’s CHC solving tactics zap and fix reduce a constraint 𝑐 to 𝑐 ′ by computing the solution for a single variable 𝜅 , they traverse 𝑐 and the solution to construct an explicit certificate that demonstrates that any proof of the reduced constraint 𝑐 ′
+
+yields a proof of the original 𝑐 . To this end, we observe that the structure of constraints, solutions and hence, their certificates, form a triad summarized in Fig. 4 (and detailed in § 4.3). Their rhyming structure lets us mirror the traversal used to compute the solution to construct an explicit Lean 
+
+proof term (using the matching constructs in Fig. 4) that justifies why it is sound to replace each head 𝜅 -application with ⊤ at that juncture in the constraint. These proofs are then chained together to show that any proof of the 𝜅 -free proposition is also a proof of the original CHC, yielding an end-to-end guarantee. 
+
+2.3 Foundational Verifiers 
+
+Our second contribution is to use the solvers to develop the first foundational CHC-based verifiers. First, a Floyd-Hoare style verifier [ 24 , 35 ] for an imperative language Imp where the Horn variables let us synthesize loop invariants [6 ]. Second, a verifier for a core functional calculus extended with refinement types 𝜆 𝑅𝐾 , which uses Horn variables to infer unknown refinements . In each case, we formalize the source language’s operational semantics and implement a CHC generator that is proved sound against the semantics. Flex can then discharge the generated CHCs, highlighting two key benefits: first that it can be used as a foundational "back-end" verifier for stateful or functional programs in Lean ; second that it can reuse Lean ’s proof ecosystem to check specifications over arbitrary user-defined functions. 
+
+Loop Invariant Synthesis for Imp Fig. 5 shows our verifier for Imp in action. On the left, we first have a specification for fib as a plain Lean function, and below, a textbook imperative loop that computes the 𝑛 th Fibonacci number. We use Flex to prove the (partial) Floyd-Hoare triple that says that when the loop is executed from a state where the value of the variable n equals 𝑎 with 𝑎 ≥ 2
+
+then (if it exits) the value of x equals fib (𝑎 ).The proof of the triple is in two steps. First, the generate tactic reduces the assertion to the CHC shown on the top right. This CHC has a single cyclic Horn variable 𝜅 that represents the unknown loop invariant. The classical weakest-precondition based VC generation [ 18 ] yields a CHC with constraints that check (1) the invariant holds upon loop entry; (2) the invariant is inductive (re-established by the body) and (3) the specified postcondition holds on exit. Second, Foundational Constraint Solving for Expressive Refinement Typing 1:7                                                                                                    
+
+> @[ grind ]def fib (n :Int ) :Int :=
+> if n≤1then 1else fib (n -1) +fib (n -2) termination_by n. toNat @[ qual ]def q1 (v i: Int ) := v=fib i@[ qual ]def q2 (v i: Int ) := v=fib (i -1)
+> theorem fibLoop (a :Int ) :
+> |=(𝜆 s=> s"n" =a∧a≥2) <| prev := 1; x:= 2; i:= 2; while i<ndo (next := prev +x;prev := x;x:= next ;i:= i+1) |> (𝜆 s=> s"x" =fib a) := by generate ; fix ; grind
+
+∃𝜅 : Int → Int → Int → Int → Prop .
+
+∧ ∀ 𝑛 : Int .𝑛 = 𝑎 → 2 ≤ 𝑎 → 𝜅 (𝑛, 1, 2, 2)∧ ∀ 𝑛 𝑝 𝑥 𝑖 : Int .𝜅 (𝑛, 𝑝, 𝑥, 𝑖 ) → 𝑖 < 𝑛 → 𝜅 (𝑛, 𝑥, 𝑝 + 𝑥, 𝑖 + 1)∧ ∀ 𝑛 𝑝 𝑥 𝑖 : Int .𝜅 (𝑛, 𝑝, 𝑥, 𝑖 ) → 𝑛 ≤ 𝑖 → 𝑥 = fib (𝑎 )
+
+> fix
+
+−−−−−→∧ ∀ 𝑛 : Int .𝑛 = 𝑎 → 2 ≤ 𝑎 → ⊤∧ ∀ 𝑛 𝑝 𝑥 𝑖 : Int .. . . → 𝑖 < 𝑛 → ⊤∧ ∀ 𝑛 𝑝 𝑥 𝑖 : Int .𝑛 = 𝑎 ∧ 𝑖 ≤ 𝑛 ∧ 𝑝 = fib (𝑖 − 1) ∧ 𝑥 = fib (𝑖 ) →
+
+𝑛 ≤ 𝑖 → 𝑥 = fib (𝑎 )
+
+Fig. 5. End-to-end Verification for Imp : (L) Specification of fib (top) and imperative implementation (bot), (R) Generated VC (top) and reduced constraint (bot). 
+
+Flex ’s Fix tactic reduces the CHC using predicate abstraction to synthesize a solution for the 𝜅 
+
+using the qualifiers shown above, yielding the constraint shown below, discharged by grind .
+
+Refinement Synthesis for 𝜆 𝑅𝐾 Fig. 6 shows our verifier for 𝜆 𝑅𝐾 in action. On the left, we have a function max that returns the larger of its two inputs with a return type carrying an unknown refinement 𝜅 (𝜈, 𝑦, 𝑥 ). The expression ex applies max to 6 and 7. We use Flex to prove that ex can be typed as {𝜈 : Int | 𝜈 = 7} under some typing environment 𝐾 that assigns 𝜅 a concrete predicate. The proof proceeds in two steps. First, the generate tactic runs 𝜆 𝑅𝐾 ’s bidirectional type checker to emit the CHC shown on the top right. This CHC has a single acyclic Horn variable 𝜅 : Int → Int →
+
+Int → Prop representing the unknown return refinement. Type checking the body of max yields two head constraints: if 𝑥 ≤ 𝑦 then the return value 𝑦 must satisfy 𝜅 (𝑦, 𝑦, 𝑥 ), and symmetrically 
+
+𝜅 (𝑥, 𝑦, 𝑥 ) in the else branch. The call site max 6 7 checked against {𝜈 : Int | 𝜈 = 7} contributes the final clause: any 𝑣 satisfying 𝜅 (𝑣, 7, 6) must equal 7. Second, Flex ’s Zap tactic reduces the CHC: since 𝜅 is acyclic, it computes its strongest solution, replaces each head occurrence with ⊤ and each body occurrence with the computed solution (highlighted in gray on the bottom right), yielding a plain VC that grind dispatches. 
+
+2.4 Expressive Refinement Typing 
+
+Our last contribution shows how embedding CHCs into Lean liberates refinement types from the limitations of SMT-solver theories, enabling their use for proving functional correctness properties of Rust using the Flux refinement type checker (§6). 
+
+Specifying Non-Overflow The left of Fig. 7 shows a Rust function that implements the same imperative fib onacci computation from Fig. 5. However, in the Rust setting, all the variables are fixed-sized (unsigned) integers usize and hence, Flux additionally requires us to prove that various arithmetic operations, notably prev + curr , do not overflow. The operation will overflow unless the n is sufficiently small, as stated by the additional precondition. Thus, when run on this code, 
+
+Flux generates a CHC FibLoopCHC shown on the right in Fig. 4, that is similar to that in Fig. 5 but with an additional assumption that fib (𝑛 ) < MAX and a head that checks prev + curr ≤ MAX .1:8 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala                                                        
+
+> max :x: Int -> y: Int -> {𝜈 : Int |𝜅 (v ,y ,x )} max 𝜆 xy->
+> let c=x≤yin if cthen yelse xex let a=6in
+> let b=7in
+> max ab
+> example :∃𝐾 ,∅⊢𝐾 ex ⇐{𝜈 : Int |𝜈 =7} := by
+> generate zap grind
+
+∃𝜅 : Int → Int → Int → Prop .
+
+∧ ∀ 𝑥 𝑦 : Int .
+
+∧ 𝑥 ≤ 𝑦 → 𝜅 (𝑦, 𝑦, 𝑥 )∧ ¬( 𝑥 ≤ 𝑦 ) → 𝜅 (𝑥, 𝑦, 𝑥 )∧ ∀ 𝑣 : Int .
+
+∧ 𝜅 (𝑣, 7, 6) → 𝑣 = 7
+
+> zap
+
+−−−−−→∧ ∀ 𝑥 𝑦 : Int .
+
+∧ 𝑥 ≤ 𝑦 → ⊤∧ ¬( 𝑥 ≤ 𝑦 ) → ⊤∧ ∀ 𝑣 : Int .
+
+∧ (6 ≤ 7 ∧ 𝑣 = 7) ∨ (¬ 6 ≤ 7 ∧ 𝑣 = 6) → 𝑣 = 7
+
+Fig. 6. End-to-end Verification for 𝜆 𝑅𝐾 : (L) Typing an 𝜆 𝑅𝐾 that computes the larger of two inputs, (R) CHC generated by typing.                                                                                         
+
+> fn fib_loop (n: usize ) -> usize [ fib (n )] requires 2<= n&& fib (n) <usize :: MAX {let mut prev =1; let mut curr =2; let mut i=2; while i<n{let next =prev +curr ; prev =curr ; curr =next ; i+= 1; }return curr ; }
+> theorem fib_mono : ∀(i j:Int ), 0≤i→i≤j→fib i≤fib j:= by
+> intros ijhi hij induction jusing fib_spec_fib . induct generalizing iwith grind def FibLoop_proof :FibLoopCHC := by
+> unfold FibLoopCHC fix
+> have _:fib (i +1) <= fib n:= by
+> apply fib_mono <;> grind grind
+
+Fig. 7. Expressive Refinement Typing in Flux 
+
+Verifying Non-Overflow The right side of Fig. 7 shows how we can verify the code by proving 
+
+FibLoopCHC in Lean : we need simply unfold and use the Flex tactic fix , which uses the qualifiers in Fig. 5 to solve for and reduce the 𝜅 , leaving behind the single goal 
+
+2 ≤ 𝑖 < 𝑛, fib (𝑛 ) < MAX , . . . ⊢ fib (𝑖 − 1) + fib (𝑖 ) ≤ MAX 
+
+that we can discharge by proving and applying a lemma that fib is monotonic ( fib_mono ) in Lean .In the SMT based setting [ 44 , 48 ] verification failures are opaque. The programmer would have to stare hard at the code to understand the root cause, then prove the monotonicity lemma using the spare (relative to Lean ) affordances of the verifier, and finally instantiate the lemma by cluttering the source with assertions. In contrast, Lean ’s interactive context makes it easy to spot what is 
+
+missing , and its ecosystem of theories and tactics makes it easy to then close the gap. Foundational Constraint Solving for Expressive Refinement Typing 1:9 
+
+Lean Term 𝑡, 𝜑 ∈ T Variables 𝑥, ℎ ∈ V 𝜅 -variable 𝜅 ∈ K ⊂ V 
+
+Sort 𝑏 :: = Prop | Int | Nat | Bool | BitVec 𝑛 | · · · 
+
+Atoms 𝑝 :: = 𝜑 𝜅 -free atom 
+
+| 𝜅 (𝑡 ) horn application 
+
+Constraints 𝑐 :: = 𝑝 head 
+
+| 𝑐 ∧ 𝑐 conjunction 
+
+| 𝑝 → 𝑐 implication 
+
+| ∀𝑥 :𝑏. 𝑐 quantification 
+
+Closed Constraint 𝐶 :: = ∃𝜅.𝑐 
+
+Proof term 𝑞 :: = 𝑡 | 𝜆𝑥 . 𝑞 | 𝑞 𝑞 | ⟨ 𝑞, 𝑞 ⟩ | 𝑞. 1 | 𝑞. 2 | inl 𝑞 | inr 𝑞 
+
+| ⟨𝑡, 𝑞 ⟩ | let ⟨𝑥, ℎ ⟩ = 𝑞 in 𝑞 | rfl | ⟨⟩    
+
+> Fig. 8. Grammar of the CHC fragment of Lean 4 Expr at sort Prop , together with the proof-term fragment emitted by our solvers.
+
+3 Constraints and Proofs 
+
+Flex represents a system of Constrained Horn Clauses (CHCs) in a restricted fragment of Lean 
+
+terms of type Prop . The syntactic structure preserves the information needed for Horn solving, while ensuring that key logical connectives like ∀, ∧, → are native to Lean , thereby allowing us to implement the solver as an ordinary metaprogram over Lean ’s datatype Expr .This representation provides two key benefits. First, it gives us theories for free as a Lean 
+
+proposition can use formulas over arbitrary Lean theories to write specifications, allowing us to use arbitrary Lean definitions to synthesize invariants and use Lean proof automation — e.g. 
+
+omega , bv_decide , decide , grind or lemmas [70] — to simplify verification, and, we do not need to maintain a deeply embedded AST for each theory, re-using Expr allows for inheriting theories of Lean , keeping the solver simple, but expressive. Second, it provides soundness for free , by letting us implement CHC solvers (§4) that emit proof terms which can then be checked by the kernel, guaranteeing the soundness of verification without trusting any code beyond the kernel itself. As a running example throughout this section, consider a constraint that asserts 𝑥 ≥ 0 and an unknown refinement 𝜅 1 relating 𝑥 to its successor 𝜈 :
+
+𝑐 0  ∃𝜅 1. ∀𝑥 . 0 ≤ 𝑥 → (∀ 𝜈. 𝜈 = 𝑥 + 1 → 𝜅 1 (𝜈, 𝑥 )) ∧ (∀ 𝑎. 𝜅 1 (𝑎, 𝑥 ) → 1 ≤ 𝑎 ) (1) We will point back to 𝑐 0 as we introduce each piece of notation below. 
+
+3.1 Syntax and Semantics 
+
+Fig. 8 shows the syntax for CHCs, which follows a nested structure that preserves scoping informa-tion our solvers later use to recover the context of each Horn application (§ 4.2). 
+
+Sorts and Terms We assume a base family of sorts 𝑏 which range over arbitrary Lean types like integers, bit-vectors, sets, maps etc. We write 𝑥 1, 𝑥 2, 𝑥 3, . . . for variables of sort 𝑏 , and write 
+
+𝑡 1, 𝑡 2, 𝑡 3, . . . for arbitrary Lean terms of the appropriate sort. In 𝑐 0 above, 𝑥 , 𝜈 , and 𝑎 are variables of sort Int , while 𝑥 + 1 is a term of sort Int and 1 ≤ 𝑎 is a term of sort Prop . By convention, when a term is of sort Prop , we use the metavariable 𝜑 to denote it. Similarly, we use ℎ to range over variables naming hypotheses, i.e. , of sort Prop . We assume terms include the trivial propositions ⊤
+
+and ⊥ (of sort Prop ), which we will use to simplify constraints during solving (§4). 1:10 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+Horn Variables A Horn (refinement) variable is a Lean variable 𝜅 : 𝑏 1 → · · · → 𝑏 𝑛 𝜅 → Prop , and occurs in a constraint as horn applications 𝜅 (𝑡 ). We assume variables 𝜅 do not appear inside arbitrary terms 𝑡 . We will introduce such variables to represent unknown refinements, by existentially quantifying them in the constraints. For any constraint 𝑐 , we write KVars (𝑐 ) for the set of Horn variables occurring in 𝑐 . In 𝑐 0, 𝜅 1 : Int → Int → Prop is a horn variable relating two integers. 
+
+Atoms An atom 𝑝 is either a 𝜅 -free term 𝑡 of sort Prop , or a horn application 𝜅 (𝑡 ). In 𝑐 0, 0 ≤ 𝑥 ,
+
+𝜈 = 𝑥 + 1, and 1 ≤ 𝑎 are 𝜅 -free terms, while 𝜅 1 (𝜈, 𝑥 ) and 𝜅 1 (𝑎, 𝑥 ) are horn applications. 
+
+Constraints A Horn constraint 𝑐 is either (1) a head atom 𝑝 , (2) a conjunction 𝑐 1 ∧ 𝑐 2, (3) an 
+
+implication 𝑝 → 𝑐 , or (4) a quantification ∀𝑥 :𝑏. 𝑐 over a variable 𝑥 of sort 𝑏 . A closed constraint 𝐶 is a 
+
+Lean proposition of the form ∃𝜅 1, . . . , 𝜅 𝑛 .𝑐 , where all the refinement variables in 𝑐 are existentially bound at the top. A verification condition (VC) is a closed constraint that has no Horn variables. The running example 𝑐 0 is itself a closed constraint. In the sequel we abuse notation and write 𝑐 for both open and closed constraints, as the intended meaning is always clear from context. 
+
+Predicates and Interpretations A predicate in P is a Lean term of sort 𝑏 1 → . . . → 𝑏 𝑛 → Prop 
+
+(i.e. , P ⊂ T ). For a horn variable 𝜅 , an interpretation 𝜎 ∈ P is a predicate of the same type as 𝜅 . For 
+
+𝑐 0, the predicate 𝜎 1  𝜆𝜈 𝑥 . 𝜈 ≥ 1 is an interpretation for 𝜅 1, since 𝜎 1 : Int → Int → Prop .
+
+Satisfiability We apply an interpretation 𝜎 to a constraint 𝑐 by replacing each 𝜅 -application 𝜅 (𝑡 )
+
+with 𝜎 (𝑡 ); we write 𝑐 [𝜅 := 𝜎 ] for the result. Applying an interpretation for each 𝜅 in a closed constraint instantiates the existentials, leaving a 𝜅 -free proposition. A constraint 𝑐 is satisfiable 
+
+if there exist an interpretation for each 𝜅 such that applying them makes the constraint a valid proposition ( i.e. , provable in Lean ). If an interpretation makes a constraint satisfiable we call it a 
+
+solution . For example, applying 𝜎 1 to 𝑐 0 (and 𝛽 -reducing) replaces 𝜅 1 (𝜈, 𝑥 ) with 𝜈 ≥ 1 and 𝜅 1 (𝑎, 𝑥 )
+
+with 𝑎 ≥ 1 leaving the following verification condition: 
+
+∀𝑥 . 0 ≤ 𝑥 → (∀ 𝜈. 𝜈 = 𝑥 + 1 → 𝜈 ≥ 1) ∧ (∀ 𝑎. 𝑎 ≥ 1 → 1 ≤ 𝑎 )
+
+This VC is valid; hence 𝜎 1 is a solution of 𝜅 1 and 𝑐 0 is satisfiable. 
+
+Theories for free As terms and predicates are Lean terms, they can use any theory expressible in 
+
+Lean . For example, arithmetic inequalities 𝑥 ≤ 𝑦 over Int sorted variables 𝑥 and 𝑦 , mask equations over BitVec 𝑛 , or equations over user-defined functions 𝑣 = fib (𝑖 ).
+
+3.2 Structural Operations 
+
+To solve a constraint, the solvers in §4 need to know, for each Horn variable, the smallest enclosing scope and the hypotheses visible there; we now define the machinery to compute this. 
+
+Prefixes, Contexts, Heads A prefix 𝜌 is a list of steps used to navigate a path through a constraint’s syntax tree. A step 𝑠 is either a left L or right R choice in a conjunction, a variable binding B, or an assumption G. A context Γ is an ordered list of variable bindings 𝑥 :𝑏 (one per ∀), named hypotheses 
+
+ℎ :𝑝 (one per →), or a L or R choice gathered along a prefix. 
+
+Prefixes 𝜌 :: = 𝜀 | 𝑠 · 𝜌 
+
+Steps 𝑠 :: = L | R | B | G
+
+Contexts Γ :: = 𝜀 | 𝑥 :𝑏 ; Γ | ℎ :𝑝 ; Γ | L; Γ | R; Γ
+
+The procedure 𝑐 ↑𝜌 (Fig. 9) computes the context of a constraint 𝑐 at prefix 𝜌 , by accumulating the bindings and guards along 𝜌 . The procedure 𝑐 ↓𝜌 (Fig. 9) returns the sub-constraint of 𝑐 at the end of 𝜌 . The truncated context Γ \ 𝜌 is the context obtained by dropping the prefix of Γ that matches 𝜌 .
+
+Goals A prefix 𝜌 is a head-prefix of 𝑐 if 𝑐 ↓𝜌 is a head atom 𝑝 . We write heads (𝑐 ) for the set of Horn variables with a head application in 𝑐 , i.e. , heads (𝑐 )  {𝜅 | 𝜅 (𝑡 ) = 𝑐 ↓𝜌 for some head-prefix 𝜌 }. A Foundational Constraint Solving for Expressive Refinement Typing 1:11                                                                                                                                        
+
+> Scope :(K × C) → Prefix
+> Scope (𝜅, ∀𝑥 :𝑏. 𝑐 )B·Scope (𝜅, 𝑐 )
+> Scope (𝜅, 𝑐 1∧𝑐 2)|𝜅 ∈𝑐 1, 𝜅 ∉𝑐 2L·Scope (𝜅, 𝑐 1)|𝜅 ∉𝑐 1, 𝜅 ∈𝑐 2R·Scope (𝜅, 𝑐 2)
+> Scope (𝜅, 𝑝 →𝑐 )|𝜅 ∉𝑝 G·Scope (𝜅, 𝑐 )
+> Scope (𝜅, 𝑐 )𝜀
+> (↓) :(C × Prefix ) → C (∀ 𝑥 :𝑏. 𝑐 ) ↓ B·𝜌 𝑐 ↓𝜌
+> (𝑝 →𝑐 ) ↓ G·𝜌 𝑐 ↓𝜌
+> (𝑐 1∧𝑐 2) ↓ L·𝜌 𝑐 1↓𝜌
+> (𝑐 1∧𝑐 2) ↓ R·𝜌 𝑐 2↓𝜌 𝑐 ↓𝜀 𝑐
+> (↑) :(C × Prefix ) → Ctx
+> (∀ 𝑥 :𝑏. 𝑐 ) ↑ B·𝜌 𝑥 :𝑏 ;𝑐 ↑𝜌
+> (𝑝 →𝑐 ) ↑ G·𝜌 ℎ:𝑝 ;𝑐 ↑𝜌
+> (𝑐 1∧𝑐 2) ↑ L·𝜌 L;𝑐 1↑𝜌
+> (𝑐 1∧𝑐 2) ↑ R·𝜌 R;𝑐 2↑𝜌 𝑐 ↑𝜀 𝜀
+> Fig. 9. Scope (𝜅, 𝑐 )is the scope of a 𝜅 in 𝑐 ;𝑐 ↓𝜌 is the head of 𝑐 at 𝜌 and 𝑐 ↑𝜌 is the context of 𝑐 at 𝜌 . In ↑, each guard hypothesis gets a fresh name ℎ.
+
+goal Γ ⊢ 𝑝 is a context Γ paired with a head 𝑝 . For a head-prefix 𝜌 , the goal of 𝑐 at 𝜌 is defined as 
+
+Goal (𝑐, 𝜌 )  𝑐 ↑𝜌 ⊢ 𝑐 ↓𝜌 . For example, in the running constraint 𝑐 0, we have: 
+
+Goal (𝑐 0, B · G · L · B · G) = 𝑥 : Int ; ℎ0 : 0 ≤ 𝑥 ; L; 𝜈 : Int ; ℎ1 :𝜈 = 𝑥 + 1 ⊢ 𝜅 1 (𝜈, 𝑥 )
+
+Given a context Γ and term 𝜑 , we say the goal Γ ⊢ 𝜑 is valid if 𝜑 is derivable under the bindings and guards in Γ. A goal is a 𝜅 -goal if its head is 𝜅 (𝑡 ); an interpretation 𝜎 is a solution for such a goal if the goal Γ ⊢ 𝜎 (𝑡 ) is valid. For example, the interpretation 𝜎 1  𝜆𝜈 𝑥 . 𝜈 ≥ 1 is a solution for the goal above, since 𝜈 ≥ 1 is valid under the assumptions 0 ≤ 𝑥 and 𝜈 = 𝑥 + 1.
+
+Scopes and Well-formedness The procedure Scope (𝜅, 𝑐 ), shown in Fig. 9 computes the scope of a variable 𝜅 in a constraint 𝑐 . Informally, Scope (𝜅, 𝑐 ) returns a prefix 𝜌 corresponding to a path from the root of 𝑐 to the smallest sub-constraint of 𝑐 that contains all the applications of 𝜅 in 𝑐 . The scope is more interesting once a constraint has more than one Horn variable, so consider extending 𝑐 0
+
+with a second variable 𝜅 2 and a sub-constraint nested under the guard 𝜅 1 (𝑎, 𝑥 ). For the constraint 
+
+𝑐 1 below, we get the scopes shown on the right ( ∧ is right associative). 
+
+𝑐 1 
+
+∃𝜅 2, 𝜅 1. ∀𝑥 . 0 ≤ 𝑥 →∧ ∀ 𝜈. 𝜈 = 𝑥 + 1 → 𝜅 1 (𝜈, 𝑥 )∧ ∀ 𝑎. 𝜅 1 (𝑎, 𝑥 ) → ∧ 1 ≤ 𝑎 
+
+∧ 𝜅 2 (𝑎 + 1, 𝑎, 𝑥 )∧ ∀ 𝜈. 𝜅 2 (𝜈, 𝑎, 𝑥 ) → 2 ≤ 𝜈 
+
+Scope (𝜅 1, 𝑐 1)  B · GScope (𝜅 2, 𝑐 1)  B · G · R · B · G · R
+
+(2) 
+
+Well-formedness The solver in §4 assumes that each Horn variable’s arguments are passed consis-tently with the binders in scope; we call this property well-formedness. Formally, let 𝜌  Scope (𝜅, 𝑐 ),
+
+Γ  𝑐 ↑ 𝜌 , and dom (Γ)  𝑥 0, . . . , 𝑥 𝑛 the binders of Γ listed innermost first. We say that 𝑐 is well-formed for 𝜅 if every application of 𝜅 in 𝑐 has the form 𝜅 (. . . , 𝑥 0, . . . , 𝑥 𝑛 ), i.e. , its trailing arguments are exactly the binders dom (Γ) in scope. Its remaining leading arguments are arbitrary terms, we write rank (𝜅 ) for their number. A constraint 𝑐 is well-formed if it is well-formed for all 𝜅 ∈ KVars (𝑐 ).It is straightforward to ensure well-formedness by simply padding the parameters of each 𝜅 . Thus, in the sequel, for simplicity, we assume that all constraints are well-formed. Constraint 𝑐 1 in Eq. (2) is well-formed as 𝑥 is the only binder in the scope of 𝜅 1, and each application of 𝜅 1 has 𝑥 as argument, while the binders in the scope of 𝜅 2 are 𝑎 and 𝑥 , and each application of 𝜅 2 has them as arguments. 1:12 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+3.3 Proof Terms 
+
+The solvers in §4 emit proofs to justify their rewrites. Fig. 8 shows the fragment of Lean ’s terms that the solvers emit as proofs. The fragment comprises exactly the introduction and elimination forms of the constraint logic (Fig. 8) and the disjunctions and existentials that arise in the solutions 
+
+𝜎 computed by our solvers. Specifically, the fragment contains terms 𝑡 ; 𝜆 -terms and applications for introducing and eliminating ∀ and implication; pairs ⟨𝑞, 𝑞 ′⟩ and projections 𝑞. 1, 𝑞. 2 for conjunction, together with inl and inr for disjunction; existential witnesses ⟨𝑡, 𝑞 ⟩, unpacking terms let ⟨𝑥, ℎ ⟩ =
+
+𝑞 in 𝑞 ′, and the constants rfl and ⟨⟩ for equality and ⊤. The typing of these terms is inherited from the Lean kernel, which re-checks every certificate our solvers emit. These are the standard notations for Lean ’s logical connectives, and the same core is shared by other type-theoretic proof assistants such as Rocq [69] and Agda [57], so the certifying solvers of §4 are not tied to Lean .
+
+4 Solvers 
+
+Flex uses a three-step approach to solving Horn constraints. First, we partition the horn variables into a cut set and an acyclic set (§ 4.1). Second, we eliminate the acyclic variables by substituting them with their strongest solutions (§ 4.2). Third, we perform a fixpoint computation to find a conservative approximation for the remaining cyclic variables (§ 4.4). These steps are implemented in two Lean tactics — zap and fix — which rewrite the original horn constraint by eliminating the acyclic and cut variables respectively, leaving behind a 𝜅 -free VC which can be discharged using 
+
+Lean tactics like simp , omega or SMT-inspired ones like grind . While the algorithms used in zap 
+
+and fix are inspired by prior work, in the foundational setting they must also certify the soundness of the rewrites. Next, we describe how Flex implements partitioning (§ 4.1), and the two tactics, 
+
+zap (§ 4.2) and fix (§ 4.4), in a certifying fashion, to obtain a foundational CHC solver. 
+
+4.1 Partitioning Horn Variables 
+
+Dependencies The dependencies of a constraint 𝑐 is a subset of K × K defined by the function 
+
+Dep (𝑐 )  {( 𝜅, 𝜅 ′) | ∃ 𝜌.𝜅 ∈ 𝑐 ↑𝜌 and 𝜅 ′ (𝑡 ) = 𝑐 ↓𝜌 }
+
+We say 𝜅 ′ depends on 𝜅 in 𝑐 if (𝜅, 𝜅 ′) ∈ Dep (𝑐 ). Informally, this means that 𝜅 occurs in a guard 𝑝 
+
+along some path to a head containing 𝜅 ′. The dependency graph of a constraint 𝑐 is the directed graph Graph (𝑐 ) whose vertices are KVars (𝑐 ) and which has an edge from 𝜅 to 𝜅 ′ if 𝜅 ′ depends on 
+
+𝜅 in 𝑐 . Intuitively, if 𝜅 ′ depends on 𝜅 , then we need to solve for 𝜅 before we can solve for 𝜅 ′.
+
+Cycles, Cuts and Partitions A set of variables 𝜅 ⊆ KVars (𝑐 ) is a cut set for 𝑐 if it corresponds to a feedback vertex set of Graph (𝑐 ), i.e. , if removing the 𝜅 vertices and their incident edges renders 
+
+Graph (𝑐 ) acyclic [ 40 ]. We say that 𝜅 𝐶 , 𝜅 𝐴 partitions the horn variables of a constraint 𝑐 , if (1) 𝜅 𝐶 and 
+
+𝜅 𝐴 are disjoint, (2) 𝜅 𝐶 ∪ 𝜅 𝐴 = KVars (𝑐 ), (3) 𝜅 𝐶 is a cut set for 𝑐 . We say informally that 𝜅 𝐴 is the set of acyclic variables. We define Partition (𝜅, 𝑐 ) to be a function that computes the dependencies of 𝑐 ,builds a dependency graph, and computes a feedback vertex set to return a partition of the horn variables of 𝑐 . The acyclic set 𝜅 𝐴 is returned in topological order: each variable is bound outside the variables it depends on, so the innermost-first elimination of § 4.2 removes a variable’s dependencies before the variable itself, and every computed solution mentions only cut variables. Computing a 
+
+minimum feedback vertex set is NP-complete [ 40 ], so Partition (𝜅, 𝑐 ) uses a greedy heuristic based on Tarjan’s algorithm [68]; minimality affects only the residual CHC size, not soundness. 
+
+4.2 Solving Acyclic Variables 
+
+Top-level Algorithm ( Zap ): Fig. 10 defines the top-level Zap algorithm which takes as input a closed constraint ∃𝜅. 𝑐 , and returns a pair of a new constraint ∃𝜅 𝐶 . 𝑐 ′ where all occurrences of the Foundational Constraint Solving for Expressive Refinement Typing 1:13 
+
+Zap : C → (C × Proof )
+
+Zap (∃ 𝜅. 𝑐 )  (∃ 𝜅 𝐶 . 𝑐 ′, 𝑞 ′: ∃𝜅 𝐶 . 𝑐 ′ → ∃ 𝜅. 𝑐 )
+
+where 
+
+(𝜅 𝐶 , 𝜅 𝐴 )  Partition (𝜅, 𝑐 )(𝑐 ′, 𝑞 )  Zaps (∃ 𝜅 𝐴 . 𝑐 )
+
+𝑞 ′  𝜆ℎ 1.let ⟨𝜅 𝐶 , ℎ 2⟩ = ℎ1 in 
+
+𝜆ℎ 1.let ⟨𝜅 𝐴 , ℎ 3⟩ = 𝑞 ℎ 2 in 
+
+𝜆ℎ 1.⟨𝜅, ℎ 3⟩
+
+Zaps : C → (C × Proof )
+
+Zaps (∃ 𝜅. 𝑐 )  (𝑐 2, 𝑞 3: 𝑐 2 → ∃ 𝜅. 𝑐 )
+
+where 
+
+(𝑐 1, 𝑞 1)  Zaps (𝑐 )(𝑐 2, 𝑞 2)  Zap1 (𝜅, 𝑐 1)
+
+𝑞 3  𝜆ℎ 1.let ⟨𝜅, ℎ 2⟩ = 𝑞 2 ℎ1 in 
+
+𝜆ℎ 1.⟨𝜅, 𝑞 1 ℎ2⟩
+
+Zaps (𝑐 )  (𝑐, 𝜆ℎ. ℎ )
+
+Zap1 : (K × C) → (C × Proof )
+
+Zap1 (𝜅, 𝑐 )  (𝑐 ′, 𝑞 : 𝑐 ′ → ∃ 𝜅. 𝑐 )
+
+where 
+
+(𝜎, 𝜌, 𝑐 ′)  Elim (𝜅, 𝑐 )
+
+𝑞  𝜆ℎ. ⟨𝜎, Cert 𝜅 𝜎,𝜌 (𝜀, ℎ, 𝑐 )⟩ 
+
+Elim : (K × C) → (P × Prefix × C) 
+
+Elim (𝜅, 𝑐 )  (𝜎, 𝜌, 𝑐 ′)
+
+where 
+
+𝜌  Scope (𝜅, 𝑐 )
+
+𝜎  𝜆𝑧. 𝜆𝑥 . Sol (𝜅, 𝑐 ↓𝜌 )
+
+𝑐 ′  Red (𝜅, 𝜎, 𝑐 )
+
+𝑧  𝑧 0, . . . , 𝑧 𝑛 −1 where 𝑛 = rank (𝜅 )
+
+𝑥  dom (𝑐 ↑𝜌 )
+
+Red : (K × P × C) → C 
+
+Red (𝜅, 𝜎, 𝑐 1 ∧ 𝑐 2)  Red (𝜅, 𝜎, 𝑐 1) ∧ 
+
+Red (𝜅, 𝜎, 𝑐 2)
+
+Red (𝜅, 𝜎, ∀𝑥 :𝑏. 𝑐 )  ∀𝑥 :𝑏. Red (𝜅, 𝜎, 𝑐 )
+
+Red (𝜅, 𝜎, 𝑝 → 𝑐 )  𝑝 [𝜅 := 𝜎 ] → Red (𝜅, 𝜎, 𝑐 )
+
+Red (𝜅, 𝜎, 𝜅 (𝑡 ))  ⊤
+
+Red (𝜅, 𝜎, 𝑝 )  𝑝 
+
+Sol : (K × C) → T 
+
+Sol (𝜅, 𝑐 )| 𝜅 ∉ heads (𝑐 )  ⊥
+
+Sol (𝜅, 𝑐 1 ∧ 𝑐 2)  Sol (𝜅, 𝑐 1) ∨ Sol (𝜅, 𝑐 2)
+
+Sol (𝜅, ∀𝑥 :𝑏. 𝑐 )  ∃𝑥 :𝑏. Sol (𝜅, 𝑐 )
+
+Sol (𝜅, 𝑝 → 𝑐 )  𝑝 ∧ Sol (𝜅, 𝑐 )
+
+Sol (𝜅, 𝜅 (𝑡 ))  Ó𝑖 <rank (𝜅 ) 𝑧 𝑖 = 𝑡 𝑖 
+
+Fig. 10. Zap eliminates acyclic horn variables (left) using Elim to compute solutions (right). The guarded first equation of Sol collapses sub-constraints without 𝜅 head applications to ⊥, so the solution is 𝜅 -free, and all its free variables are among the 𝑧, 𝑥 bound in Elim .
+
+∃𝜅 2, 𝜅 1.
+
+∀𝑥 . 0 ≤ 𝑥 →∧ ∀ 𝜈. 𝜈 = 𝑥 + 1 → 𝜅 1 (𝜈, 𝑥 )∧ ∀ 𝑎. 𝜅 1 (𝑎, 𝑥 ) → ∧ 1 ≤ 𝑎 
+
+∧ 𝜅 2 (𝑎 + 1, 𝑎, 𝑥 )∧ ∀ 𝜈. 𝜅 2 (𝜈, 𝑎, 𝑥 ) → 
+
+2 ≤ 𝜈 
+
+reduce 𝜅 1
+
+−−−−−−−−−−→ 
+
+> 𝜆𝑧 0𝑥 .𝑧 0=𝑥 +1
+
+∃𝜅 2.
+
+∀𝑥 . 0 ≤ 𝑥 →∧ ∀ 𝜈. 𝜈 = 𝑥 + 1 → ⊤ ∧ ∀ 𝑎. 𝑎 = 𝑥 + 1 →∧ 1 ≤ 𝑎 
+
+∧ 𝜅 2 (𝑎 + 1, 𝑎, 𝑥 )∧ ∀ 𝜈. 𝜅 2 (𝜈, 𝑎, 𝑥 ) → 
+
+2 ≤ 𝜈 
+
+reduce 𝜅 2
+
+−−−−−−−−−−−→ 
+
+> 𝜆𝑧 0𝑎 𝑥 .𝑧 0=𝑎 +1
+
+∀𝑥 . 0 ≤ 𝑥 →∧ ∀ 𝜈. 𝜈 = 𝑥 + 1 → ⊤ ∧ ∀ 𝑎. 𝑎 = 𝑥 + 1 →∧ 1 ≤ 𝑎 
+
+∧ ⊤ ∧ ∀ 𝜈. 𝜈 = 𝑎 + 1 →
+
+2 ≤ 𝜈 
+
+Fig. 11. Eliminating acyclic variables with Zap . (L) initial constraint from Eq. (2), (C) result of reducing 𝜅 1,and (R) result of reducing 𝜅 2 yielding a VC with no Horn variables. 
+
+acyclic variables have been removed, and a proof term 𝑞 ′ that shows that the output constraint 
+
+entails the original constraint. First, Zap partitions the horn variables 𝜅 into a cut set 𝜅 𝐶 and an acyclic set 𝜅 𝐴 . Next, Zap invokes Zaps , which recurses over the acyclic prefix: it peels the outermost 
+
+𝜅 , recursively eliminates the inner variables to obtain a residual 𝑐 0, and invokes Zap1 to eliminate 𝜅 
+
+from 𝑐 . Zaps then composes the proofs 𝑞 2 : 𝑐 2 → ∃ 𝜅. 𝑐 1 and 𝑞 1 : 𝑐 1 → 𝑐 into a proof 𝑞 3 : 𝑐 2 → ∃ 𝜅. 𝑐 
+
+by unpacking and repacking the 𝜅 -witness. At the top, Zap re-bundles the cut and acyclic witnesses in the original binder order of 𝜅 . The Zap1 function eliminates a single acyclic variable 𝜅 from a constraint 𝑐 in two steps. In the first step, Zap1 invokes the Elim procedure to eliminate the 1:14 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+Cert 𝜅 𝜎,𝜌 : (Ctx × Proof × C) → Proof 
+
+Cert 𝜅 𝜎,𝜌 (Γ, 𝑞, ∀𝑥 :𝑏. 𝑐 )  𝜆𝑥 . Cert 𝜅 𝜎,𝜌 (Γ; 𝑥 :𝑏, 𝑞 𝑥, 𝑐 )
+
+Cert 𝜅 𝜎,𝜌 (Γ, 𝑞, 𝑝 → 𝑐 )  𝜆ℎ 𝑝 .Cert 𝜅 𝜎,𝜌 (Γ; ℎ𝑝 :𝑝, 𝑞 ℎ 𝑝 , 𝑐 )
+
+Cert 𝜅 𝜎,𝜌 (Γ, 𝑞, 𝑐 1 ∧ 𝑐 2)  ⟨ Cert 𝜅 𝜎,𝜌 (Γ; L, 𝑞. 1, 𝑐 1)
+
+, Cert 𝜅 𝜎,𝜌 (Γ; R, 𝑞. 2, 𝑐 2) ⟩ 
+
+Cert 𝜅 𝜎,𝜌 (Γ, 𝑞, 𝜅 (𝑡 ))  Nav (Γ \ 𝜌, 𝜎 (𝑡 )) 
+
+Cert 𝜅 𝜎,𝜌 (Γ, 𝑞, 𝑝 )  𝑞 
+
+Nav : (Ctx × P) → Proof 
+
+Nav (L; Γ, 𝑝 𝐿 ∨ 𝑝 𝑅 )  inl Nav (Γ, 𝑝 𝐿 )
+
+Nav (R; Γ, 𝑝 𝐿 ∨ 𝑝 𝑅 )  inr Nav (Γ, 𝑝 𝑅 )
+
+Nav (𝑥 :𝑏 ; Γ, ∃𝑧 :𝑏. 𝑝 )  𝑥, Nav (Γ, 𝑝 [𝑧 := 𝑥 ]) 
+
+Nav (𝑞 ; Γ, 𝑝 ∧ 𝑝 ′)  𝑞, Nav (Γ, 𝑝 ′)
+
+Nav (𝜀,   Ó 𝑖 𝑧 𝑖 = 𝑡 𝑖 
+
+)  ⟨ rfl , . . . , rfl ⟩
+
+Nav (𝜀, ⊤)  ⟨⟩ 
+
+Fig. 12. Cert 𝜅 𝜎,𝜌 transforms a proof of the reduced constraint into a proof of the original, invoking Nav at each divergent 𝜅 -head to rebuild a proof of 𝜎 (𝑡 ) by replaying the truncated context against the ∨/∃/∧ structure of the solution 𝜎 .
+
+variable 𝜅 by computing a triple comprising (1) the strongest solution 𝜎 for 𝜅 in 𝑐 , (2) a prefix 
+
+𝜌 corresponding to the scope of 𝜅 in 𝑐 , and (3) a constraint 𝑐 ′ where 𝜅 has been eliminated. In the second, Zap1 invokes Cert 𝜅 𝜎,𝜌 with the triple to construct the term 𝜆ℎ. ⟨𝜎, Cert 𝜅 𝜎,𝜌 (𝜀, ℎ, 𝑐 )⟩ that 
+
+certifies the elimination (§ 4.3): it maps any proof ℎ of 𝑐 ′ to a proof of ∃𝜅. 𝑐 , with 𝜎 as the witness. Fig. 11 illustrates this process on the constraint 𝑐 1 from Eq. (2). 
+
+Variable Elimination ( Elim ): The procedure Elim (𝜅, 𝑐 ), shown in Fig. 10, eliminates 𝜅 from 𝑐 in three steps. First, it computes the scope 𝜌 of 𝜅 in 𝑐 . Next, it calls Sol on 𝑐 ↓𝜌 — the sub-constraint of 𝑐 where 𝜅 occurs — to compute 𝜎 : the strongest solution for 𝜅 . Finally, the procedure invokes 
+
+Red (𝜅, 𝜎, 𝑐 ), to compute the reduced constraint where all head applications of 𝜅 are replaced by 
+
+⊤ — as they are guaranteed to hold by virtue of how 𝜎 was computed — and all other non-head occurrences of 𝜅 (𝑡 ) are replaced by the solution 𝜎 (𝑡 ), yielding a constraint without 𝜅 .
+
+Strongest Solution ( Sol ): A solution 𝜎 is valid for 𝜅 in 𝑐 if it is valid for every 𝜅 -goal (defined in §3). The procedure Sol (𝜅, 𝑐 ), shown in Fig. 10, computes the body of such a solution: the disjunction of the contexts at each head-prefix for 𝜅 , existentially quantifying the variables not in the scope; Elim 
+
+closes the body under 𝑧 and 𝑥 to obtain 𝜎 . The guard 𝜅 ∉ heads (𝑐 ) collapses each sub-constraint without a 𝜅 head to an inert ⊥, keeping dead-branch horn applications out of the solution. For example, Fig. 11 shows below each arrow, the solution computed for the 𝜅 reduced in the respective step. In the sub-constraint for 𝜅 1 there is exactly one head application, with the (truncated) context 
+
+𝜈 : Int ; 𝜈 = 𝑥 + 1; the conjunct with the uses of 𝜅 1 collapses to ⊥. Thus, the computed solution is 
+
+𝜆𝑧 0 𝑥 . (∃ 𝜈. 𝜈 = 𝑥 + 1 ∧ 𝑧 0 = 𝜈 ) ∨ ⊥ which we simplify to 𝜆𝑧 0 𝑥 .𝑧 0 = 𝑥 + 1. As such, we can check that this procedure returns the strongest solution for 𝜅 in 𝑐 , meaning, it returns a solution 𝜎 that entails every other valid solution for 𝜅 in 𝑐 .
+
+Scope avoids Exponential Blowup The procedure Elim is analogous to the similarly named one from [ 14 ], which introduces the scope optimization to sidestep an exponential blowup that otherwise occurs in practice. Specifically, if we compute Sol (𝜅, 𝑐 ) without considering the scope 
+
+𝜌 , then the assumptions from 𝑐 ↑ 𝜌 get (unnecessarily) included in the strongest solution, which causes an exponential duplication of assumptions as we eliminate multiple variables. 
+
+4.3 Certification 
+
+In a foundational setting, one does not simply rewrite a constraint. The Lean kernel, ultimately, demands a proof of the original constraint, not the rewritten one. To this end, zap uses Cert 𝜅 𝜎,𝜌 to produce a term that converts any proof of the rewritten constraint into a proof of the original one. 
+
+Certifying an Assignment ( Cert 𝜅 𝜎,𝜌 ): The procedure Cert 𝜅 𝜎,𝜌 (Γ, 𝑞, 𝑐 ) (Fig. 12) takes two sets of inputs. First, a parametric set comprising 𝜅 , its solution 𝜎 and its scope 𝜌 in 𝑐 . Second, a set with a Foundational Constraint Solving for Expressive Refinement Typing 1:15 
+
+context Γ of accumulated bindings, the original sub-constraint 𝑐 , and a proof 𝑞 of the 𝜎 -reduced sub-constraint ( i.e. , 𝑐 ′  Red (𝜅, 𝜎, 𝑐 )). The procedure then traverses 𝑐 , transforming 𝑞 at each step into a proof of the corresponding sub-constraint. For the ∀𝑥 :𝑏. 𝑐 (resp. 𝑝 → 𝑐 ) case, the procedure emits a 𝜆 -term that applies the supplied input 𝑥 (resp. ℎ𝑝 ) to 𝑞 to recursively generate the certificate for the sub-constraint 𝑐 . For a 𝑐 1 ∧ 𝑐 2 the procedure emits a pair term comprising the sub-terms obtained from the proofs of 𝑐 1 and 𝑐 2 constructed using the proofs 𝑞. 1 and 𝑞. 2 respectively. The original and reduced constraints diverge only when the original head is of the form 𝜅 (𝑡 ) but the reduced head is ⊤; in that case, 𝑞 is vacuous. Other heads 𝑝 are unchanged so we can directly reuse the corresponding proof term 𝑞 .
+
+Reconciling divergent heads ( Nav ): At the divergent heads in Cert 𝜅 𝜎,𝜌 we call Nav to furnish us with a proof for the original goal 𝜅 (𝑡 ) post-substitution, i.e. , for 𝜎 (𝑡 ). Recall that the solution 𝜎 was a disjunction of contexts at each head-prefix for 𝜅 in the sub-constraint 𝑐 ↓𝜌 where 𝜅 occurs. Thus, we use the truncated context ( Γ \ 𝜌 ) that led to the divergent head to reconstruct the proof term for that disjunction from the context. Nav replays the truncated context against the structure of 
+
+𝜎 , whose ∨/∃ shape mirrors the scoped sub-constraint. Each context entry selects the matching introduction form: a branch selects inl or inr , a bound variable supplies an existential witness, and a guard hypothesis supplies a conjunct. The descent bottoms out at the slot equalities Ó𝑖 𝑧 𝑖 = 𝑡 𝑖 ,using rfl to discharge them. 
+
+Example In the example in Fig. 11, 𝜅 1 has the scope prefix 𝜌  B · G. Thus, at the head 𝜅 1 (𝜈, 𝑥 ),
+
+Cert 𝜅 𝜎,𝜌 has accumulated the context Γ  𝑥 : Int ; ℎ0 : 0 ≤ 𝑥 ; L; 𝜈 : Int ; ℎ1 :𝜈 = 𝑥 + 1 (naming the guard hypotheses ℎ0, ℎ 1), and the truncated context is Γ \ 𝜌  L; 𝜈 : Int ; ℎ1 :𝜈 = 𝑥 + 1. Given the solution 
+
+𝜎  𝜆𝑧 0 𝑥 . (∃ 𝜈 ′. 𝜈 ′ = 𝑥 + 1 ∧ 𝑧 0 = 𝜈 ′) ∨ ⊥ (the bound variable renamed to 𝜈 ′), Nav replays the path, as follows, consuming one entry per node: 
+
+Nav (L; 𝜈 : Int ; ℎ1 :𝜈 = 𝑥 + 1, 𝜎 (𝜈, 𝑥 )) 
+
+= inl Nav (𝜈 : Int ; ℎ1 :𝜈 = 𝑥 + 1, ∃𝜈 ′. 𝜈 ′ = 𝑥 +1 ∧ 𝜈 = 𝜈 ′) L picks the live disjunct 
+
+= inl 𝜈, Nav (ℎ1 :𝜈 = 𝑥 + 1, (𝜈 = 𝑥 +1) ∧ 𝜈 = 𝜈 ) 𝜈 witnesses ∃𝜈 ′
+
+= inl 𝜈, ℎ1, Nav (𝜀, 𝜈 = 𝜈 ) ℎ1 discharges 𝜈 = 𝑥 +1
+
+= inl 𝜈, ℎ1, rfl . slot equality is rfl 
+
+Correctness The correctness of Zap is stated via two theorems. The first one, from [ 14 ], says that 
+
+Zap (𝑐 ) returns a constraint 𝑐 ′, without any acyclic horn variables, that is logically equivalent to 𝑐 .
+
+Theorem 4.1 (Zap -Equivalence) . [14] If (𝑐 ′, ·) = Zap (𝑐 ) then 𝑐 is satisfiable iff 𝑐 ′ is satisfiable. 
+
+In the foundational setting, we also crucially depend on the following soundness result, which says that the proof returned by Zap (𝑐 ) explicitly witnesses the correctness of the rewrite, i.e. , it allows us to convert any proof of 𝑐 ′ into one of 𝑐 :
+
+Theorem 4.2 (Zap -Soundness) . If (𝑐 ′, 𝑞 ) = Zap (𝑐 ) then ⊢ 𝑞 : 𝑐 ′ → 𝑐 .
+
+4.4 Solving Cyclic Variables 
+
+Next, let us see how the fix tactic solves the cyclic variables by predicate abstraction [ 28 ], which works by solving each 𝜅 to a conjunction of predicates drawn from a library of user-supplied 
+
+qualifiers . Hitherto, predicate abstraction has typically been carried out using SMT solvers [ 21 , 62 ], where it is limited to whatever theories the SMT engine can handle efficiently. The foundational setting provides two significant benefits. First, we can use arbitrary Lean predicates as qualifiers, 1:16 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+Fix : (C × Q) → (C × Proof )
+
+Fix (∃ 𝜅 𝐶 . 𝑐, 𝑄 )  (𝑐 ′, 𝑞 : 𝑐 ′ → ∃ 𝜅 𝐶 . 𝑐 )
+
+where 
+
+𝜃  PredAbs (∃ 𝜅 𝐶 . 𝑐, 𝑄 )
+
+𝑐 ′  Red ∗ (𝜅 𝐶 , 𝑐 )
+
+𝑞  𝜆ℎ. ⟨Ó 𝜃 (𝜅 𝐶 ), Cert 𝜃 (𝜀, ℎ, 𝑐 )⟩ 
+
+Red ∗ (𝜀, 𝑐 )  𝑐 
+
+Red ∗ (𝜅 ; 𝜅, 𝑐 )  Red ∗ (𝜅, Red (𝜅, Ó 𝜃 (𝜅 ), 𝑐 )) 
+
+Cert 𝜃 : (Ctx × Proof × C) → Proof 
+
+Cert 𝜃 (Γ, 𝑞, ∀𝑥 :𝑏. 𝑐 )  𝜆𝑥 . Cert 𝜃 (Γ; 𝑥 :𝑏, 𝑞 𝑥, 𝑐 )
+
+Cert 𝜃 (Γ, 𝑞, 𝑝 → 𝑐 )  𝜆ℎ 𝑝 .Cert 𝜃 (Γ; ℎ𝑝 :𝑝, 𝑞 ℎ 𝑝 , 𝑐 )
+
+Cert 𝜃 (Γ, 𝑞, 𝑐 1 ∧ 𝑐 2)  ⟨ Cert 𝜃 (Γ; L, 𝑞. 1, 𝑐 1)
+
+, Cert 𝜃 (Γ; R, 𝑞. 2, 𝑐 2) ⟩ 
+
+Cert 𝜃 (Γ, 𝑞, 𝜅 (𝑡 ))  Oracle (Γ[𝜃 ] ⊢ ( Ó 𝜃 (𝜅 ))( 𝑡 )) 
+
+Cert 𝜃 (Γ, 𝑞, 𝑝 )  𝑞 
+
+PredAbs : (C × Q) → A 
+
+PredAbs (∃ 𝜅 𝐶 . 𝑐, 𝑄 )  Fixpoint (𝑐, 𝜃 )
+
+where 
+
+𝜃  [𝜅 ↦ → Init (𝜅, 𝑄 ) | 𝜅 ∈ 𝜅 𝐶 ]
+
+Init (𝜅, 𝑄 )  {𝑞 𝜄 | 𝑞 ∈ 𝑄, 𝜄 ∈ 𝜅 /𝑞 instances }
+
+Fixpoint : (C × A) → A 
+
+Fixpoint (𝑐, 𝜃 )  if ∃𝜌.𝜃 ′  Weaken (𝑐, 𝜃, 𝜌 )
+
+then Fixpoint (𝑐, 𝜃 ′) else 𝜃 
+
+Weaken : (C × A × Prefix ) → A + ⊥ 
+
+Weaken (𝑐, 𝜃, 𝜌 )  if 𝐼 ⊂ 𝜃 (𝜅 ) then 𝜃 [𝜅 ↦ → 𝐼 ] else ⊥
+
+where 
+
+Γ ⊢ 𝜅 (𝑡 )  Goal (𝑐, 𝜌 )
+
+𝐼  {𝑞 𝜄 | 𝑞 𝜄 ∈ 𝜃 (𝜅 ), Oracle (Γ[𝜃 ] ⊢ 𝑞 𝜄 (𝑡 ))} 
+
+Fig. 13. The Fix procedure for reducing cyclic horn variables via predicate abstraction. 
+
+and, correspondingly, second, we can use arbitrary Lean automation (including, of course, SMT-based tactics) to implement user-definable oracles that can allow synthesizing invariants over arbitrary theories. Next, we illustrate the above by describing how fix ticks. 
+
+Qualifiers, Instances and Candidates The predicate abstraction procedure PredAbs uses a set of qualifiers to compute a solution for each 𝜅 . Informally, qualifiers are predicate templates : PredAbs 
+
+computes solutions by conjoining all valid instances of the templates. Formally, a qualifier 𝑞 is a Lean 
+
+predicate of the form 𝑞  𝜆𝑧 0 :𝑏 0, . . . , 𝑧 𝑛 :𝑏 𝑛 .𝑡 . Let 𝜅 : 𝑏 ′ 
+
+> 0
+
+→ . . . → 𝑏 ′ 
+
+> 𝑚
+
+→ Prop be a Horn variable. We say that 𝜄 is a 𝜅 /𝑞 instance if (1) 𝜄 is a map [0, 𝑛 ] → [ 0, 𝑚 ], where (2) for each 0 ≤ 𝑗 ≤ 𝑛 , we have 
+
+𝑏 𝑗 = 𝑏 ′    
+
+> 𝜄 (𝑗 )
+
+. That is, an instance 𝜄 maps each parameter of the qualifier to a parameter of the 𝜅 of the same sort. A candidate is a pair of a qualifier 𝑞 and an instance 𝜄 written as 𝑞 𝜄 . We overload 𝑞 𝜄 to also denote the predicate it induces by instantiating 𝑞 along 𝜄 , namely 𝑞 𝜄  𝜆𝑧 0 · · · 𝑧 𝑚 .𝑞 (𝑧 𝜄 (0) , . . . , 𝑧 𝜄 (𝑛 ) ).Given a candidate set 𝑞 𝜄 , we write Ó 𝑞 𝜄 for its pointwise conjunction. 
+
+Example Consider a Horn variable 𝜅 ex : Int → Int → Prop together with the binary qualifier 
+
+𝑞 ≤  𝜆𝑧 0 : Int , 𝑧 1 : Int .𝑧 0 ≤ 𝑧 1
+
+Each of its two parameters of sort Int can be mapped to either of the parameters of 𝜅 ex . Hence, there are four 𝜅 ex /𝑞 ≤ instances 𝜄 1  {0 ↦ → 0, 1 ↦ → 0}, 𝜄 2  {0 ↦ → 0, 1 ↦ → 1}, 𝜄 3  {0 ↦ → 1, 1 ↦ → 0}
+
+and 𝜄 4  {0 ↦ → 1, 1 ↦ → 1}, yielding the candidate set containing the four candidates 
+
+(𝑞 ≤ )𝜄 1  𝜆𝑧 0 𝑧 1.𝑧 0 ≤ 𝑧 0 (𝑞 ≤ )𝜄 2  𝜆𝑧 0 𝑧 1.𝑧 0 ≤ 𝑧 1 (𝑞 ≤ )𝜄 3  𝜆𝑧 0 𝑧 1.𝑧 1 ≤ 𝑧 0 (𝑞 ≤ )𝜄 4  𝜆𝑧 0 𝑧 1.𝑧 1 ≤ 𝑧 1
+
+Assignments, Application and Validity An assignment 𝜃 ∈ A maps each 𝜅 to a candidate set. We apply 𝜃 to a Horn application, written 𝜅 (𝑡 ) [ 𝜃 ], by applying the pointwise conjunction of the candidate set 𝜃 (𝜅 ). We lift application to contexts Γ[𝜃 ] by applying to each hypothesis in Γ.
+
+𝜅 (𝑡 ) [ 𝜃 ]  (Ó 𝜃 (𝜅 ))( 𝑡 ) horn applications 
+
+𝑡 [𝜃 ]  𝑡 other atoms 
+
+ℎ :𝑝 ; Γ[𝜃 ]  ℎ :𝑝 [𝜃 ]; Γ[𝜃 ] hypotheses 
+
+𝑥 :𝑏 ; Γ[𝜃 ]  𝑥 :𝑏 ; Γ[𝜃 ] binders 
+
+L; Γ[𝜃 ]  L; Γ[𝜃 ] marks ( R alike) Foundational Constraint Solving for Expressive Refinement Typing 1:17 
+
+An assignment 𝜃 is valid for a 𝜅 -goal Γ ⊢ 𝜅 (𝑡 ) if the ( 𝜅 -free) goal Γ[𝜃 ] ⊢ 𝜅 (𝑡 ) [ 𝜃 ] is valid. We write 
+
+𝜃 |= 𝑐 when 𝜃 is valid for every 𝜅 -goal of 𝑐 .
+
+Top-level Algorithm ( Fix ): Fig. 13 summarizes the top-level Fix algorithm, which takes as input a constraint 𝑐 and a set of qualifiers 𝑄 and returns as output a pair (𝑐 ′, 𝑞 ) comprising a rewritten constraint 𝑐 ′ where all the horn variables in 𝑐 are removed, and a proof 𝑞 that shows that the rewritten 𝑐 ′ implies the original 𝑐 . The procedure Fix is analogous to Zap : first, it invokes PredAbs 
+
+on the constraint and qualifiers to obtain an assignment 𝜃 , this time for all the Horn variables simultaneously, as they are cyclic, and hence depend upon each other. Next, it folds Red over 𝑐 and all the horn variables, to reduce the head applications of 𝜅 with ⊤ and the body applications with the computed candidate set 𝜃 (𝜅 ). Finally, it invokes Cert 𝜃 to compute the proof 𝑞 that 𝑐 ′ → 𝑐 .
+
+Predicate Abstraction ( PredAbs ): The right column in Fig. 13 shows how PredAbs takes as input a set of horn variables 𝜅 , a constraint 𝑐 , and a set of qualifiers 𝑄 , to compute an assignment that is valid for 𝑐 . This assignment is computed in two steps. First, we use Init to compute an initial assignment that maps each 𝜅 to the full set of candidates obtained from all 𝜅 /𝑞 instances of each qualifier in 𝑄 . Second, we invoke Fixpoint to distill the full set of candidates down into those that can be proven valid for each head 𝜅 -application (which lets Fix subsequently reduce to ⊤). 
+
+Fixpoint Computation ( Fixpoint ): The procedure Fixpoint , summarized in Fig. 13, takes as input the constraint 𝑐 and a candidate assignment 𝜃 , and iteratively invokes Weaken to whittle away from 
+
+𝜃 the candidates that cannot be proven valid. The procedure Weaken takes as input the constraint 𝑐 ,head-prefix 𝜌 and assignment 𝜃 , and uses the Oracle to determine the subset of candidates of 𝜃 (𝜅 ),named 𝐼 , that can indeed be proven valid at the head corresponding to 𝜌 . If this subset is strictly smaller than 𝜃 (𝜅 ), i.e. , some whittling occurred, then Weaken returns the assignment where 𝜅 
+
+is updated to 𝐼 ; otherwise (if the subset is unchanged), Weaken returns ⊥. Now Fixpoint checks if there is any head-prefix 𝜌 under which the (current) assignment 𝜃 gets weakened to 𝜃 ′. If so, 
+
+Fixpoint recurses on 𝜃 ′. Otherwise, 𝜃 is valid for 𝑐 and hence, is returned as the assignment. Fixpoint 
+
+terminates: the initial assignment is finite, and each successful Weaken strictly decreases the total number of candidates. Note that Weaken , and hence Fix , is parameterized by the procedure Oracle ,which attempts to prove a goal, which lets the user plug in theory-specific oracles to synthesize solutions for CHCs over arbitrary Lean propositions. 
+
+Certification ( Cert 𝜃 ): Finally, Fix invokes Cert 𝜃 to justify the rewriting done by Red 𝜃 (where head 
+
+𝜅 -applications are replaced with ⊤), by coughing up a Proof that shows that validity of the reduced constraint 𝑐 ′ implies that of the original 𝑐 . This procedure is nearly identical to the one for Zap 
+
+discussed in § 4.3, in how it traverses the structure of 𝑐 replaying in the proof from 𝑐 ′. The only difference is at the head applications 𝜅 (𝑡 ) where (instead of navigating the structure of the solution) we invoke the Oracle to prove the applied conjunction (Ó 𝜃 (𝜅 ))( 𝑡 ).
+
+Correctness Fix requires that on any goal, Oracle either returns a valid proof term, or fails:  
+
+> Oracle-Soundness
+
+Oracle (Γ ⊢ 𝜑 ) = 𝑞 
+
+Γ ⊢ 𝑞 : 𝜑 Oracle-Completeness Γ ⊢ 𝜑 
+
+Oracle (Γ ⊢ 𝜑 ) succeeds 
+
+Theorem 4.3 (Fix -Soundness) . If Oracle is sound and Fix (𝑐, 𝑄 ) = (𝑐 ′, 𝑞 ), then ⊢ 𝑞 : 𝑐 ′ → 𝑐 .
+
+Relative Completeness It would be trivially sound, but not terribly useful to replace each horn application with ⊤. Fortunately, Fix (𝑐, 𝑄 ) does better: it returns the strongest valid solution express-ible as conjunctions of predicates from 𝑄 . Given two 𝑄 -assignments, we say 𝜃 is stronger than 𝜃 ′,written 𝜃 ⪯ 𝜃 ′, if for every 𝜅 , we have 𝜃 ′ (𝜅 ) ⊆ 𝜃 (𝜅 ).
+
+Theorem 4.4 (Fix -Completeness [ 62 ]) . If Oracle is complete and 𝜃  PredAbs (∃ 𝜅. 𝑐, 𝑄 ), then 𝜃 ⪯ 𝜃 ′
+
+for every 𝑄 -assignment 𝜃 ′ with 𝜃 ′ |= 𝑐 .1:18 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+Variables 𝑥 : Var (alias for String )
+
+States 𝑠 : Var → Int 
+
+Expressions 𝑒 : State → Int 
+
+Guards 𝑔 : State → Bool 
+
+Assertions 𝑃 : State → Prop 
+
+Commands 𝑐 :: = skip | 𝑥 := 𝑒 | 𝑐 1; 𝑐 2 | if 𝑔 then 𝑐 1 else 𝑐 2 | while 𝑔 do 𝑐   
+
+> Fig. 14. Syntax of Imp , shallowly embedded into Lean
+
+5 Foundational Verifiers 
+
+A CHC-based program verifier works in two stages, both of which are traditionally trusted: a frontend generator that takes a program and generates a constraint whose validity implies the program’s safety; a backend solver that then determines the validity of the constraint. The solver in §4 removes the backend from the trusted base by generating a kernel checkable proof of the constraint’s validity. Next, we show there is no need to trust the frontend either, by mechanizing the constraint generation such that a proof from the solver suffices to verify the source program. To this end, we develop two verifiers. First, in § 5.1, we present a Floyd-Hoare style verifier [ 24 , 35 ]for an imperative language Imp with mutable state, where the Horn variables let us synthesize loop invariants [7]. Second, we present functional calculus 𝜆 𝑅𝐾 with refinement types (§ 5.2), use them to develop a sound declarative type system (§ 5.3), and use that to implement an algorithmic generator (§ 5.4) that uses Horn variables to infer unknown refinements . In each case, we can then discharge the generated CHCs using the tactics from §4 to obtain an end-to-end foundational verifier. 
+
+5.1 A Verifier for Imp 
+
+To limber up, we implement a CHC based Floyd-Hoare style verifier for Imp summarized in Fig. 14. We shallowly embed Imp programs so states 𝑠 are functions Var → Z, expressions 𝑒 and guards 
+
+𝑔 are state-indexed, and assertions 𝑃 , 𝑄 are predicates State → Prop . A (Floyd-Hoare) triple 
+
+comprising a pre-condition 𝑃 , command 𝑐 and post-condition 𝑄 is valid , written |= {𝑃 } 𝑐 {𝑄 }, if every terminating run of 𝑐 from a 𝑃 -state ends in a 𝑄 -state. 
+
+Constraint Generator Let 𝑉  {𝑥 1, . . . , 𝑥 𝑛 } be a set of 𝑛 ordered variables that occur in commands. The generator VC (𝑃, 𝑐, 𝑄 ) takes as input a triple 𝑃, 𝑐, 𝑄 (where 𝑐 uses variables from 𝑉 ) and outputs a CHC. The implementation is the textbook weakest precondition -based VC-generation method [ 18 ], except in two places. First, we do not require explicitly provided invariants for loops: when the generator hits a while it introduces a Horn variable 𝜅 for the unknown invariant — a |𝑉 |-ary predicate — and constrains it to satisfy the usual initial, body and exit obligations: 
+
+VC (𝑃, while 𝑔 do 𝑐 , 𝑄 )  ∃ 𝜅 : Int |𝑉 | → Prop .
+
+∧ ∀ 𝑠. 𝑃 (𝑠 ) → J𝜅 K(𝑠 ) (initial) 
+
+∧ VC (𝜆𝑠. J𝜅 K(𝑠 ) ∧ 𝑔 (𝑠 ), 𝑐, J𝜅 K) (body) 
+
+∧ ∀ 𝑠. J𝜅 K(𝑠 ) → ¬ 𝑔 (𝑠 ) → 𝑄 (𝑠 ) (exit) where J𝜅 K  𝜆𝑠.𝜅 (𝑠 (𝑥 1), . . . , 𝑠 (𝑥 𝑛 )) 
+
+The above constraints are not in the syntax from Fig. 8 as we are quantifying over states 𝑠 and not base-sorted values. Fortunately, Lean ’s simp tactic suffices to reduce them to our grammar. 
+
+Soundness We prove in Lean (Theorem D.3) that whenever the CHC returned by VC (𝑃, 𝑐, 𝑄 ) is satisfiable, that the corresponding triple is valid. Foundational Constraint Solving for Expressive Refinement Typing 1:19 
+
+𝑥, 𝑦, 𝜈 ∈ Var 𝜅 ∈ Kvar 𝑧 ∈ Int 
+
+Base sort Base ∋ 𝑏 :: = Int | Bool 
+
+Term 𝑡 𝑏 :: = 𝑥 𝑏 | 𝑧 | true | false | 𝑡 Int + 𝑡 Int 
+
+Formula 𝜑 :: = ⊤ | 𝑡 𝑏 =𝑏 𝑡 𝑏 | 𝑡 Int ≤ 𝑡 Int | ¬ 𝜑 | 𝜑 ∧ 𝜑 | 𝜑 → 𝜑 | ∀ 𝑥 :𝑏. 𝜑 
+
+Refinements 𝑟 :: = 𝜑 | 𝜅 (𝑡 𝑏 )
+
+Type 𝜏 :: = { 𝜈 :𝑏 | 𝑟 } | 𝑥 :𝜏 → 𝜏 
+
+Expression 𝑒 :: = 𝑣 | 𝑥 | ⊕( 𝑒 ) | 𝑒 𝑒 | let 𝑥 = 𝑒 in 𝑒 | if 𝑒 then 𝑒 else 𝑒 | ( 𝑒 : 𝜏 )
+
+Values Val ∋ 𝑣 :: = 𝑧 | true | false | 𝜆𝑥 . 𝑒 
+
+Type env. Γ :: = · | Γ, 𝑥 :𝜏   
+
+> Fig. 15. Syntax of 𝜆 𝑅𝐾 .
+
+Theorem 5.1 (VC-Generation soundness) . If VC (𝑃, 𝑐, 𝑄 ) then |= {𝑃 } 𝑐 {𝑄 }.
+
+5.2 Syntax and Semantics of 𝜆 𝑅𝐾 
+
+Fig. 15 summarizes the syntax of 𝜆 𝑅𝐾 , which extends the simply typed 𝜆 -calculus with refinement types [ 9, 38 ], in particular, with Horn variables 𝜅 that enable refinement inference via CHC solving. 
+
+Expressions and Evaluation The grammar follows a standard call-by-value language with arithmetic and boolean expressions. Let bindings are required because the type system enforces ANF (A-Normal Form [ 23 ]) to accommodate dependent function applications [ 38 ]. We give expressions a standard, substitution-based, big-step, call-by-value operational semantics, written 𝑒 ⇓ 𝑣 (𝑒 
+
+evaluates to 𝑣 ). Type annotations are erased at runtime— (𝑒 : 𝜏 ) evaluates as 𝑒 —so refinements play no part in evaluation and serve only for static checking. 
+
+Refinements We build refinement types on top of a separate first-order language, to eschew the circularities in the meta-theory (where types would depend on expressions, which would themselves contain types). This first-order language is stratified into intrinsically typed terms (𝑡 𝑏 )and formulas (𝜑 ). A refinement 𝑟 is either a first-order formula ( 𝜑 ) over integers and booleans, or a Horn application 𝜅 (𝑡 𝑏 ) —highlighted in gray in Fig. 15—representing existentially quantified predicates over their arguments 𝑡 𝑏 that the solver must infer. 
+
+Types A type 𝜏 is either a refined base type { 𝜈 :𝑏 | 𝑟 } or a dependent arrow 𝑥 :𝜏 → 𝜏 , which names its argument 𝑥 so the codomain may mention it. A refined base type restricts its sort 𝑏 ∈ { Int , Bool }
+
+to the values 𝜈 satisfying the refinement 𝑟 (which may be an unknown Horn application). Next, we provide a semantics for refinements by interpreting them as Lean propositions, which provides a foundation for declarative typing (§ 5.3) and constraint generation (§ 5.4). 
+
+Interpreting Formulas We interpret each base type 𝑏 as a Lean type, writing J𝑏 K, where JInt K
+
+(resp. JBool K) denotes the Lean integers Int (resp. booleans Bool ). A term 𝑡 𝑏 denotes an element of 
+
+J𝑏 K under a closing substitution 𝛾 : Var → Val that maps its free variables to values, written J𝑡 𝑏 K𝛾 .A formula denotes a Lean proposition over values and we write J𝜑 K𝛾 for its interpretation as a 
+
+Lean Prop . The interpretation is the natural one mapping constructs to their Lean counterparts. 
+
+Interpreting Refinements To give meaning to a refinement 𝑟 we must also interpret Horn applications 𝜅 (𝑡 𝑏 ). We do this by quantifying at the meta level over a 𝐾 -assignment which fixes the meaning of each 𝜅 as a Lean predicate. Crucially, this 𝐾 will itself map the syntactic horn variables to existentially bound Lean predicates that the solver will then instantiate. Concretely, 1:20 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+a 𝐾 -assignment has the following Lean type Kvar → List (Σ 𝑏 : Base , J𝑏 K) → Prop . Given a 𝐾 -assignment, a Horn application is interpreted by looking up the predicate 𝐾 assigns to 𝜅 and applying it to the interpreted arguments: 
+
+J𝜅 (𝑡 𝑏 )K𝐾 𝛾  𝐾 𝜅 (𝑏, J𝑡 𝑏 K𝛾 )
+
+Interpreting Types Finally, we interpret types as predicates on values. We write 𝑣 ∈ J𝜏 K𝐾 𝛾 to mean that the value 𝑣 inhabits the interpretation of 𝜏 . A refined base type denotes the base values satisfying the (interpretation) of its refinement, and a dependent arrow denotes the lambdas that send every argument in the domain to a result in the codomain: 
+
+𝑣 ∈ J{ 𝜈 :𝑏 | 𝑟 }K𝐾 𝛾  𝑣 ∈ J𝑏 K ∧ J𝑟 K𝐾 𝛾 [𝜈 ↦ →𝑣 ]
+
+𝑣 ∈ J𝑥 :𝜏 1 → 𝜏 2K𝐾 𝛾  𝑣 = 𝜆𝑥 . 𝑒 ∧ ∀ 𝑣 𝑎 . 𝑣 𝑎 ∈ J𝜏 1K𝐾 𝛾 ⇒ ∃ 𝑣 𝑟 . 𝑒 [𝑣 𝑎 /𝑥 ] ⇓ 𝑣 𝑟 ∧ 𝑣 𝑟 ∈ J𝜏 2K𝐾 𝛾 [𝑥 ↦ →𝑣 𝑎 ]
+
+5.3 Declarative Typing for 𝜆 𝑅𝐾 
+
+We define a declarative typing judgment Γ ⊢𝐾 𝑒 : 𝜏 which is mostly unremarkable except for being parameterized by a 𝐾 -assignment. We highlight a couple of aspects of the system: 
+
+Typing Variables with Selfification When typing variables we strengthen its refinement by giving its selfified type [59], which crucially enables path-sensitive “occurrence” typing [71]. 
+
+(𝑥 :𝜏 ) ∈ ΓΓ ⊢𝐾 𝑥 : self (𝑥, 𝜏 ) T-Var self (𝑥, { 𝜈 :𝑏 | 𝑝 })  { 𝜈 :𝑏 | 𝑝 ∧ 𝜈 = 𝑥 }
+
+self (𝑥, 𝑦 : 𝑠 → 𝑡 )  𝑦 : 𝑠 → 𝑡 
+
+Typing Applications The typing judgment enforces ANF so that a function is always applied to a variable , which can be substituted into the dependent codomain without placing an arbitrary expression inside a refinement. (The alternative is to extend the language with existential types [ 41 ], which exchanges the restriction for more complex subtyping and metatheory.) 
+
+Γ ⊢𝐾 𝑒 : 𝑥 :𝜏 1 → 𝜏 2 Γ ⊢𝐾 𝑦 : 𝜏 1
+
+Γ ⊢𝐾 𝑒 𝑦 : 𝜏 2 [𝑦 /𝑥 ] T-App 
+
+Subtyping Most rules in the declarative system are syntax directed; subtyping is the only place where refinements are actually compared, so it is the place where essentially all of the interesting checking happens. A subsumption rule lets an expression of type 𝜏 1 be used at any supertype 𝜏 2,deferring to a subtyping judgment Γ ⊢𝐾 𝜏 1 <: 𝜏 2. For arrows it is the standard rule, contravariant in the domain and covariant in the codomain; for two refined base types, subtyping holds when the first refinement implies the second under the assumptions in the context: 
+
+∀𝛾, LΓM𝐾 𝛾 → J𝑟 1K𝐾 𝛾 → J𝑟 2K𝐾 𝛾 
+
+Γ ⊢𝐾 { 𝜈 :𝑏 | 𝑟 1 } <: { 𝜈 :𝑏 | 𝑟 2 } S-Base Γ ⊢𝐾 𝜏 ′ 
+
+> 1
+
+<: 𝜏 1 Γ, 𝑥 :𝜏 ′ 
+
+> 1
+
+⊢𝐾 𝜏 2 <: 𝜏 ′
+
+> 2
+
+Γ ⊢𝐾 𝑥 :𝜏 1 → 𝜏 2 <: 𝑥 :𝜏 ′ 
+
+> 1
+
+→ 𝜏 ′
+
+> 2
+> S-Fun
+
+Here LΓM𝐾 𝛾 extracts the assumptions from Γ by conjoining the base refinements 
+
+L·M𝐾 𝛾  ⊤ LΓ, 𝑥 :{ 𝜈 :𝑏 | 𝑟 }M𝐾 𝛾  LΓM𝐾 𝛾 ∧ J𝑟 [𝑥 /𝜈 ]K𝐾 𝛾 LΓ, 𝑥 :𝜏 1 → 𝜏 2M𝐾 𝛾  LΓM𝐾 𝛾 
+
+Soundness We prove the declarative system sound: a well-typed program never gets stuck, evalu-ating to a value that inhabits the interpretation of its type. 
+
+Theorem 5.2 (Type soundness) . If · ⊢ 𝐾 𝑒 : 𝜏 , then there exists a value 𝑣 such that 𝑒 ⇓ 𝑣 and 𝑣 ∈ J𝜏 K𝐾  
+
+> ∅
+
+.Foundational Constraint Solving for Expressive Refinement Typing 1:21 
+
+5.4 A Verifier for 𝜆 𝑅𝐾 
+
+The declarative system assumes a 𝐾 -assignment with the solutions for Horn variables that make a program safe. Now we describe a constraint generation algorithm that produces a CHC that can be discharged by our solver to find such 𝐾 -assignment. First, we define the syntax of constraints 𝑐 as described in Fig. 8 instantiating atoms as formulas 
+
+𝜑 . Next, we define constraint generation as a bidirectional typechecking procedure implemented by three judgments: synthesis Γ ⊢ 𝑒 ⇒ 𝜏 ⇝ 𝑐 , checking Γ ⊢ 𝑒 ⇐ 𝜏 ⇝ 𝑐 , and subtyping Γ ⊢ 𝑠 <: 𝑡 ⇝ 𝑐 .Like the declarative system, most rules are syntax directed and accumulate subconstraints by conjoining them. For example, function application mirrors T-App producing a constraint for each subexpression and conjoining them: 
+
+Γ ⊢ 𝑒 ⇒ 𝑥 :𝜏 1 → 𝜏 2 ⇝ 𝑐 1 Γ ⊢ 𝑦 ⇐ 𝜏 1 ⇝ 𝑐 2
+
+Γ ⊢ 𝑒 𝑦 ⇒ 𝜏 2 [𝑦 /𝑥 ] ⇝ 𝑐 1 ∧ 𝑐 2
+
+> Syn-App
+
+The interesting case is again subtyping on base refinements, which produces a constraint requiring that all values of base type 𝑏 satisfying 𝑟 1 also satisfy 𝑟 2:
+
+Γ ⊢ { 𝜈 :𝑏 | 𝑟 1 } <: { 𝜈 :𝑏 | 𝑟 2 } ⇝ ∀𝜈 :𝑏. 𝑟 1 → 𝑟 2
+
+> S-Base
+
+Soundness The constraint generated by our procedure must imply the safety of the program. We formalize this guarantee by extending the interpretation of refinements to constraints as follows: 
+
+J⊤K𝐾 𝛾  ⊤ J∀𝑥 :𝑏. 𝑐 ′K𝐾 𝛾  ∀𝑣 ∈ J𝑏 K. J𝑐 ′K𝐾 𝛾 [𝑥 ↦ →𝑣 ]
+
+J𝑟 1 → 𝑟 2K𝐾 𝛾  J𝑟 1K𝐾 𝛾 → J𝑟 2K𝐾 𝛾 J𝑐 1 ∧ 𝑐 2K𝐾 𝛾  J𝑐 1K𝐾 𝛾 ∧ J𝑐 2K𝐾 𝛾 
+
+Then we prove two theorems. The first connects constraint generation to declarative typing. 
+
+Theorem 5.3 (Constraint Generation) . If · ⊢ 𝑒 ⇐ 𝜏 ⇝ 𝑐 and J𝑐 K𝐾  
+
+> ·
+
+is satisfiable, then · ⊢ 𝐾 𝑒 : 𝜏 .
+
+Second, composing constraint generation soundness with declarative type soundness (Theorem 5.2) yields our end-to-end guarantee: if a program passes constraint generation and the resulting constraints are satisfiable, then the program evaluates to a value in its type’s interpretation: 
+
+Theorem 5.4 (Verifier Soundness) . If · ⊢ 𝑒 ⇐ 𝜏 ⇝ 𝑐 and J𝑐 K𝐾  
+
+> ·
+
+then ∃𝑣 s.t. 𝑒 ⇓ 𝑣 and 𝑣 ∈ J𝜏 K𝐾  
+
+> ·
+
+.
+
+6 Implementation and Evaluation 
+
+We implemented Flex in about 2700 lines of Lean , and extended Flux with a backend that emits constraints as Lean propositions in about 1800 lines of Rust. Next, we describe experiments, using a workstation running Ubuntu 24.04.4 LTS with an AMD Ryzen 7 8845HS processor (8 cores, 16 threads) and 27GB of RAM, to evaluate Flex on three questions 
+
+• RQ1: How expressive is the system compared to SMT? (§6.1) 
+
+• RQ2: How efficient is Zap over search-based tactics in Lean ? (§6.2) 
+
+• RQ3: How scalable , automated , and costly is the Lean backend? (§6.3) 
+
+6.1 RQ1: Expressiveness 
+
+Through a suite of case studies, summarized in Table 1, we demonstrate how Flex expands the scope of provable specifications by providing Flux access to a foundational logic. The studies include 
+
+Sorting : we verify the functional correctness of in-place insertion sort, quicksort, and merge sort, proving that each returns a sorted permutation of the input vector; RingBuffer : we verify memory safety of a ring-buffer-backed deque adapted from the Tock embedded OS kernel [ 64 ], where we prove that the implementation never reads from uninitialized memory, and that the Rust code implements a queue interface; TickTock : we verify various facts about modular arithmetic 1:22 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+Case study Flux LoC #CHCs Spec LoC Proof LoC 
+
+Sorting 316 15 96 620 
+
+RingBuffer 257 10 75 501 
+
+TickTock 15 5 — 302 
+
+HashTable 562 22 245 1361 
+
+All 1250 52 416 2784 
+
+Table 1. Case studies: lines of verified Rust (LoC), number of constraints (#CHCs), lines of manually written 
+
+Lean specs (Spec LoC), and lines of proof (Proof LoC). 
+
+(a) The ring buffer (struct and impl)                                      
+
+> #[ refined_by ( cap : int , hd : int , tl : int , init : Map < int , bool >)] #[ invariant ( init_inv(self) )] struct RingBuffer < 'a , T: Copy +'a > {buf : FSlc < 'a , T >[ cap , init ], head : usize [ hd ], tail : usize [ tl ], }impl < 'a , T: Copy > RingBuffer < 'a , T > {... #[ proven_externally ] fn dequeue (& mut self ) -> Option <T > {if self . head != self . tail {let v=self . buf . get ( self . head ); self . head =( self . head +1) %self . buf . len (); Some (v) }else {None }}}
+
+(b) Refinement-level specifications                                                  
+
+> fn rb_len ( rb : RingBuffer ) -> int {if rb . tl >rb . hd {rb . tl -rb . hd }else if rb . tl <rb . hd {rb . cap -rb . hd +rb . tl }else {0}}fn valid_idx ( rb : RingBuffer , idx : int ) -> bool {( idx +rb . cap -rb . hd ) %rb . cap <rb_len ( rb ) }// Defined in Lean fn init_inv ( rb : RingBuffer ) -> bool ;
+
+(c) Trusted wrapper over maybe uninitialized slices                    
+
+> #[ opaque ] #[ refined_by ( len : int , init : Map < int , bool >)] struct FSlc < 'a ,T >(& 'amut [ MaybeUninit <T >]); impl < 'a , T: Copy > FSlc < 'a , T > {#[ trusted ] fn get ( self : & FSlc <T >[ @n , @f ], idx : usize { idx < n && map_get(f, idx) }) -> T; }
+
+Fig. 16. Ring buffer implementation adapted from Tock, verified to never read uninitialized memory. This requires a Lean invariant, init_inv , that quantifies over valid indices and is not expressible in Flux .
+
+and bit-vectors needed to verify that the address segments calculated by the Tock embedded kernel implement process isolation [ 61 ]; HashTable : we verify the correctness of a hash table with chaining based collision resolution, by proving the Rust code implements a functional Lean 
+
+specification. Previously, to ensure predictable verification, Flux was restricted to quantifier- and recursion-free SMT-decidable specifications, which precluded expressing any of the case studies. For example, defining sortedness requires universally quantifying over the elements of an array, and the hash-table invariants quantify over bucket contents. Even when a property is expressible as it falls in the nominally decidable fragment — e.g. the bitvector facts from TickTock — the resulting formulas can make the SMT solver time out. This highlights a key benefit of Flex : the ability to fall back to interactive proof when automation falls short. 
+
+Example: RingBuffer Invariant Fig. 16 shows snippets of the fixed-capacity RingBuffer imple-mentation of a double-ended queue (deque) adapted from the Tock codebase, and simplified for exposition. The structure maintains head and tail indices that delimit the range of slots holding Foundational Constraint Solving for Expressive Refinement Typing 1:23 
+
+Zap Zap _grind Zap _aesop 
+
+Suite #CHCs hb ms #reduced ×hb ×ms #reduced ×hb ×ms 
+
+flux-medium 78 268 24 48 (62%) 33 × 23 × 65 (83%) 99 × 62 ×
+
+wave 35 518 49 20 (57%) 22 × 16 × 29 (83%) 41 × 25 ×
+
+flux-tests 231 100 11 161 (70%) 12 × 9× 217 (94%) 23 × 16 ×
+
+liquid-fixpoint 11 106 11 7 (64%) 14 × 10 × 10 (91%) 17 × 12 ×
+
+flex-bench 14 585 62 11 (79%) 251 × 178 × 11 (79%) 87 × 44 ×
+
+All 369 154 16 247 (67%) 18 × 13 × 332 (90%) 34 × 22 ×
+
+Table 2. RQ2: acyclic 𝜅 -variables reduction. #CHCs is the number of constraints in each suite; Zap can reduce all of them. For Zap , hb and ms are average heartbeats and wall-clock time (ms). For Zap _grind and 
+
+Zap _aesop , #reduced is the number of constraints reduced, and ×hb/ ×ms report average cost relative to Zap .
+
+Zap (baseline) Zap _grind /Zap ratio Zap _aesop /Zap ratio Suite depth #consts ker 𝜇 s depth #consts ker 𝜇 s depth #consts ker 𝜇 sflux-medium 87 47 5 834 1.0 × 1.0 × 1.1 × 1.2 × 1.4 × 1.7 ×
+
+wave 131 54 12 065 1.0 × 1.0 × 1.1 × 1.1 × 1.3 × 1.4 ×
+
+flux-tests 62 42 1 996 1.0 × 1.0 × 1.0 × 1.1 × 1.3 × 1.4 ×
+
+liquid-fixpoint 63 43 2 177 1.0 × 1.0 × 1.0 × 1.1 × 1.3 × 1.5 ×
+
+flex-bench 121 54 13 565 1.0 × 1.0 × 1.2 × 1.0 × 1.3 × 1.4 ×
+
+All 73 45 3 202 1.0 × 1.0 × 1.0 × 1.1 × 1.3 × 1.5 ×
+
+Table 3. Elimination proof-term shape (geomean per suite). Zap columns show geomean raw values; grind/ae-sop columns show geomean ratio vs. Zap over jointly-solved CHCs. depth = expression-tree depth; #consts = distinct constants; ker 𝜇 s = kernel re-check time ( 𝜇 s). 
+
+valid data. As elements are pushed and popped at either end, these indices move through the fixed-size buffer and may eventually wrap around (necessitating careful modular arithmetic reasoning.) Reading a slot outside the valid range is undefined behavior as it may contain uninitialized data. We track exactly which slots are initialized with a map init and maintain an invariant saying all valid indices are initialized. We can define the length ( rb_len ) and what indices are valid ( valid_idx )as ordinary Flux refinement functions that translate directly into Lean definitions. The invariant 
+
+init_inv requires quantifying over valid indices, which was not expressible as a Flux refinement, but can now be, in Lean :
+
+def init_inv ( rb : RingBuffer ) : Prop := 
+
+∀ i : Int , 0 ≤ i ∧ i < rb . cap → valid_idx rb i → rb . init i
+
+Annotating the dequeue method with proven_externally generates a Lean constraint in which this definition is available to prove two key facts: that at the call to FSlc::get the precondition is satisfied, and that dequeue preserves init_inv .The Lean backend does not eliminate all manual work. The Fix algorithm finds solutions automat-ically for simple cyclic 𝜅 -variables, but complex invariants (e.g., in merge and quicksort_range )must still be supplied by hand. Sometimes adding the right qualifiers is sufficient; other times, even with the correct invariant provided, manual Lean proof is needed to show it is maintained. 1:24 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+6.2 RQ2: Efficiency of Zap Zap (§ 4.2) eliminates an acyclic 𝜅 -variable by instantiating the existential with the strongest solution for 𝜅 , and constructing a proof term that justifies replacing head occurrences of 𝜅 with 
+
+⊤. We demonstrate that deterministic proof construction makes Zap faster and robuster than search-based tactics, and hence, crucial in practice. 
+
+Experiment design. To evaluate Zap we implemented two variants, Zap _grind and Zap _aesop ,which use the same Sol procedure to compute the strongest solution, but replace the Cert 𝜅 𝜎,𝜌 
+
+proof-term construction procedure by calls to grind and aesop , respectively, each run with default settings. We ran each tactic on constraints with one or more acyclic 𝜅 -variables, to measure the cost of reduction using Zap (§ 4.2). Our benchmarks are divided into five suites: flux-tests :the full Flux positive regression test suite; liquid-fixpoint : LiqidFixpoint ’s regression tests, the SMT-based solver used by many refinement type systems, including Flux ; wave : a verified WebAssembly runtime previously ported to Flux [39 , 45 ]; flux-medium : medium-size benchmarks including implementations of vector-manipulating algorithms and programs from the Flux guide and tutorials; flex-bench : the case studies from § 6.1. 
+
+Results. Table 2 summarizes the results across a total of 369 constraints. For each suite the table reports three metrics: the number of constraints successfully reduced and, over those, the average wall-clock time (ms) and heartbeats — Lean ’s deterministic proxy for proof effort. Zap 
+
+can successfully reduce all constraints with a modest running time (max 62 ms). The search-based alternatives fare considerably worse. Zap _grind reduces only 247 of the 369 constraints ( 67% ), and on the constraints it can reduce, it consumes 18 × more heartbeats and it is 13 × slower on average; the performance is worst on flex-bench (11 s per CHC), which has the largest constraints. 
+
+Zap _aesop fares better in coverage, successfully reducing 90% of the constraints, but it is 22 times slower on average than Zap . Furthermore, Proof terms produced by aesop are on average 10% deeper and 50% slower for the kernel to check, shown in Table 3. 
+
+6.3 RQ3: Scalability and Cost 
+
+SMT solvers are a marvelous feat of engineering. Replacing them with a foundational constraint solver in Lean raises a couple of questions: does it scale to the constraints that verifiers generate in practice, and how much automation does it trade off ? To answer these questions we gave Flex 
+
+free rein, running the full solver pipeline described in §4 — including Zap and Fix — on all of our benchmarks. For Fix , we instantiate the oracle that prunes instance candidates with a combination of grind and aesop . This leaves a 𝜅 -free VC, whose remaining goals we then attempt to close with the same grind /aesop combination. We raise Lean ’s default heartbeat, from 200 ,000 to 5,000 ,000 ,so that the search-based tactics have ample room to succeed. We exclude flex-bench from this experiment, as its case studies were chosen precisely because they require reasoning beyond what an SMT solver can reasonably automate. 
+
+Results. Flex automatically discharges 95 .7% of all constraints across the benchmark suite (Table 4). Failures concentrate on constraints with cyclic 𝜅 -variables, where the success rate drops to 82 .3% 
+
+due to addressable limitations in the current implementation of fix . The 37 failures decompose into three categories. (i) Recursion/Heartbeat limits: 21 failures are caused by exceeding the default recursion depth limit during predicate abstraction, and a further 4 by exceeding the heartbeat limit; both parameters are tunable, and raising them can let additional constraints pass automatically at the cost of longer running times. (ii) Missing qualifiers: 4 failures occur because Flux discovers some qualifiers by scraping the constraint, and we have not yet ported this inference to the Lean 
+
+backend; adding the missing qualifier manually allows our tactic to close these constraints. Even when all needed qualifiers are present, predicate abstraction can still fail to find the correct invariant, Foundational Constraint Solving for Expressive Refinement Typing 1:25                                              
+
+> Benchmark #CHCs Success #Cyclic Success (cyclic) LF time Flex Time
+> flux-medium 148 89.2% 60 47 (78.3%) 4.2s 9.5m
+> wave 77 96.1% 10 7 (70.0%) 2.8s 4.0m
+> flux-tests 608 97.3% 80 67 (83.8%) 20.9s 7.4m
+> liquid-fixpoint 47 95.7% 14 14 (100.0%) 3.1s 58.0s
+> Total 880 95.7% 164 135 (82.3%) 31s 21.8m
+> Table 4. Automation coverage of the full solver pipeline ( Zap followed by Fix with a grind /aesop oracle), run with no human input. #CHCs is the number of constraints in the suite; Success is the fraction discharged, and Success (cyclic) the fraction discharged among those constraints with a cyclic 𝜅 -variable. LF time and Flex
+> Time are the total wall-clock time to solve the entire suite with Liquid Fixpoint (SMT) and Flex , respectively.
+
+depending on the oracle it relies on. (iii) Concrete Goal closure: 8 failures have no 𝜅 -variables at all, and simply come down to grind /aesop being unable to close the goal automatically; adding annotations to relevant theorems can enable Flex to handle more complex goals. This failure mode can also arise when Fix finds the correct invariant, as the verification condition remaining after 
+
+𝜅 -elimination must still be discharged by grind /aesop .This demonstrates that our solver together with standard tactics can handle a variety of con-straints automatically. Crucially, failures are recoverable : a user can fall back to an interactive Lean 
+
+proof rather than being blocked with only an opaque SMT failure to go on. Moreover, improvements to proof automation in Lean would automatically transfer. The expected cost is speed: Table 4 shows that the Lean backend is roughly 2 orders of magnitude slower than the LiqidFixpoint SMT-based backend Flux currently uses. For a foundational system whose proofs are machine-checked, this is the current price to pay. We expect that incorporating known optimizations from LiqidFixpoint into Flex will shrink the performance gap. 
+
+7 Related Work 
+
+Flex relates to a vast literature on program-verification; these are the lines closest to ours. 
+
+SMT-based Verifiers Our work is inspired by program logic [ 24 , 35 ] based verifiers, in particular, those that emit a constraint that must be then proven to verify the program [ 18 ]. Typically these constraints are (horn variable free) VCs that are discharged by SMT solvers [ 15 , 22 , 48 , 50 ]. Prusti 
+
+[ 2 ] and Verus [44 ] implement such Floyd-Hoare style verifiers for Rust. F∗ generalizes the approach to the higher order setting using Dijkstra monads [ 67 ], while Stainless [30 ] uses refinement types. In contrast to the above, LiqidHaskell [73 ], Flux [45 ] and Thrust [58 ] use CHC, which generalize VCs with existentially quantified variables that delegate the synthesis of refinements or invariants to an SMT-based CHC solver. However, instead of relying upon incomplete, SMT heuristics [ 49 ], that can be opaque and hard to use [ 78 ], Flex provides the full arsenal of interactive proof, when required, and provides foundational guarantees about the satisfiability of the CHC. 
+
+Proving or Certifying VCs Work on proof-carrying code showed how to avoid trusting SMT solvers by modifying decision procedures to emit certificates [ 54 ]. This idea was extended to model checkers [ 32 ], and refinement types [ 13 ], and several modern theorem provers emit independently checkable certificates [ 3 , 4 , 8 , 19 , 52 ]. A dual approach is to use foundational, interactive proof assistants to discharge VCs. For example, Jahob [77 ] delegates VCs to a variety of backends including Isabelle . Similarly the Creusot Rust verifier [ 16 ] emits VCs in the Why3 format, after which they can be discharged using either SMT or interactive proof [ 20 ]. The above techniques 1:26 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+apply to plain VCs: our work shows how to represent such provers as oracles and thus, lift such proofs to obtain certificates for CHC satisfiability. 
+
+Transpiling to/from Interactive Provers The above techniques use verification obligations as the medium of communication between implementation ( e.g. C, Java, Rust, Haskell) and verification (e.g. SMT or interactive proof). An alternative is to transpile the implementation into the prover’s language, and then prove properties about the transpiled code, as done by [ 37 ] and [ 65 ] which translate Scala and Haskell into Isabelle or Rocq respectively, or [ 5, 34 ] which translate Rust into Lean . In general, though, the impedance mismatch between the languages can make such translation challenging. Of course, one can also go in the opposite direction, i.e. to extract the executable implementation from source written directly in a proof assistant, as done in systems like [ 1 , 63 ] for C, or [ 25 ] for Rust or [ 27 ] for Dafny, which deeply embed program logic and refinement type based verifiers for the corresponding languages inside Rocq or Lean , after which the prover’s extraction mechanism can be used to get executable code. Flex is complementary to the above, in that we provide a foundational CHC solver, that can be used either to build end-to-end verifiers (§5) 
+
+or to verify expressive constraints generated by (trusted) compiler plugins like Flux (§6). Indeed, it would be interesting to explore using Flex to build a CHC-based verifier on top of Lean ’s MVCGen 
+
+monad or the Loom system. 
+
+CHC Solvers Flex uses [ 14 ] to solve acyclic variables, and predicate abstraction [ 21 ] to compute (overapproximate) solutions for cyclic ones. In contrast, Spacer [ 42 , 72 ], Eldarica [ 36 ], and SeaHorn [ 29 ] solve CHCs by inferring invariants using IC3 [ 10 ] or Lazy Abstraction and Craig Interpolation [ 33 , 51 ], which do not require qualifiers, but which may diverge. It would be interesting to explore ways to extend Flex with iterative refinement techniques to reduce the reliance on qualifiers. 
+
+Mechanizing Refinement Types Our mechanization of 𝜆 𝑅𝐾 is influenced by earlier mechaniza-tions including simple refinement types [ 47 ], the work on System FR [ 30 ], Refined Featherweight Java [ 66 ] and most closely, the polymorphic refinement calculus of [ 9 ]. Unlike the prior work, we use a big-step semantics, and more importantly, mechanize refinement inference using Horn variables, algorithmic constraint generation and solving. 
+
+References                 
+
+> [1] Andrew W. Appel, Lennart Beringer, Robert Dockins, Aquinas Hobor, Xavier Leroy, and Gordon Stewart. 2014. Program Logics for Certified Compilers . Cambridge University Press, New York, NY, USA. [2] Vytautas Astrauskas, Aurea Bílá, Jonáš Fiala, Zachary Grannan, Christoph Matheja, Peter Müller, Federico Poli, and Alexander J. Summers. 2022. The Prusti Project: Formal Verification for Rust. In NASA Formal Methods: 14th International Symposium, NFM 2022, Pasadena, CA, USA, May 24–27, 2022, Proceedings (Pasadena, CA, USA). Springer-Verlag, Berlin, Heidelberg, 88–108. doi:10.1007/978-3-031-06773-0_5 [3] Haniel Barbosa, Clark Barrett, Byron Cook, Bruno Dutertre, Gereon Kremer, Hanna Lachnitt, Aina Niemetz, Andres Nötzli, Alex Ozdemir, Mathias Preiner, Andrew Reynolds, Cesare Tinelli, and Yoni Zohar. 2023. Generating and Exploiting Automated Reasoning Proof Certificates. Commun. ACM 66, 10 (Sept. 2023), 86–95. doi:10.1145/3587692 [4] Filip Bártek, Ahmed Bhayat, Robin Coutelier, Márton Hajdu, Matthias Hetzenberger, Petra Hozzová, Laura Kovács, Jakob Rath, Michael Rawson, Giles Reger, Martin Suda, Johannes Schoisswohl, and Andrei Voronkov. 2025. The Vampire Diary. arXiv:2506.03030 [cs.LO] https://arxiv.org/abs/2506.03030 [5] Karthikeyan Bhargavan, Maxime Buyse, Lucas Franceschino, Lasse Letager Hansen, Franziskus Kiefer, Jonas Schneider-Bensch, and Bas Spitters. 2024. hax: Verifying Security-Critical Rust Software Using Multiple Provers. In Verified Software. Theories, Tools and Experiments: 16th International Conference, VSTTE 2024, Prague, Czech Republic, October 14–15, 2024, Revised Selected Papers (Prague, Czech Republic). Springer-Verlag, Berlin, Heidelberg, 96–119. doi:10.1007/ 978-3-031-86695-1_7 [6] Nikolaj Bjørner, Arie Gurfinkel, Ken McMillan, and Andrey Rybalchenko. 2015. Horn Clause Solvers for Program Verification. In Fields of Logic and Computation II . Springer, 24–51. doi:10.1007/978-3-319-23534-9_2 [7] Nikolaj S. Bjørner, Kenneth L. McMillan, and Andrey Rybalchenko. 2013. On Solving Universally Quantified Horn Clauses. In Static Analysis - 20th International Symposium, SAS 2013, Seattle, WA, USA, June 20-22, 2013. Proceedings (Lecture Notes in Computer Science, Vol. 7935) . Springer, 105–125. doi:10.1007/978-3-642-38856-9_8
+
+## Foundational Constraint Solving for Expressive Refinement Typing 1:27 
+
+[8] Jonas Bodingbauer, Márton Hajdu, Laura Kovács, Axel Polaczek, and Michael Rawson. 2026. Lean on Vampire Proofs (Short Paper). arXiv:2603.26342 [cs.LO] https://arxiv.org/abs/2603.26342 [9] Michael H. Borkowski, Niki Vazou, and Ranjit Jhala. 2024. Mechanizing Refinement Types. Proc. ACM Program. Lang. 
+
+8, POPL, Article 70 (Jan. 2024), 30 pages. doi:10.1145/3632912 [10] Aaron R Bradley. 2011. SAT-based model checking without unrolling. In Verification, Model Checking, and Abstract Interpretation (VMCAI) . Springer, 70–87. doi:10.1007/978-3-642-18275-4_7 [11] Mauro Bringolf, Dominik Winterer, and Zhendong Su. 2023. Finding and Understanding Incompleteness Bugs in SMT Solvers. In Proceedings of the 37th IEEE/ACM International Conference on Automated Software Engineering 
+
+(Rochester, MI, USA) (ASE ’22) . Association for Computing Machinery, New York, NY, USA, Article 43, 10 pages. doi:10.1145/3551349.3560435 [12] Mario Carneiro. 2025. Lean4Lean: Verifying a Typechecker for Lean, in Lean. arXiv:2403.14064 [cs.PL] https: //arxiv.org/abs/2403.14064 [13] Juan Chen, Ravi Chugh, and Nikhil Swamy. 2010. Type-preserving compilation of end-to-end verification of security enforcement. In Proceedings of the 2010 ACM SIGPLAN Conference on Programming Language Design and Implementation, PLDI 2010, Toronto, Ontario, Canada, June 5-10, 2010 , Benjamin G. Zorn and Alex Aiken (Eds.). ACM, 412–423. doi:10.1145/1806596.1806643 [14] Benjamin Cosman and Ranjit Jhala. 2017. Local refinement typing. Proc. ACM Program. Lang. 1, ICFP, Article 26 (Aug. 2017), 27 pages. doi:10.1145/3110270 [15] Pascal Cuoq, Florent Kirchner, Nikolai Kosmatov, Virgile Prevosto, Julien Signoles, and Boris Yakobowski. 2012. Frama-C: a software analysis perspective. In Proceedings of the 10th International Conference on Software Engineering and Formal Methods (Thessaloniki, Greece) (SEFM’12) . Springer-Verlag, Berlin, Heidelberg, 233–247. doi:10.1007/978-3-642-33826-7_16 [16] Xavier Denis, Jacques-Henri Jourdan, and Claude Marché. 2022. Creusot: A Foundry for the Deductive Verification of Rust Programs. In Formal Methods and Software Engineering: 23rd International Conference on Formal Engineering Meth-ods, ICFEM 2022, Madrid, Spain, October 24–27, 2022, Proceedings (Madrid, Spain). Springer-Verlag, Berlin, Heidelberg, 90–105. doi:10.1007/978-3-031-17244-1_6 [17] David Detlefs, Greg Nelson, and James B. Saxe. 2005. Simplify: A Theorem Prover for Program Checking. J. ACM 52, 3 (2005), 365–473. doi:10.1145/1066100.1066102 [18] Edsger W. Dijkstra. 1976. A Discipline of Programming . Prentice-Hall, Englewood Cliffs, N.J. [19] Burak Ekici, Alain Mebsout, Cesare Tinelli, Chantal Keller, Guy Katz, Andrew Reynolds, and Clark Barrett. 2017. SMTCoq: A plug-in for integrating SMT solvers into Coq. In Computer Aided Verification - 29th International Conference .Heidelberg, Germany. https://hal.science/hal-01669345 [20] Jean-Christophe Filliâtre and Andrei Paskevich. 2013. Why3: where programs meet provers. In Proceedings of the 22nd European Conference on Programming Languages and Systems (Rome, Italy) (ESOP’13) . Springer-Verlag, Berlin, Heidelberg, 125–128. doi:10.1007/978-3-642-37036-6_8 [21] Cormac Flanagan and K. Rustan M. Leino. 2001. Houdini, an Annotation Assistant for ESC/Java. In FME 2001: Formal Methods for Increasing Software Productivity, International Symposium of Formal Methods Europe, Berlin, Germany, March 12-16, 2001, Proceedings (Lecture Notes in Computer Science, Vol. 2021) , José Nuno Oliveira and Pamela Zave (Eds.). Springer, 500–517. doi:10.1007/3-540-45251-6_29 [22] Cormac Flanagan, K. Rustan M. Leino, Mark Lillibridge, Greg Nelson, James B. Saxe, and Raymie Stata. 2002. Extended static checking for Java. In Proceedings of the ACM SIGPLAN 2002 Conference on Programming Language Design and Implementation (Berlin, Germany) (PLDI ’02) . Association for Computing Machinery, New York, NY, USA, 234–245. doi:10.1145/512529.512558 [23] Cormac Flanagan, Amr Sabry, Bruce F. Duba, and Matthias Felleisen. 1993. The essence of compiling with continuations. 
+
+SIGPLAN Not. 28, 6 (June 1993), 237–247. doi:10.1145/173262.155113 [24] Robert W. Floyd. 1967. Assigning Meanings to Programs. In Mathematical Aspects of Computer Science , J. T. Schwartz (Ed.), Vol. 19. American Mathematical Society, 19–32. [25] Lennard Gäher, Michael Sammler, Ralf Jung, Robbert Krebbers, and Derek Dreyer. 2024. RefinedRust: A Type System for High-Assurance Verification of Rust Programs. Proc. ACM Program. Lang. 8, PLDI, Article 192 (June 2024), 25 pages. doi:10.1145/3656422 [26] Catarina Gamboa, Abigail Reese, Alcides Fonseca, and Jonathan Aldrich. 2025. Usability Barriers for Liquid Types. 
+
+Proc. ACM Program. Lang. 9, PLDI, Article 224 (June 2025), 26 pages. doi:10.1145/3729327 [27] Vladimir Gladshtein, George Pîrlea, Qiyuan Zhao, Vitaly Kurin, and Ilya Sergey. 2026. Foundational Multi-Modal Program Verifiers. Proc. ACM Program. Lang. 10, POPL, Article 77 (Jan. 2026), 32 pages. doi:10.1145/3776719 [28] Susanne Graf and Hassen Saidi. 1997. Construction of abstract state graphs with PVS. In Computer Aided Verification ,Orna Grumberg (Ed.). Springer Berlin Heidelberg, Berlin, Heidelberg, 72–83. 1:28 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+[29] Arie Gurfinkel, Temesghen Kahsai, Anvesh Komuravelli, and Jorge A. Navas. 2015. The SeaHorn Verification Frame-work. In International Conference on Computer Aided Verification . 343–361. doi:10.1007/978-3-319-21690-4_20 [30] Jad Hamza, Nicolas Voirol, and Viktor Kunčak. 2019. System FR: formalized foundations for the stainless verifier. Proc. ACM Program. Lang. 3, OOPSLA, Article 166 (Oct. 2019), 30 pages. doi:10.1145/3360592 [31] Chris Hawblitzel, Jon Howell, Manos Kapritsos, Jay R. Lorch, Bryan Parno, Justine Stephenson, Srinath Setty, and Brian Zill. 2015. IronFleet: Proving Practical Distributed Systems Correct. In Proceedings of the 25th Symposium on Operating Systems Principles (Monterey, California, USA) (SOSP ’15) . Association for Computing Machinery, New York, NY, USA, 1–16. doi:10.1145/2815400.2815428 [32] Thomas A. Henzinger, Ranjit Jhala, Rupak Majumdar, George C. Necula, Grégoire Sutre, and Westley Weimer. 2002. Temporal-Safety Proofs for Systems Code. In Proceedings of the 14th International Conference on Computer Aided Verification (CAV ’02) . Springer-Verlag, Berlin, Heidelberg, 526–538. [33] Thomas A. Henzinger, Ranjit Jhala, Rupak Majumdar, and Grégoire Sutre. 2002. Lazy abstraction. In Proceedings of the 29th ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages (Portland, Oregon) (POPL ’02) .Association for Computing Machinery, New York, NY, USA, 58–70. doi:10.1145/503272.503279 [34] Son Ho and Jonathan Protzenko. 2022. Aeneas: Rust verification by functional translation. Proc. ACM Program. Lang. 
+
+6, ICFP, Article 116 (Aug. 2022), 31 pages. doi:10.1145/3547647 [35] Charles Anthony Richard Hoare. 1969. An axiomatic basis for computer programming. Commun. ACM 12, 10 (1969), 576–580. [36] Hossein Hojjat and Philipp Rümmer. 2018. The ELDARICA Horn Solver. In 2018 Formal Methods in Computer Aided Design (FMCAD) . 1–7. doi:10.23919/FMCAD.2018.8603013 [37] Lars Hupel and Viktor Kuncak. 2016. Translating Scala Programs to Isabelle/HOL. In Proceedings of the 8th International Joint Conference on Automated Reasoning - Volume 9706 . Springer-Verlag, Berlin, Heidelberg, 568–577. doi:10.1007/978-3-319-40229-1_38 [38] Ranjit Jhala and Niki Vazou. 2021. Refinement Types: A Tutorial. Found. Trends Program. Lang. 6, 3–4 (Oct. 2021), 159–317. doi:10.1561/2500000032 [39] Evan Johnson, Evan Laufer, Zijie Zhao, Dan Gohman, Shravan Narayan, Stefan Savage, Deian Stefan, and Fraser Brown. 2023. WaVe: a verifiably secure WebAssembly sandboxing runtime. In 2023 IEEE Symposium on Security and Privacy (SP) . IEEE, 2940–2955. [40] Richard M. Karp. 1972. Reducibility Among Combinatorial Problems. In Proceedings of a symposium on the Complexity of Computer Computations, held March 20-22, 1972, at the IBM Thomas J. Watson Research Center, Yorktown Heights, New York, USA (The IBM Research Symposia Series) , Raymond E. Miller and James W. Thatcher (Eds.). Plenum Press, New York, 85–103. doi:10.1007/978-1-4684-2001-2_9 [41] Kenneth Knowles and Cormac Flanagan. 2009. Compositional reasoning and decidable checking for dependent contract types. In Proceedings of the 3rd Workshop on Programming Languages Meets Program Verification (Savannah, GA, USA) (PLPV ’09) . Association for Computing Machinery, New York, NY, USA, 27–38. doi:10.1145/1481848.1481853 [42] Anvesh Komuravelli, Arie Gurfinkel, and Sagar Chaki. 2016. SMT-based model checking for recursive programs. Form. Methods Syst. Des. 48, 3 (June 2016), 175–205. doi:10.1007/s10703-016-0249-4 [43] Andrea Lattuada, Travis Hance, Jay Bosamiya, Matthias Brun, Chanhee Cho, Hayley LeBlanc, Pranav Srinivasan, Reto Achermann, Tej Chajed, Chris Hawblitzel, Jon Howell, Jacob R. Lorch, Oded Padon, and Bryan Parno. 2024. Verus: A Practical Foundation for Systems Verification. In Proceedings of the 30th ACM SIGOPS Symposium on Operating Systems Principles (SOSP) . 438–454. doi:10.1145/3694715.3695952 [44] Andrea Lattuada, Travis Hance, Chanhee Cho, Matthias Brun, Isitha Subasinghe, Yi Zhou, Jon Howell, Bryan Parno, and Chris Hawblitzel. 2023. Verus: Verifying Rust Programs using Linear Ghost Types. Proc. ACM Program. Lang. 7, OOPSLA1, Article 85 (April 2023), 30 pages. doi:10.1145/3586037 [45] Nico Lehmann, Adam T. Geller, Niki Vazou, and Ranjit Jhala. 2023. Flux: Liquid Types for Rust. Proc. ACM Program. Lang. 7, PLDI, Article 169 (June 2023), 25 pages. doi:10.1145/3591283 [46] Nico Lehmann, Rose Kunkel, Jordan Brown, Jean Yang, Niki Vazou, Nadia Polikarpova, Deian Stefan, and Ranjit Jhala. 2021. STORM: Refinement Types for Secure Web Applications. In 15th USENIX Symposium on Operating Systems Design and Implementation (OSDI 21) . USENIX Association, 441–459. https://www.usenix.org/conference/osdi21/ presentation/lehmann [47] Nico Lehmann and Éric Tanter. 2016. Formalizing Simple Refinement Types in Coq. In 2nd International Workshop on Coq for Programming Languages (CoqPL’16) . St. Petersburg, FL, USA. [48] K. Rustan M. Leino. 2010. Dafny: an automatic program verifier for functional correctness. In Proceedings of the 16th International Conference on Logic for Programming, Artificial Intelligence, and Reasoning (Dakar, Senegal) (LPAR’10) .Springer-Verlag, Berlin, Heidelberg, 348–370. [49] K. Rustan M. Leino and Clément Pit-Claudel. 2016. Trigger Selection Strategies to Stabilize Program Verifiers. In 
+
+Computer Aided Verification - 28th International Conference, CAV 2016, Toronto, ON, Canada, July 17-23, 2016, Proceedings, Foundational Constraint Solving for Expressive Refinement Typing 1:29 
+
+Part I (Lecture Notes in Computer Science, Vol. 9779) . Springer, 361–381. doi:10.1007/978-3-319-41528-4_20 [50] D. C. Luckham, S. M. German, F. W. von Henke, R. A. Karp, P. W. Milne, D. C. Oppen, W. Polak, and W. L. Scherlis. 1979. Stanford Pascal Verifier user manual . Technical Report STAN-CS-79-731. Stanford University, Department of Computer Science. [51] Kenneth L McMillan. 2006. Lazy abstraction with interpolants. In International Conference on Computer Aided Verification (CAV) . Springer, 123–136. doi:10.1007/11817963_14 [52] Abdalrhman Mohamed, Tomaz Mascarenhas, Harun Khan, Haniel Barbosa, Andrew Reynolds, Yicheng Qian, Cesare Tinelli, and Clark Barrett. 2025. lean-smt: An SMT Tactic for Discharging Proof Goals in Lean. In Computer Aided Verification , Ruzica Piskac and Zvonimir Rakamarić (Eds.). Springer Nature Switzerland, Cham, 197–212. [53] Eric Mugnier, Yuanyuan Zhou, Ranjit Jhala, and Michael Coblenz. 2025. On the Impact of Formal Verification on Software Development. Proc. ACM Program. Lang. 9, OOPSLA2, Article 403 (Oct. 2025), 27 pages. doi:10.1145/3763181 [54] George Ciprian Necula. 1998. Compiling with Proofs . Ph. D. Dissertation. Carnegie Mellon University, Pittsburgh, PA, USA. https://www.cs.cmu.edu/~rwh/students/necula.pdf Available as Technical Report CMU-CS-98-154. [55] Charles Gregory Nelson. 1980. Techniques for Program Verification . Ph. D. Dissertation. Stanford University, Stanford, CA, USA. [56] Tobias Nipkow and Gerwin Klein. 2014. Concrete Semantics with Isabelle/HOL . Springer. http://concrete-semantics.org [57] Ulf Norell. 2009. Dependently Typed Programming in Agda . Springer Berlin Heidelberg, Berlin, Heidelberg, 230–266. doi:10.1007/978-3-642-04652-0_5 [58] Hiromi Ogawa, Taro Sekiyama, and Hiroshi Unno. 2025. Thrust: A Prophecy-Based Refinement Type System for Rust. 
+
+Proc. ACM Program. Lang. 9, PLDI, Article 230 (June 2025), 25 pages. doi:10.1145/3729333 [59] Xinming Ou, Gang Tan, Yitzhak Mandelbaum, and David Walker. 2004. Dynamic Typing with Dependent Types. In Exploring New Frontiers of Theoretical Informatics , Jean-Jacques Levy, Ernst W. Mayr, and John C. Mitchell (Eds.). Springer US, Boston, MA, 437–450. [60] Benjamin C. Pierce, Arthur Azevedo de Amorim, Chris Casinghino, Marco Gaboardi, Michael Greenberg, Cătălin Hriţcu, Vilhelm Sjöberg, and Brent Yorgey. 2026. Logical Foundations . Software Foundations, Vol. 1. Electronic textbook. https://softwarefoundations.cis.upenn.edu/lf-current/ [61] Vivien Rindisbacher, Evan Johnson, Nico Lehmann, Tyler Potyondy, Pat Pannuto, Stefan Savage, Deian Stefan, and Ranjit Jhala. 2025. TickTock: Verified Isolation in a Production Embedded OS. In Proceedings of the ACM SIGOPS 31st Symposium on Operating Systems Principles (Lotte Hotel World, Seoul, Republic of Korea) (SOSP ’25) . Association for Computing Machinery, New York, NY, USA, 786–801. doi:10.1145/3731569.3764856 [62] Patrick M. Rondon, Ming Kawaguchi, and Ranjit Jhala. 2008. Liquid types. In Proceedings of the 29th ACM SIGPLAN Conference on Programming Language Design and Implementation (Tucson, AZ, USA) (PLDI ’08) . Association for Computing Machinery, New York, NY, USA, 159–169. doi:10.1145/1375581.1375602 [63] Michael Sammler, Rodolphe Lepigre, Robbert Krebbers, Kayvan Memarian, Derek Dreyer, and Deepak Garg. 2021. RefinedC: automating the foundational verification of C code with refined ownership types. In Proceedings of the 42nd ACM SIGPLAN International Conference on Programming Language Design and Implementation (Virtual, Canada) (PLDI 2021) . Association for Computing Machinery, New York, NY, USA, 158–174. doi:10.1145/3453483.3454036 [64] Leon Schuermann, Brad Campbell, Branden Ghena, Philip Levis, Amit Levy, and Pat Pannuto. 2025. Tock: From Research to Securing 10 Million Computers. In Proceedings of the ACM SIGOPS 31st Symposium on Operating Systems Principles . 36–49. [65] Antal Spector-Zabusky, Joachim Breitner, Christine Rizkallah, and Stephanie Weirich. 2018. Total Haskell is Reasonable Coq. In Proceedings of the 7th ACM SIGPLAN International Conference on Certified Programs and Proofs (CPP 2018) .Association for Computing Machinery, 152–164. doi:10.1145/3167092 [66] Ke Sun, Di Wang, Sheng Chen, Meng Wang, and Dan Hao. 2024. Formalizing, Mechanizing, and Verifying Class-Based Refinement Types. In 38th European Conference on Object-Oriented Programming (ECOOP 2024) (Leibniz International Proceedings in Informatics (LIPIcs), Vol. 313) , Jonathan Aldrich and Guido Salvaneschi (Eds.). Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl, Germany, 39:1–39:30. doi:10.4230/LIPIcs.ECOOP.2024.39 [67] Nikhil Swamy, Joel Weinberger, Cole Schlesinger, Juan Chen, and Benjamin Livshits. 2013. Verifying higher-order programs with the dijkstra monad. In Proceedings of the 34th ACM SIGPLAN Conference on Programming Language Design and Implementation (Seattle, Washington, USA) (PLDI ’13) . Association for Computing Machinery, New York, NY, USA, 387–398. doi:10.1145/2491956.2491978 [68] Robert Tarjan. 1972. Depth-First Search and Linear Graph Algorithms. SIAM J. Comput. 1, 2 (1972), 146–160. doi:10.1137/0201010 [69] The Coq Development Team. 2024. The Coq Reference Manual – Release 8.19.0. https://coq.inria.fr/doc/V8.19.0/refman. [70] The mathlib Community. 2020. The Lean Mathematical Library. In Proceedings of the 9th ACM SIGPLAN International Conference on Certified Programs and Proofs (CPP 2020) . ACM, New Orleans, LA, USA. doi:10.1145/3372885.3373824 1:30 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+[71] Sam Tobin-Hochstadt and Matthias Felleisen. 2008. The design and implementation of typed scheme. SIGPLAN Not. 
+
+43, 1 (Jan. 2008), 395–406. doi:10.1145/1328897.1328486 [72] Takeshi Tsukada and Hiroshi Unno. 2024. Inductive Approach to Spacer. Proc. ACM Program. Lang. 8, PLDI, Article 227 (June 2024), 24 pages. doi:10.1145/3656457 [73] Niki Vazou, Eric L. Seidel, Ranjit Jhala, Dimitrios Vytiniotis, and Simon Peyton-Jones. 2014. Refinement types for Haskell. In Proceedings of the 19th ACM SIGPLAN International Conference on Functional Programming (Gothenburg, Sweden) (ICFP ’14) . Association for Computing Machinery, New York, NY, USA, 269–282. doi:10.1145/2628136.2628161 [74] Dominik Winterer and Zhendong Su. 2024. Validating SMT Solvers for Correctness and Performance via Grammar-Based Enumeration. Proc. ACM Program. Lang. 8, OOPSLA2, Article 355 (Oct. 2024), 24 pages. doi:10.1145/3689795 [75] Dominik Winterer, Chengyu Zhang, and Zhendong Su. 2020. On the unusual effectiveness of type-aware operator mutations for testing SMT solvers. Proc. ACM Program. Lang. 4, OOPSLA, Article 193 (Nov. 2020), 25 pages. doi:10. 1145/3428261 [76] Dominik Winterer, Chengyu Zhang, and Zhendong Su. 2020. Validating SMT solvers via semantic fusion. In Proceedings of the 41st ACM SIGPLAN Conference on Programming Language Design and Implementation (London, UK) (PLDI 2020) .Association for Computing Machinery, New York, NY, USA, 718–730. doi:10.1145/3385412.3385985 [77] Karen Zee, Viktor Kuncak, and Martin Rinard. 2008. Full functional verification of linked data structures. In Proceedings of the 29th ACM SIGPLAN Conference on Programming Language Design and Implementation (Tucson, AZ, USA) (PLDI ’08) . Association for Computing Machinery, New York, NY, USA, 349–361. doi:10.1145/1375581.1375624 [78] Yi Zhou, Jay Bosamiya, Yoshiki Takashima, Jessica Li, Marijn Heule, and Bryan Parno. 2023. Mariposa: Measuring SMT Instability in Automated Program Verification. In 2023 Formal Methods in Computer-Aided Design (FMCAD) . 178–188. doi:10.34727/2023/isbn.978-3-85448-060-0_26 [79] Jean-Karim Zinzindohoué, Karthikeyan Bhargavan, Jonathan Protzenko, and Benjamin Beurdouche. 2017. HACL*: A Verified Modern Cryptographic Library. In Proceedings of the 2017 ACM SIGSAC Conference on Computer and Communications Security (CCS) . ACM, 1789–1806. Foundational Constraint Solving for Expressive Refinement Typing 1:31 
+
+A Zap: Soundness 
+
+This appendix proves the correctness of the Zap algorithm of § 4.2, whose two results are Soundness 
+
+(Theorem 4.2) and Equivalence (Theorem 4.1). 
+
+Overview Equivalence, together with the fact that Sol computes the strongest valid solution, is the Fusion result of Cosman and Jhala [14] . Soundness we prove as a pure typing result: the proof term 𝑞 emitted by Zap (𝑐 ) is a closed, well-typed term of type 𝑐 ′ → 𝑐 , so the Lean kernel turns any proof of the residual 𝑐 ′ into a proof of the original 𝑐 .
+
+Setup Throughout the appendix, we fix a closed constraint 
+
+𝑐 ≡ ∃ 𝜅. 𝑐, 
+
+whose Horn variables 𝜅 are partitioned (§ 4.1) into the cut set 𝜅 𝐶 and the acyclic set 𝜅 𝐴 .
+
+Organization 
+
+• § A.1 fixes the conventions and the proof-term calculus; 
+
+• § A.2 establishes the shape of the synthesized solution 𝜎 ;
+
+• § A.3 characterizes Red and the elimination order; 
+
+• § A.4 types Nav , Cert 𝜅 𝜎,𝜌 , and the emitted bridge. 
+
+A.1 Conventions 
+
+Definitions and uses A 𝜅 -definition of a constraint 𝑐 is a head occurrence of 𝜅 , i.e., a sub-constraint 
+
+𝑐 ↓ 𝜌 = 𝜅 (𝑡 ) for some head-prefix 𝜌 ; a 𝜅 -use is an occurrence of 𝜅 in a guard. Since guards are atoms (Fig. 8), every use is a single application 𝜅 (𝑡 ) occurring negatively, and Horn variables occur nowhere else (§ 3.1); in particular they never occur inside argument terms. 
+
+Validity Validity is Lean provability: we write Γ ⊢ 𝜑 for derivability under a context and use the connectives’ introduction and elimination laws without comment. The judgment reads the binders and hypotheses of Γ and ignores the routing marks. 
+
+Scope, contexts, truncation For an acyclic 𝜅 in 𝑐 , let 𝜌 = Scope (𝜅, 𝑐 ) (Fig. 9). We use the following facts. 
+
+• 𝑐 ↓ 𝜌 is the sub-constraint at the lowest common ancestor (LCA) of 𝜅 ’s occurrences, and 
+
+𝑐 ↑𝜌 is the context above it. 
+
+• A context (§ 3.2) lists binders 𝑥 :𝑏 , hypotheses ℎ :𝑝 , and marks L/R; each entry matches the prefix step that produced it: 𝑥 :𝑏 matches B, ℎ :𝑝 matches G, and a mark matches itself. 
+
+• Given a context Γ along a path extending 𝜌 , the truncation Γ \ 𝜌 drops the first |𝜌 | entries; this is the context Cert 𝜅 𝜎,𝜌 hands Nav at a divergent head (Fig. 12). 
+
+• By well-formedness (§ 3.2), every application of 𝜅 has rank (𝜅 ) leading arguments followed by the binders 𝑥 = dom (𝑐 ↑𝜌 ), innermost first, as trailing arguments. 
+
+Typing the proof-term fragment Fig. 17 fixes the typing judgment Γ ⊢ 𝑞 : 𝜑 for the proof terms of Fig. 8: the introduction and elimination forms of the constraint logic. The following conventions apply: (1) In the ∃-introduction and ∃-elimination rules, the sort 𝑏 annotating the existential binder 
+
+∃𝑧 :𝑏. 𝜑 ranges over base sorts and predicate types 𝑏 1 → · · · → 𝑏 𝑛 → Prop .(2) A bundle ⟨𝑡 1, . . . , 𝑡 𝑘 ; 𝑞 ⟩ abbreviates iterated ∃-introduction. (3) A multi-binder let ⟨𝑧 1, . . . , 𝑧 𝑘 , ℎ ⟩ = 𝑞 in 𝑞 ′ abbreviates iterated ∃-elimination: 𝑘 nested 
+
+let s that bind the witnesses 𝑧 1, . . . , 𝑧 𝑘 one at a time, with ℎ naming the proof of the fully unpacked body. (4) The premise Γ ⊢ 𝑡 : 𝑏 is Lean ’s term-typing judgment. 1:32 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+𝑥 :𝑏 ∈ ΓΓ ⊢ 𝑥 : 𝑏 ℎ :𝜑 ∈ ΓΓ ⊢ ℎ : 𝜑 
+
+Γ, 𝑥 :𝑏 ⊢ 𝑞 : 𝜑 
+
+Γ ⊢ 𝜆𝑥 .𝑞 : ∀𝑥 :𝑏. 𝜑 
+
+Γ ⊢ 𝑞 : ∀𝑥 :𝑏. 𝜑 Γ ⊢ 𝑡 : 𝑏 
+
+Γ ⊢ 𝑞 𝑡 : 𝜑 [𝑥 := 𝑡 ]
+
+Γ, ℎ :𝑔 ⊢ 𝑞 : 𝜑 
+
+Γ ⊢ 𝜆ℎ.𝑞 : 𝑔 → 𝜑 
+
+Γ ⊢ 𝑞 : 𝑔 → 𝜑 Γ ⊢ 𝑞 ′ : 𝑔 
+
+Γ ⊢ 𝑞 𝑞 ′ : 𝜑 
+
+Γ ⊢ 𝑞 : 𝜑 1 Γ ⊢ 𝑞 ′ : 𝜑 2
+
+Γ ⊢ ⟨ 𝑞, 𝑞 ′⟩ : 𝜑 1 ∧ 𝜑 2
+
+Γ ⊢ 𝑞 : 𝜑 1 ∧ 𝜑 2
+
+Γ ⊢ 𝑞.𝑖 : 𝜑 𝑖 
+
+(𝑖 ∈ { 1, 2}) Γ ⊢ 𝑞 : 𝜑 1
+
+Γ ⊢ inl 𝑞 : 𝜑 1 ∨ 𝜑 2
+
+Γ ⊢ 𝑞 : 𝜑 2
+
+Γ ⊢ inr 𝑞 : 𝜑 1 ∨ 𝜑 2
+
+Γ ⊢ 𝑡 : 𝑏 Γ ⊢ 𝑞 : 𝜑 [𝑧 := 𝑡 ]
+
+Γ ⊢ ⟨ 𝑡, 𝑞 ⟩ : ∃𝑧 :𝑏. 𝜑 
+
+Γ ⊢ 𝑞 : ∃𝑧 :𝑏. 𝜑 Γ, 𝑧 :𝑏, ℎ :𝜑 ⊢ 𝑞 ′ : 𝜓 
+
+Γ ⊢ let ⟨𝑧, ℎ ⟩ = 𝑞 in 𝑞 ′ : 𝜓 (𝑧, ℎ ∉ FV (𝜓 )) 
+
+Γ ⊢ rfl : 𝑡 = 𝑡 Γ ⊢ ⟨⟩ : ⊤
+
+Fig. 17. Typing of the proof-term fragment of Fig. 8. 
+
+Sol : (K × C) → T 
+
+Sol (𝜅, 𝑐 )| 𝜅 ∉ heads (𝑐 )  ⊥
+
+Sol (𝜅, 𝑐 1 ∧ 𝑐 2)  Sol (𝜅, 𝑐 1) ∨ Sol (𝜅, 𝑐 2)
+
+Sol (𝜅, ∀𝑥 :𝑏. 𝑐 )  ∃𝑥 :𝑏. Sol (𝜅, 𝑐 )
+
+Sol (𝜅, 𝑝 → 𝑐 )  𝑝 ∧ Sol (𝜅, 𝑐 )
+
+Sol (𝜅, 𝜅 (𝑡 ))  Ó𝑖 <rank (𝜅 ) 𝑧 𝑖 = 𝑡 𝑖 
+
+Fig. 18. The Sol procedure, reproduced from Fig. 10. 
+
+These rules are not the Lean kernel itself but our model of it, restricted to this fragment and following the kernel formalization of Carneiro [12] ; every rule is admissible in the kernel, so a term well-typed here is accepted by the kernel, and Soundness is proved against this system. 
+
+A.2 The synthesized solution 
+
+Fix an acyclic 𝜅 in a constraint 𝑐 , and let 𝜌 = Scope (𝜅, 𝑐 ). For this 𝜅 , Elim (Fig. 10) computes the solution using Sol as in Fig. 18, with the slot names 𝑧 fresh for the binders of 𝑐 :
+
+𝜎 = 𝜆𝑧.𝜆𝑥 . Sol (𝜅, 𝑐 ↓𝜌 ), 𝑧 = 𝑧 0, . . . , 𝑧 rank (𝜅 ) − 1, 𝑥 = dom (𝑐 ↑𝜌 ).
+
+The soundness proof needs two properties of 𝜎 :(1) 𝜎 must be 𝜅 -free: it is substituted at the uses of 𝜅 and supplied as the witness for ∃𝜅 .(2) The body of 𝜎 must mirror the structure of 𝑐 ↓𝜌 : along every path to a 𝜅 -definition it is the same tree with each connective dualized, so Nav can walk both in lockstep. The next lemma establishes both. 
+
+Lemma A.1 (Solution shape) .
+
+(a) Sol (𝜅, 𝑐 ∗) = ⊥ for every sub-constraint 𝑐 ∗ of 𝑐 ↓𝜌 containing no 𝜅 -definition. Foundational Constraint Solving for Expressive Refinement Typing 1:33 
+
+(b) On a path from the root of 𝑐 ↓ 𝜌 to a 𝜅 -definition, Sol dualizes each connective, preserving binder names, and emits the slot equalities at the definition: 
+
+𝑐 ∗ 
+
+> 1
+
+∧ 𝑐 ∗ 
+
+> 2
+
+↦ → Sol (𝜅, 𝑐 ∗
+
+> 1
+
+) ∨ Sol (𝜅, 𝑐 ∗
+
+> 2
+
+)∀𝑥 :𝑏. 𝑐 ∗ ↦ → ∃ 𝑥 :𝑏. Sol (𝜅, 𝑐 ∗)
+
+𝑔 → 𝑐 ∗ ↦ → 𝑔 ∧ Sol (𝜅, 𝑐 ∗)
+
+𝜅 (𝑡 ) ↦ → Ó𝑖 <rank (𝜅 ) 𝑧 𝑖 = 𝑡 𝑖 
+
+(c) FV (𝜎 ) ⊆ KVars (𝑐 ) \ { 𝜅 }; in particular, 𝜎 never mentions 𝜅 .
+
+Proof. 
+
+(a) Immediate from the guarded equation of Fig. 18: 𝜅 ∉ heads (𝑐 ∗) (§ 3.2) holds exactly when 
+
+𝑐 ∗ contains no 𝜅 -definition. (b) Each node on the path has a 𝜅 -definition in its subtree, so the guarded equation does not apply: at each node above the definition, the equation matching the connective applies and copies its binder or guard verbatim; at the definition itself, the head equation emits the slot equalities. (c) By induction on the sub-constraints 𝑐 ∗ of 𝑐 ↓𝜌 , following the equations of Fig. 18, 
+
+FV (Sol (𝜅, 𝑐 ∗)) ⊆ (FV (𝑐 ∗) \ { 𝜅 }) ∪ 𝑧. 
+
+• The guarded equation emits ⊥, with no free variables. 
+
+• The ∧ and ∀ equations preserve the binding structure: the disjunction takes the same union, and the ∃ binds the same 𝑥 .
+
+• The guard equation copies 𝑔 , and 𝜅 ∉ FV (𝑔 ): a 𝜅 -use above a 𝜅 -definition is a self-edge at 𝜅 in Graph (𝑐 ) (§ 4.1), so every cut set would contain 𝜅 , contradicting that 𝜅 is acyclic. 
+
+• The head equation emits the slots 𝑧 and the arguments 𝑡 , which never contain Horn variables (§ A.1). Since 𝑐 is closed, every free variable of 𝑐 ↓𝜌 is a Horn variable or a binder of 𝑐 ↑𝜌 , i.e., among 
+
+𝑥 ; the 𝜆𝑧.𝜆𝑥 . · closure of Elim then leaves free only Horn variables other than 𝜅 .
+
+□
+
+A.3 Reduction and the elimination order 
+
+We write 𝑐 [𝜅 := 𝜎 ] for the substitution of 𝜎 for every occurrence of 𝜅 in 𝑐 .
+
+Lemma A.2 (Reduction) . Red (𝜅, 𝜎, 𝑐 ) (Fig. 10) is 𝜅 -free and coincides with 𝑐 [𝜅 := 𝜎 ], except that each definition head 𝜅 (𝑡 ) becomes ⊤ rather than 𝜎 (𝑡 ).
+
+Proof. By structural induction on 𝑐 , comparing each equation of Fig. 10 with the substitution: 
+
+• at 𝑐 1 ∧ 𝑐 2 and ∀𝑥 :𝑏. 𝑐 ∗, both sides recurse componentwise; at 𝑝 → 𝑐 ∗, both also substitute the guard 𝑝 identically; 
+
+• at a definition head 𝜅 (𝑡 ), Red gives ⊤ and the substitution gives 𝜎 (𝑡 ): the sole divergence; 
+
+• at any other head, both are the identity, since 𝜅 occurs neither in a 𝜅 -free atom nor inside the arguments of a foreign application 𝜅 ′ (𝑠 ) (§ A.1). The result is 𝜅 -free: heads become ⊤, and uses are replaced by 𝜎 , which is 𝜅 -free (Lemma A.1). □
+
+The fold of Fig. 10 eliminates the acyclic variables innermost first: writing 𝜅 𝐴 = [𝜅 1, . . . , 𝜅 𝑛 ] in elimination order, 𝑐 0 = 𝑐 and 𝑐 𝑖 = Red (𝜅 𝑖 , 𝜎 𝑖 , 𝑐 𝑖 −1), with 𝜎 𝑖 synthesized on the residual 𝑐 𝑖 −1. The partition orders the acyclic set topologically (§ 4.1): every variable that 𝜅 𝑖 depends on is some 𝜅 𝑗 
+
+with 𝑗 < 𝑖 or a cut variable. 1:34 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+Lemma A.3 (Solutions are cut-only) . For each 𝑖 , FV (𝜎 𝑖 ) ⊆ 𝜅 𝐶 .
+
+Proof. By induction on 𝑖 : assuming the lemma for all 𝑗 < 𝑖 , we prove FV (𝜎 𝑖 ) ⊆ 𝜅 𝐶 in two steps: 
+
+• 𝜅 𝑖 is acyclic in 𝑐 𝑖 −1. Red preserves the skeleton, and the spliced 𝜎 𝑗 (𝑗 < 𝑖 ) are cut-only by induction; so every edge of Graph (𝑐 𝑖 −1) out of an acyclic variable is already in Graph (𝑐 ).Hence 𝜅 𝐶 remains a cut set of 𝑐 𝑖 −1, 𝜅 𝑖 remains acyclic, and Lemma A.1 applies at step 𝑖 .
+
+• No acyclic variable is free in 𝜎 𝑖 . By Lemma A.1(c), the free variables of 𝜎 𝑖 are Horn variables of 𝑐 𝑖 −1; by (b), each occurs in a guard above a 𝜅 𝑖 -definition. An acyclic one is impossible: its use is inherited from 𝑐 (first step), so 𝜅 𝑖 depends on it in 𝑐 and, by topological order, it is some 𝜅 𝑗 with 𝑗 < 𝑖 ; but 𝑐 𝑖 −1 is 𝜅 𝑗 -free (Lemma A.2; the splices are cut-only). Hence all are cut variables. 
+
+□
+
+A.4 Soundness 
+
+Finally, we bring our attention to Soundness (Theorem 4.2) for Zap . It is stated under the typing relation, shown in Fig. 17 for the fragment of Lean proof terms in Fig. 8. 
+
+Cert 𝜅 𝜎,𝜌 accumulates one context entry per node it descends past, whereas 𝜌 = Scope (𝜅, 𝑐 ) was computed on 𝑐 up front. The next lemma aligns the two at every 𝜅 -definition: truncating 𝜌 from the accumulated context recovers the definition’s address inside 𝑐 ↓𝜌 , the directions Nav walks by. 
+
+Lemma A.4 (Prefix correspondence) . Let 𝜌 = Scope (𝜅, 𝑐 ). If the root call Cert 𝜅 𝜎,𝜌 (𝜀, ℎ, 𝑐 ) (Fig. 12) reaches Cert 𝜅 𝜎,𝜌 (Γ, 𝑞, 𝜅 (𝑡 )) , then 𝜅 (𝑡 ) = 𝑐 ↓𝜌 · 𝜋 for some path 𝜋 , and (a) Γ matches 𝜌 · 𝜋 ;(b) Γ \ 𝜌 matches 𝜋 .
+
+Proof. By induction on the recursion of Cert 𝜅 𝜎,𝜌 (Fig. 12), every call Cert 𝜅 𝜎,𝜌 (Γ, 𝑞, 𝑐 ∗) reached from Cert 𝜅 𝜎,𝜌 (𝜀, ℎ, 𝑐 ) satisfies the invariant: 𝑐 ∗ = 𝑐 ↓𝜏 for some path 𝜏 , and Γ matches 𝜏 . At the root, 
+
+𝜏 = Γ = 𝜀 ; each recursive equation extends 𝜏 by one step and Γ by the matching entry: 
+
+• at ∀𝑥 :𝑏. 𝑐 0: the step B, the entry 𝑥 :𝑏 ;
+
+• at 𝑝 → 𝑐 0: the step G, the entry ℎ :𝑝 ;
+
+• at 𝑐 1 ∧ 𝑐 2: the mark L for 𝑐 1 and R for 𝑐 2, as both step and entry. At 𝑐 ∗ = 𝜅 (𝑡 ), this 𝜅 -definition lies inside 𝑐 ↓𝜌 (§ A.1), so 𝜏 extends 𝜌 : 𝜏 = 𝜌 · 𝜋 for some path 𝜋 . The invariant at this call is (a), and dropping the first |𝜌 | entries gives (b). □
+
+When Red rewrites a definition head 𝜅 (𝑡 ) to ⊤, Nav supplies the proof that justifies it: a proof of the applied solution 𝜎 (𝑡 ). The next lemma states that the term Nav builds under the truncated context Γ \ 𝜌 is indeed well-typed (valid proof) at 𝜎 (𝑡 ).
+
+Lemma A.5 (Nav ). Let 𝜋 be a path with 𝑐 ↓𝜌 · 𝜋 = 𝜅 (𝑡 ) and Γ = 𝑐 ↑𝜌 · 𝜋 . Then 
+
+Γ ⊢ Nav (Γ \ 𝜌, 𝜎 (𝑡 )) : 𝜎 (𝑡 ).
+
+Proof. The 𝛽 -reduction on 𝜎 (𝑡 ) performs substitution on the leading arguments among 𝑡 by the params 𝑧 . By well-formedness, we are left with the binders 𝑥 , each of 𝑥 𝑖 gets replaced by the corresponding ∀𝑥 𝑖 in the context. Finally, we get fully reduced 𝜎 in the head. By Lemma A.1(b), (1) along the branch that 𝜋 addresses, the 𝛽 -reduced 𝜎 (𝑡 ) is the dual tree of 𝑐 ↓𝜌 ;(2) each ∃-binder on that branch is named after a binder of Γ.Foundational Constraint Solving for Expressive Refinement Typing 1:35 
+
+Since the substituted terms also mention binders of Γ, the reduction is capture-avoiding: it renames each ∃-binder on the walked branch to a fresh name. Nav emits no binders: only pairs, injections, witnesses, and hypothesis references. The context therefore never grows, and every judgment below is under the same Γ.By induction on the suffix Γ′ of Γ \ 𝜌 , we prove 
+
+Γ ⊢ Nav (Γ′, 𝑝 ) : 𝑝, 
+
+where 𝑝 is the subtree of the 𝛽 -reduced 𝜎 (𝑡 ) that Γ′ addresses: Γ = 𝑐 ↑𝜌 · 𝜋 matches 𝜌 · 𝜋 entry by entry (§ 3.2), so Γ \ 𝜌 matches 𝜋 . The lemma is the instance Γ′ = Γ \ 𝜌 . Each Nav equation (Fig. 12) is matched by one typing rule. 
+
+• Case Γ′ = L; Γ′′ at 𝑝 𝐿 ∨ 𝑝 𝑅 : the branch continues in 𝑝 𝐿 . The induction hypothesis certifies 
+
+𝑝 𝐿 , and ∨-introduction with inl gives the disjunction; the untaken 𝑝 𝑅 appears only in the type. 
+
+• Case Γ′ = R; Γ′′ : by symmetry. 
+
+• Case Γ′ = 𝑥 :𝑏 ; Γ′′ at ∃𝑧 :𝑏. 𝑝 : 𝑧 is the fresh rename of the walk binder 𝑥 , and the witness substitution 𝑝 [𝑧 := 𝑥 ] (Fig. 12) undoes the renaming; on the walked branch the two substitutions compose to the identity. The induction hypothesis certifies the body, and 
+
+∃-introduction with the witness 𝑥 ∈ Γ gives the existential. 
+
+• Case Γ′ = ℎ :𝑔 ; Γ′′ at 𝑔 ∧ 𝑝 : the substitutions leave 𝑔 unchanged (the slots are fresh, each 𝑥 𝑖 
+
+replaced itself, the renamings above were undone), so the first conjunct is syntactically the guard named by ℎ: ℎ :𝑔 ∈ Γ. ∧-introduction pairs ℎ with the recursive certificate. 
+
+• Case Γ′ = 𝜀 at Ó𝑖 <rank (𝜅 ) 𝑧 𝑖 = 𝑡 𝑖 : this leaf belongs to the definition that supplied 𝑡 , so every conjunct reads 𝑡 𝑖 = 𝑡 𝑖 , and ⟨rfl , . . . , rfl ⟩ types it. When rank (𝜅 ) = 0, the empty conjunction is ⊤ and ⟨⟩ does. 
+
+□
+
+We write Γ[𝜅 := 𝜎 ] for the context Γ with 𝜎 substituted in each hypothesis type; binders and marks are unchanged. 
+
+Lemma A.6 (Cert 𝜅 𝜎,𝜌 ). For every prefix 𝜋 , let 𝑐 ∗ = 𝑐 ↓𝜋 and Γ = 𝑐 ↑𝜋 . If Γ[𝜅 := 𝜎 ] ⊢ 𝑞 : Red (𝜅, 𝜎, 𝑐 ∗),then 
+
+Γ[𝜅 := 𝜎 ] ⊢ Cert 𝜅 𝜎,𝜌 (Γ, 𝑞, 𝑐 ∗) : 𝑐 ∗ [𝜅 := 𝜎 ].
+
+Proof. By induction on 𝑐 ∗, pairing each equation of Fig. 12 with the matching Red equation (Lemma A.2) and one typing rule. 
+
+• Case ∀𝑥 :𝑏. 𝑐 0: both operators pass the quantifier through. Under Γ; 𝑥 :𝑏 , the term 𝑞 𝑥 proves 
+
+Red (𝜅, 𝜎, 𝑐 0). The induction hypothesis and ∀-introduction give 𝜆𝑥 . ·.
+
+• Case 𝑔 → 𝑐 0: both operators substitute the guard to 𝑔 [𝜅 := 𝜎 ]. Given ℎ : 𝑔 [𝜅 := 𝜎 ], the term 
+
+𝑞 ℎ proves Red (𝜅, 𝜎, 𝑐 0). The induction hypothesis and →-introduction give 𝜆ℎ. ·.
+
+• Case 𝑐 1 ∧ 𝑐 2: the context extends by L, and 𝑞. 1 proves the reduced 𝑐 1, so the induction hypothesis certifies 𝑐 1; symmetrically for 𝑐 2 with R and 𝑞. 2. ∧-introduction pairs the two certificates. 
+
+• Case 𝜅 (𝑡 ): here Red (𝜅, 𝜎, 𝑐 ∗) = ⊤ and 𝑐 ∗ [𝜅 := 𝜎 ] = 𝜎 (𝑡 ). The vacuous 𝑞 is discarded, and 
+
+Cert 𝜅 𝜎,𝜌 (Γ, 𝑞, 𝑐 ∗) = Nav (Γ \ 𝜌, 𝜎 (𝑡 )) . The head lies inside 𝑐 ↓ 𝜌 , so 𝜋 = 𝜌 · 𝜋 ′ for some path 
+
+𝜋 ′ (Lemma A.4). Every guard on this path is 𝜅 -free: above the LCA by the side condition of Scope , below it by acyclicity, as in Lemma A.1(c). Hence Γ[𝜅 := 𝜎 ] = Γ, and Lemma A.5 types the term at 𝜎 (𝑡 ).
+
+• Case 𝑝 , any other head: Red (𝜅, 𝜎, 𝑝 ) = 𝑝 [𝜅 := 𝜎 ] = 𝑝 , and Cert 𝜅 𝜎,𝜌 (Γ, 𝑞, 𝑝 ) = 𝑞 .
+
+□1:36 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+Now, we state soundness of Zap1 . The composition in § A.4 additionally needs a bound on the free variables of the emitted proof term, which we record as a second conclusion. 
+
+Lemma A.7 (Zap1 ). If Zap1 (𝜅, 𝑐 ) = (𝑐 ′, 𝑞 ) then 𝑞 : 𝑐 ′ → ∃ 𝜅. 𝑐 and FV (𝑞 ) ⊆ KVars (𝑐 ) \ { 𝜅 }.
+
+Proof. Zap1 (Fig. 10) emits 𝑞 = 𝜆ℎ. ⟨𝜎, Cert 𝜅 𝜎,𝜌 (𝜀, ℎ, 𝑐 )⟩ , so suppose ℎ : 𝑐 ′ = Red (𝜅, 𝜎, 𝑐 ).
+
+Typing. Instantiate Lemma A.6 at 𝜋 = 𝜀 : there 𝑐 ∗ = 𝑐 ↓ 𝜀 = 𝑐 and Γ = 𝑐 ↑ 𝜀 = 𝜀 , so it gives 
+
+Cert 𝜅 𝜎,𝜌 (𝜀, ℎ, 𝑐 ) : 𝑐 [𝜅 := 𝜎 ]. The witness 𝜎 is 𝜅 -free and of 𝜅 ’s predicate sort (Lemma A.1), so 
+
+∃-introduction yields ⟨𝜎, Cert 𝜅 𝜎,𝜌 (𝜀, ℎ, 𝑐 )⟩ : ∃𝜅. 𝑐 , and →-introduction over ℎ gives 𝑞 : 𝑐 ′ → ∃ 𝜅. 𝑐 .
+
+Free variables. Every binder in 𝑞 (the outer ℎ and the 𝜆 s emitted by Cert 𝜅 𝜎,𝜌 ) is unannotated, and every variable Nav emits is bound by one of them. The only other constituent of 𝑞 is the witness 𝜎 ,so FV (𝑞 ) ⊆ FV (𝜎 ) ⊆ KVars (𝑐 ) \ { 𝜅 } by Lemma A.1(c). □
+
+In the proof of Theorem 4.2, each step bridge delivers ∃𝜅 𝑖 . 𝑐 𝑖 −1 while the accumulated bridge expects 𝑐 𝑖 −1, so bridges must compose underneath an existential binder. The next lemma justifies this. Here 𝜅 has a predicate sort 𝑏 1 → · · · → 𝑏 𝑛 → Prop , the case the ∃-rules of Fig. 17 admit. 
+
+Lemma A.8 (Existential lifting) . Let 𝜅 be a variable of predicate sort, and let 
+
+lift 𝑞  𝜆ℎ 1.let ⟨𝜅, ℎ 2⟩ = ℎ1 in ⟨𝜅, 𝑞 ℎ 2⟩.
+
+If Γ, 𝜅 ⊢ 𝑞 : 𝐴 → 𝐵 then Γ ⊢ lift 𝑞 : (∃ 𝜅. 𝐴 ) → (∃ 𝜅. 𝐵 ).
+
+Proof. The let rule binds 𝜅 and ℎ2 : 𝐴 ; then 𝑞 ℎ 2 : 𝐵 , and ∃-introduction at 𝜅 gives ⟨𝜅, 𝑞 ℎ 2⟩ :
+
+∃𝜅. 𝐵 , which does not mention the bound 𝜅 , discharging the side condition. □
+
+Lifting leaves the composed bridge’s ∃-prefix in elimination order; a final permutation restores the binder order of 𝑐 , justified with following lemma: 
+
+Lemma A.9 (Prefix permutation) . Let 𝜅 ′ be a reordering of 𝜅 , and let 
+
+perm  𝜆ℎ 1.let ⟨𝜅, ℎ 2⟩ = ℎ1 in ⟨𝜅 ′; ℎ2⟩.
+
+Then ⊢ perm : (∃ 𝜅. 𝑐 ) → (∃ 𝜅 ′. 𝑐 ).
+
+Proof. The nested let binds the distinct witnesses 𝜅 and exposes ℎ2 : 𝑐 ; iterated ∃-introduction re-bundles the same variables in the order 𝜅 ′. □
+
+Theorem A.10 (Soundness, § 4.3) . If (𝑐 ′, 𝑞 ) = Zap (𝑐 ) then ⊢ 𝑞 : 𝑐 ′ → 𝑐 , and 𝑞 is closed. 
+
+Proof. With 𝑐 𝑖 as in § A.3, 𝑐 ′ = 𝑐 𝑛 and 𝑐 ′ = ∃𝜅 𝐶 . 𝑐 ′. By Lemma A.7, step 𝑖 emits 𝑞 𝑖 : 𝑐 𝑖 → ∃ 𝜅 𝑖 . 𝑐 𝑖 −1.Define 𝐵 0 = 𝜆ℎ. ℎ and 𝐵 𝑖 = (lift 𝐵 𝑖 −1) ◦ 𝑞 𝑖 , where 𝑔 ◦ 𝑓 abbreviates 𝜆ℎ.𝑔 (𝑓 ℎ ):
+
+𝑞 𝑖 : 𝑐 𝑖 → ∃ 𝜅 𝑖 . 𝑐 𝑖 −1 Lemma A.7 
+
+lift 𝐵 𝑖 −1 : ∃𝜅 𝑖 . 𝑐 𝑖 −1 → ∃ 𝜅 𝑖 · · · 𝜅 1. 𝑐 0 Lemma A.8 
+
+𝐵 𝑖 : 𝑐 𝑖 → ∃ 𝜅 𝑖 · · · 𝜅 1. 𝑐 0
+
+All three judgments hold under the context of the variables still in scope at step 𝑖 : 𝜅 𝑖 +1, . . . , 𝜅 𝑛 and 
+
+𝜅 𝐶 . By Lemma A.7, that is where 𝑞 𝑖 lives; Lemma A.8 lifts exactly the 𝜅 𝑖 that 𝑞 𝑖 introduced. By Lemma A.3, each 𝜎 𝑗 is cut-only, so no lift captures an acyclic variable. At 𝑖 = 𝑛 , 𝐵 𝑛 : 𝑐 ′ → ∃ 𝜅 𝑛 · · · 𝜅 1. 𝑐 holds under the cut variables alone. Applying Lemma A.8 once per cut variable, written lift 𝜅 𝐶 , binds the cut prefix outside, since the 𝜎 𝑗 may mention cut variables. By Lemma A.9, perm restores 𝑐 ’s binder order: 
+
+𝑞 = perm ◦ lift 𝜅 𝐶 𝐵 𝑛 : ∃𝜅 𝐶 . 𝑐 ′ → ∃ 𝜅. 𝑐 = 𝑐 ′ → 𝑐. 
+
+This judgment holds under the empty context, so 𝑞 is closed. Up to flattening the intermediate let -bindings, 𝑞 is the bridge Fig. 10 assembles: Zaps ’s unpack-/repack is lift , and Zap ’s top-level let in is the composite of lift 𝜅 𝐶 and perm . □Foundational Constraint Solving for Expressive Refinement Typing 1:37 
+
+Theorem A.11 (Equivalence, § 4.3) . If (𝑐 ′, ·) = Zap (𝑐 ) then 𝑐 is satisfiable iff 𝑐 ′ is satisfiable. 
+
+Proof. This is the Fusion result of Cosman and Jhala [14] : each Red step substitutes the strongest valid solution for an acyclic variable and preserves satisfiability. □
+
+B Fix: Soundness and Completeness 
+
+This appendix proves the correctness of the Fix algorithm of § 4.4, whose two results are Soundness 
+
+(Theorem 4.3) and Completeness (Theorem 4.4). 
+
+Overview Soundness is again a typing result. Completeness is the argument of Rondon et al . [62] ,with Lean derivability in place of semantic entailment. 
+
+Setup Throughout, we fix a closed constraint 
+
+𝑐 ≡ ∃ 𝜅 𝐶 . 𝑐. 
+
+In the pipeline, 𝑐 is Zap ’s residual and 𝜅 𝐶 its cut set, but nothing below requires this: predicate abstraction applies to any closed constraint. We reuse the proof-term calculus of Fig. 17 and the conventions of § A.1. 
+
+Organization 
+
+• § B.1 recalls candidates, assignments, and the Oracle ;
+
+• § B.2 characterizes the fixpoint computation; 
+
+• § B.3 types Cert 𝜃 and the emitted bridge. 
+
+B.1 Preliminaries 
+
+Candidates and assignments Recall (§ 4.4) that a candidate 𝑞 𝜄 instantiates a qualifier along an instance into a 𝜅 -free predicate of 𝜅 ’s type (closed, qualifiers being top-level definitions), that an assignment 𝜃 maps each 𝜅 to a finite candidate set, and that ·[ 𝜃 ] substitutes Ó 𝜃 (𝜅 ) for each appli-cation of 𝜅 , extended homomorphically to atoms, contexts, and constraints. The fold Red ∗ (𝜅 𝐶 , 𝑐 ) of Fig. 13 agrees with 𝑐 [𝜃 ] except at heads, which it sends to ⊤; because candidates are 𝜅 -free, the fold order is immaterial. 
+
+Validity and order 𝜃 is valid for 𝑐 , written 𝜃 |= 𝑐 , if at every head-prefix 𝜌 with 𝑐 ↓ 𝜌 = 𝜅 (𝑡 )
+
+the 𝜅 -free goal 𝑐 ↑ 𝜌 [𝜃 ] ⊢ 𝜅 (𝑡 ) [ 𝜃 ] is derivable. Assignments are ordered by 𝜃 ⪯ 𝜃 ′ (𝜃 stronger ) iff 
+
+𝜃 ′ (𝜅 ) ⊆ 𝜃 (𝜅 ) for every 𝜅 : fewer candidates is a weaker conjunction. 
+
+The Oracle Weaken and Cert 𝜃 call an Oracle subject to the two laws of § 4.4: by (Oracle-Soundness) 
+
+a returned term proves the queried goal, and by (Oracle-Completeness) the Oracle succeeds on every derivable goal. Soundness uses (Oracle-Soundness) only; (Oracle-Completeness) is used only for completeness, without which the completeness claim weakens to the strongest Oracle -certifiable 
+
+assignment. 
+
+B.2 The fixpoint computation 
+
+Lemma B.1 (Monotonicity) . Let 𝜃 ⪯ 𝜃 ′.(a) For every atom 𝑝 , 𝑝 [𝜃 ] entails 𝑝 [𝜃 ′].(b) For every context Γ and goal 𝜓 , if Γ[𝜃 ′] ⊢ 𝜓 then Γ[𝜃 ] ⊢ 𝜓 .
+
+Proof. 
+
+(a) A 𝜅 -free atom is unchanged. At 𝜅 (𝑡 ) the two sides are conjunctions over 𝜃 (𝜅 ) ⊇ 𝜃 ′ (𝜅 ), so the first contains every conjunct of the second; project and re-pair. (b) Every hypothesis of Γ[𝜃 ′] is an applied atom. By (a), each is derivable from the corresponding hypothesis of Γ[𝜃 ]; cut these derivations into the given one. 1:38 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+□
+
+Part (c) below assumes (Oracle-Completeness) ; parts (a) and (b) do not. 
+
+Lemma B.2 (Fixpoint) . Let 𝜃 ★ = Fixpoint (𝑐, 𝜃 0) with 𝜃 0 = [𝜅 ↦ → Init (𝜅, 𝑄 ) | 𝜅 ∈ 𝜅 𝐶 ].(a) Termination. Fixpoint terminates. (b) Validity. 𝜃 ★ |= 𝑐 .(c) Strength. 𝜃 ★ ⪯ 𝜃 ′ for every 𝑄 -assignment 𝜃 ′ with 𝜃 ′ |= 𝑐 .
+
+Proof. 
+
+(a) Termination. 𝜃 0 is finite, and each recursive call strictly decreases Í𝜅 |𝜃 (𝜅 )| ∈ Nat : Weaken 
+
+returns either a strictly smaller candidate set or ⊥ (Fig. 13). 
+
+(b) Validity. On exit, Weaken (𝑐, 𝜃 ★, 𝜌 ) = ⊥ at every head-prefix 𝜌 : the surviving subset 𝐼 equals 
+
+𝜃 ★(𝜅 ), so the Oracle succeeded on 𝑞 𝜄 (𝑡 ) under 𝑐 ↑𝜌 [𝜃 ★] for every 𝑞 𝜄 ∈ 𝜃 ★(𝜅 ). By (Oracle-Soundness) ,each success is a derivation of 𝑞 𝜄 (𝑡 ), and ∧-introduction assembles them into validity at 𝜌 .
+
+(c) Strength. By induction on the iterates 𝜃 𝑘 , with invariant 𝜃 ′ (𝜅 ) ⊆ 𝜃 𝑘 (𝜅 ) for every 𝜅 , i.e. 𝜃 𝑘 ⪯ 𝜃 ′.At the base, 𝜃 0 contains all instances. For the step, suppose Weaken at 𝜌 drops some 𝑞 𝜄 ∈ 𝜃 ′ (𝜅 ): the 
+
+Oracle failed on 𝑞 𝜄 (𝑡 ) under 𝑐 ↑𝜌 [𝜃 𝑘 ]. By validity of 𝜃 ′ and ∧-projection, 𝑐 ↑𝜌 [𝜃 ′] ⊢ 𝑞 𝜄 (𝑡 ). By the invariant and Lemma B.1(b), this derivation transports to 𝑐 ↑𝜌 [𝜃 𝑘 ], and by (Oracle-Completeness) 
+
+the Oracle succeeds, a contradiction. Hence no candidate of 𝜃 ′ is ever dropped, and 𝜃 ★ ⪯ 𝜃 ′. □
+
+B.3 Soundness and completeness 
+
+Lemma B.3 (Cert 𝜃 ). Let 𝜃 ★ be as in Lemma B.2, and suppose every Oracle query made by Cert 𝜃 
+
+succeeds. For every prefix 𝜋 , let 𝑐 ∗ = 𝑐 ↓ 𝜋 and Γ = 𝑐 ↑ 𝜋 . If Γ[𝜃 ★] ⊢ 𝑞 : Red ∗ (𝜅 𝐶 , 𝑐 ∗) then 
+
+Γ[𝜃 ★] ⊢ Cert 𝜃 (Γ, 𝑞, 𝑐 ∗) : 𝑐 ∗ [𝜃 ★].
+
+Proof. By induction on 𝑐 ∗, as in Lemma A.6: the ∀, →, ∧, and 𝜅 -free-head cases are verbatim, with both operators substituting the guards identically. At a head 𝑐 ∗ = 𝜅 (𝑡 ), Red ∗ (𝜅 𝐶 , 𝑐 ∗) = ⊤ and 𝑐 ∗ [𝜃 ★] = (Ó 𝜃 ★(𝜅 ))( 𝑡 ). Cert 𝜃 (Fig. 13) discards the vacuous 𝑞 and queries the Oracle on this applied conjunction under the applied context. The query succeeds by hypothesis, and by (Oracle-Soundness) the returned term proves (Ó 𝜃 ★(𝜅 ))( 𝑡 ). □
+
+Theorem B.4 (Soundness, § 4.4) . If Fix (𝑐, 𝑄 ) = (𝑐 ′, 𝑞 ) then 𝑐 ′ is a VC and ⊢ 𝑞 : 𝑐 ′ → 𝑐 , and 𝑞 is closed. 
+
+Proof. By Fig. 13, 𝑐 ′ = Red ∗ (𝜅 𝐶 , 𝑐 ) and, writing 𝜅 𝐶 = [𝜅 1, . . . , 𝜅 𝑟 ],
+
+𝑞 = 𝜆ℎ. 
+
+Û
+
+𝜃 ★(𝜅 1), . . . , 
+
+Û
+
+𝜃 ★(𝜅 𝑟 ); Cert 𝜃 (𝜀, ℎ, 𝑐 ) .𝑐 ′ is a VC: heads go to ⊤, and guards go to ·[ 𝜃 ★] with 𝜅 -free candidates. 
+
+Typing. Since Fix returned, every Oracle query made by Cert 𝜃 succeeded, so Lemma B.3 applies. Given ℎ : 𝑐 ′, Lemma B.3 at 𝜋 = 𝜀 gives Cert 𝜃 (𝜀, ℎ, 𝑐 ) : 𝑐 [𝜃 ★], which is 𝑐 with each 𝜅 𝑗 replaced by the closed, 𝜅 -free predicate Ó 𝜃 ★(𝜅 𝑗 ) of 𝜅 𝑗 ’s sort. Iterated ∃-introduction at predicate sort (Fig. 17) rebinds the prefix, yielding ∃𝜅 𝐶 . 𝑐 = 𝑐 , and →-introduction over ℎ gives 𝑞 : 𝑐 ′ → 𝑐 . The judgment holds under the empty context, so 𝑞 is closed. □
+
+Completeness assumes (Oracle-Completeness) , as scoped in § 4.4. 
+
+Theorem B.5 (Completeness, § 4.4) . If 𝜃 ★ = PredAbs (𝑐, 𝑄 ), then 𝜃 ★ ⪯ 𝜃 ′ for every 𝑄 -assignment 𝜃 ′
+
+with 𝜃 ′ |= 𝑐 .
+
+Proof. This is Lemma B.2(c). □Foundational Constraint Solving for Expressive Refinement Typing 1:39 
+
+𝑥, 𝑦, 𝜈 ∈ Var 𝜅 ∈ Kvar 𝑧 ∈ Int 
+
+Base sort Base ∋ 𝑏 :: = Int | Bool 
+
+Term 𝑡 𝑏 :: = 𝑥 𝑏 | 𝑧 | true | false | 𝑡 Int + 𝑡 Int | ¬ 𝑡 Bool | 𝑡 Bool ∧ 𝑡 Bool 
+
+Formula 𝜑 :: = ⊤ | ⊥ | 𝑡 𝑏 =𝑏 𝑡 𝑏 | 𝑡 Int ≤ 𝑡 Int | ¬ 𝜑 | 𝜑 ∧ 𝜑 | 𝜑 ∨ 𝜑 
+
+| 𝜑 → 𝜑 | ∀ 𝑥 :𝑏. 𝜑 | ∃ 𝑥 :𝑏. 𝜑 
+
+Refinements 𝑟 :: = 𝜑 | 𝜅 (𝑡 𝑏 )
+
+Type 𝜏 :: = { 𝜈 :𝑏 | 𝑟 } | 𝑥 :𝜏 → 𝜏 
+
+Primitives ⊕ :: = + |≤| ¬ | ∧ 
+
+Expression 𝑒 :: = 𝑣 | 𝑥 | ⊕( 𝑒 ) | 𝑒 𝑒 | let 𝑥 = 𝑒 in 𝑒 | if 𝑒 then 𝑒 else 𝑒 | ( 𝑒 : 𝜏 )
+
+Values Val ∋ 𝑣 :: = 𝑧 | true | false | 𝜆𝑥 . 𝑒 
+
+Type env. Γ :: = · | Γ, 𝑥 :𝜏   
+
+> Fig. 19. Full syntax of 𝜆 𝑅𝐾 , extending Fig. 15 with the term and formula constructs elided in the body.
+
+C Full Rules for 𝜆 𝑅𝐾 
+
+This appendix gives the complete definitions and rules for 𝜆 𝑅𝐾 , expanding § 5.2. We state them with named binders for readability; the mechanization is locally nameless, with 𝜈 and every quantifier a de Bruijn index and each binding rule carrying an explicit freshness side condition. The two agree up to this change of convention, so we omit the freshness bookkeeping below. 
+
+C.1 Syntax and Semantics 
+
+Fig. 19 summarizes the full syntax of 𝜆 𝑅𝐾 , which extends the simply typed 𝜆 -calculus with refinement types [ 9, 38 ], in particular, with Horn variables 𝜅 that enable refinement inference via CHC solving. 
+
+Expressions and Evaluation The grammar follows a standard call-by-value language with arithmetic and boolean expressions. Let bindings are required because the type system enforces ANF (A-Normal Form [ 23 ]) to accommodate dependent function applications [ 38 ]. We give expressions a standard, substitution-based, big-step, call-by-value operational semantics, written 𝑒 ⇓ 𝑣 (𝑒 
+
+evaluates to 𝑣 ). The full rules appear in Fig. 20, where 𝑢 ranges over the boolean values {true , false }.Type annotations are erased at runtime— (𝑒 : 𝜏 ) evaluates as 𝑒 —so refinements play no part in evaluation and serve only for static checking. 
+
+Lemma C.1 (Determinism) . If 𝑒 ⇓ 𝑣 1 and 𝑒 ⇓ 𝑣 2 then 𝑣 1 = 𝑣 2.
+
+Refinements We build refinement types on top of a separate first-order language, to eschew the circularities in the meta-theory (where types would depend on expressions, which would themselves contain types.) This first-order language is stratified into intrinsically typed terms (𝑡 𝑏 )and formulas (𝜑 ). A refinement 𝑟 is either a first-order formula ( 𝜑 ) over integers and booleans, or a Horn application 𝜅 (𝑡 𝑏 ) —highlighted in gray in Fig. 19—representing existentially quantified predicates over their arguments 𝑡 𝑏 that the solver must infer. 
+
+Types A type 𝜏 is either a refined base type { 𝜈 :𝑏 | 𝑟 } or a dependent arrow 𝑥 :𝜏 → 𝜏 , which names its argument 𝑥 so the codomain may mention it. A refined base type restricts its sort 𝑏 ∈ { Int , Bool }
+
+to the values 𝜈 satisfying the refinement 𝑟 (which may be an unknown Horn application). Next, we provide a semantics for refinements by interpreting them as Lean propositions, which provides a foundation for declarative typing (§ C.2) and constraint generation (§ C.3). 1:40 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+𝑣 ⇓ 𝑣 E-Val 𝑒 ⇓ 𝑣 
+
+(𝑒 : 𝜏 ) ⇓ 𝑣 E-Ann 𝑒 1 ⇓ 𝑣 1 𝑒 2 [𝑣 1/𝑥 ] ⇓ 𝑣 2
+
+let 𝑥 = 𝑒 1 in 𝑒 2 ⇓ 𝑣 2
+
+E-Let 
+
+𝑒 1 ⇓ 𝜆𝑥 . 𝑒 𝑒 2 ⇓ 𝑣 𝑎 𝑒 [𝑣 𝑎 /𝑥 ] ⇓ 𝑣 𝑒 1 𝑒 2 ⇓ 𝑣 E-App 𝑒 1 ⇓ 𝑧 1 𝑒 2 ⇓ 𝑧 2
+
+𝑒 1 + 𝑒 2 ⇓ 𝑧 1 + 𝑧 2
+
+E-Add 
+
+𝑒 1 ⇓ 𝑧 1 𝑒 2 ⇓ 𝑧 2
+
+𝑒 1 ≤ 𝑒 2 ⇓ ( 𝑧 1 ≤ 𝑧 2) E-Leq 𝑒 ⇓ 𝑢 
+
+¬𝑒 ⇓ ¬ 𝑢 E-Not 𝑒 1 ⇓ 𝑢 1 𝑒 2 ⇓ 𝑢 2
+
+𝑒 1 ∧ 𝑒 2 ⇓ 𝑢 1 ∧ 𝑢 2
+
+E-And 
+
+𝑒 0 ⇓ true 𝑒 1 ⇓ 𝑣 
+
+if 𝑒 0 then 𝑒 1 else 𝑒 2 ⇓ 𝑣 E-IfT 𝑒 0 ⇓ false 𝑒 2 ⇓ 𝑣 
+
+if 𝑒 0 then 𝑒 1 else 𝑒 2 ⇓ 𝑣 E-IfF 
+
+Fig. 20. Big-step operational semantics of 𝜆 𝑅𝐾 .
+
+Interpreting Formulas We interpret each base type 𝑏 as a Lean type, writing J𝑏 K, where JInt K
+
+denotes the Lean integers Int and JBool K denotes the Lean booleans Bool . A term 𝑡 𝑏 denotes an ele-ment of J𝑏 K under a closing substitution 𝛾 : Var → Val that maps its free variables to values, written 
+
+J𝑡 𝑏 K𝛾 . A formula denotes a Lean proposition over values and we write J𝜑 K𝛾 for its interpretation as a Lean Prop . The interpretation is the natural one that maps constructs to Lean counterparts: 
+
+J𝑥 K𝛾  𝛾 (𝑥 ) J𝑡 1 =𝑏 𝑡 2K𝛾  J𝑡 1K𝛾 = J𝑡 2K𝛾 
+
+J𝑧 K𝛾  𝑧 J𝑡 1 ≤ 𝑡 2K𝛾  J𝑡 1K𝛾 ≤ J𝑡 2K𝛾 
+
+Jtrue K𝛾 , Jfalse K𝛾  true , false J¬𝜑 K𝛾  ¬ J𝜑 K𝛾 
+
+J𝑡 1 + 𝑡 2K𝛾  J𝑡 1K𝛾 + J𝑡 2K𝛾 J𝜑 1 ∧ 𝜑 2K𝛾  J𝜑 1K𝛾 ∧ J𝜑 2K𝛾 
+
+J¬ 𝑡 K𝛾  ¬ J𝑡 K𝛾 J𝜑 1 ∨ 𝜑 2K𝛾  J𝜑 1K𝛾 ∨ J𝜑 2K𝛾 
+
+J𝑡 1 ∧ 𝑡 2K𝛾  J𝑡 1K𝛾 ∧ J𝑡 2K𝛾 J𝜑 1 → 𝜑 2K𝛾  J𝜑 1K𝛾 → J𝜑 2K𝛾 
+
+J⊤K𝛾  ⊤ J∀𝑥 :𝑏. 𝜑 K𝛾  ∀𝑣 ∈ J𝑏 K. J𝜑 K𝛾 [𝑥 ↦ →𝑣 ]
+
+J⊥K𝛾  ⊥ J∃𝑥 :𝑏. 𝜑 K𝛾  ∃𝑣 ∈ J𝑏 K. J𝜑 K𝛾 [𝑥 ↦ →𝑣 ]
+
+Formulas are 𝜅 -free, so their interpretation does not consult the 𝐾 -assignment; only refinements do. 
+
+Interpreting Refinements To give meaning to a refinement 𝑟 we must also interpret Horn applications 𝜅 (𝑡 𝑏 ). We do this by quantifying at the meta level over a 𝐾 -assignment which fixes the meaning of each 𝜅 as a Lean predicate. Crucially, this 𝐾 will itself map the syntactic horn variables to existentially bound Lean predicates that that solver will then instantiate. Concretely, a 𝐾 -assignment has the following Lean type Kvar → List (Σ 𝑏 : Base , J𝑏 K) → Prop . Given a 𝐾 -assignment, a Horn application is interpreted by looking up the predicate 𝐾 assigns to 𝜅 and applying it to the interpreted arguments: 
+
+J𝜅 (𝑡 𝑏 )K𝐾 𝛾  𝐾 𝜅 (𝑏, J𝑡 𝑏 K𝛾 )
+
+Interpreting Types Finally, we interpret types as predicates on values. We write 𝑣 ∈ J𝜏 K𝐾 𝛾 to mean that the value 𝑣 inhabits the interpretation of 𝜏 . A refined base type denotes the base values satisfying the (interpretation) of its refinement, and a dependent arrow denotes the lambdas that Foundational Constraint Solving for Expressive Refinement Typing 1:41 
+
+send every argument in the domain to a result in the codomain: 
+
+𝑣 ∈ J{ 𝜈 :𝑏 | 𝑟 }K𝐾 𝛾  𝑣 ∈ J𝑏 K ∧ J𝑟 K𝐾 𝛾 [𝜈 ↦ →𝑣 ]
+
+𝑣 ∈ J𝑥 :𝜏 1 → 𝜏 2K𝐾 𝛾  𝑣 = 𝜆𝑥 . 𝑒 ∧ ∀ 𝑣 𝑎 . 𝑣 𝑎 ∈ J𝜏 1K𝐾 𝛾 ⇒ ∃ 𝑣 𝑟 . 𝑒 [𝑣 𝑎 /𝑥 ] ⇓ 𝑣 𝑟 ∧ 𝑣 𝑟 ∈ J𝜏 2K𝐾 𝛾 [𝑥 ↦ →𝑣 𝑎 ]
+
+C.2 Declarative Typing 
+
+We define a declarative typing judgment Γ ⊢𝐾 𝑒 : 𝜏 which is mostly unremarkable except for being parameterized by a 𝐾 -assignment. The full rules are given in Fig. 21, with subtyping in Fig. 22. We highlight a couple of aspects of the system: 
+
+Typing Variables with Selfification When typing variables we strengthen its refinement by giving its selfified type [59], which crucially enables path-sensitive “occurrence” typing [71]. 
+
+(𝑥 :𝜏 ) ∈ ΓΓ ⊢𝐾 𝑥 : self (𝑥, 𝜏 ) T-Var self (𝑥, { 𝜈 :𝑏 | 𝑟 })  { 𝜈 :𝑏 | 𝜈 = 𝑥 }
+
+self (𝑥, 𝑦 : 𝑠 → 𝑡 )  𝑦 : 𝑠 → 𝑡 
+
+The mechanization synthesizes the bare singleton { 𝜈 :𝑏 | 𝜈 = 𝑥 } rather than { 𝜈 :𝑏 | 𝑟 ∧ 𝜈 = 𝑥 },dropping 𝑟 so that synthesized types stay 𝜅 -free; no information is lost, since 𝑟 remains recorded against 𝑥 in the typing context and is recovered from there for subtyping. 
+
+Typing Applications The typing judgment enforces ANF so that a function is always applied to a variable , which can be substituted into the dependent codomain without placing an arbitrary expression inside a refinement. (The alternative is to extend the language with existential types [ 41 ], which exchanges the restriction for more complex subtyping and metatheory.) 
+
+Γ ⊢𝐾 𝑒 : 𝑥 :𝜏 1 → 𝜏 2 Γ ⊢𝐾 𝑦 : 𝜏 1
+
+Γ ⊢𝐾 𝑒 𝑦 : 𝜏 2 [𝑦 /𝑥 ] T-App 
+
+Subtyping Most rules in the declarative system are syntax directed; subtyping is the only place where refinements are actually compared, so it is the place where essentially all of the interesting checking happens. A subsumption rule lets an expression of type 𝜏 1 be used at any supertype 𝜏 2,deferring to a subtyping judgment Γ ⊢𝐾 𝜏 1 <: 𝜏 2. For arrows it is the standard rule, contravariant in the domain and covariant in the codomain; for two refined base types, subtyping holds when the first refinement implies the second under the assumptions in the context: 
+
+∀𝛾, LΓM𝐾 𝛾 → J𝑟 1K𝐾 𝛾 → J𝑟 2K𝐾 𝛾 
+
+Γ ⊢𝐾 { 𝜈 :𝑏 | 𝑟 1 } <: { 𝜈 :𝑏 | 𝑟 2 } S-Base Γ ⊢𝐾 𝜏 ′ 
+
+> 1
+
+<: 𝜏 1 Γ, 𝑥 :𝜏 ′ 
+
+> 1
+
+⊢𝐾 𝜏 2 <: 𝜏 ′
+
+> 2
+
+Γ ⊢𝐾 𝑥 :𝜏 1 → 𝜏 2 <: 𝑥 :𝜏 ′ 
+
+> 1
+
+→ 𝜏 ′
+
+> 2
+> S-Fun
+
+Here LΓM𝐾 𝛾 extracts the assumptions from Γ by conjoining the base refinements 
+
+L·M𝐾 𝛾  ⊤
+
+LΓ, 𝑥 :{ 𝜈 :𝑏 | 𝑟 }M𝐾 𝛾  LΓM𝐾 𝛾 ∧ J𝑟 [𝑥 /𝜈 ]K𝐾 𝛾 
+
+LΓ, 𝑥 :𝜏 1 → 𝜏 2M𝐾 𝛾  LΓM𝐾 𝛾 
+
+Extraction also gives us entailment of a refinement implication in a context, stated semantically so that it applies uniformly whether the refinements are formulas or Horn applications: 
+
+Γ |=𝐾 ∀𝜈 :𝑏. 𝑟 1 → 𝑟 2  ∀𝛾 . LΓM𝐾 𝛾 → ∀ 𝑣 ∈ J𝑏 K. J𝑟 1K𝐾 𝛾 [𝜈 ↦ →𝑣 ] → J𝑟 2K𝐾 𝛾 [𝜈 ↦ →𝑣 ]
+
+This is exactly the premise of S-Base in Fig. 22. 
+
+Soundness We prove the declarative system sound: a well-typed program never gets stuck, evalu-ating to a value that inhabits the interpretation of its type. The proof factors through two lemmas: subtyping is semantic inclusion of type denotations, and a fundamental lemma that evaluates every well-typed term into its denotation under a closing substitution. 1:42 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+(𝑥 :𝜏 ) ∈ ΓΓ ⊢𝐾 𝑥 : self (𝑥, 𝜏 ) T-Var Γ ⊢𝐾 𝑧 : { 𝜈 :Int | 𝜈 = 𝑧 } T-Int 
+
+𝑢 ∈ { true , false }
+
+Γ ⊢𝐾 𝑢 : { 𝜈 :Bool | 𝜈 = 𝑢 } T-Bool 𝑥 ∉ dom (Γ) Γ, 𝑥 :𝜏 1 ⊢𝐾 𝑒 : 𝜏 2
+
+Γ ⊢𝐾 𝜆𝑥 . 𝑒 : 𝑥 :𝜏 1 → 𝜏 2
+
+T-Lam 
+
+Γ ⊢𝐾 𝑒 : 𝑥 :𝜏 1 → 𝜏 2 Γ ⊢𝐾 𝑦 : 𝜏 1
+
+Γ ⊢𝐾 𝑒 𝑦 : 𝜏 2 [𝑦 /𝑥 ] T-App 
+
+Γ ⊢𝐾 𝑒 1 : 𝑠 𝑥 ∉ dom (Γ) ∪ fv (𝜏 ) Γ, 𝑥 :𝑠 ⊢𝐾 𝑒 2 : 𝜏 
+
+Γ ⊢𝐾 let 𝑥 = 𝑒 1 in 𝑒 2 : 𝜏 T-Let Γ ⊢𝐾 𝑒 : 𝜏 
+
+Γ ⊢𝐾 (𝑒 : 𝜏 ) : 𝜏 T-Ann 
+
+Γ ⊢𝐾 𝑒 : 𝑠 Γ ⊢𝐾 𝑠 <: 𝜏 
+
+Γ ⊢𝐾 𝑒 : 𝜏 T-Sub (𝑥 :{ 𝜈 :Int | 𝑟 1 }) ∈ Γ (𝑦 :{ 𝜈 :Int | 𝑟 2 }) ∈ ΓΓ ⊢𝐾 𝑥 + 𝑦 : { 𝜈 :Int | 𝜈 = 𝑥 + 𝑦 } T-Add 
+
+(𝑥 :{ 𝜈 :Int | 𝑟 1 }) ∈ Γ (𝑦 :{ 𝜈 :Int | 𝑟 2 }) ∈ ΓΓ ⊢𝐾 𝑥 ≤ 𝑦 : { 𝜈 :Bool | ( 𝜈 = true → 𝑥 ≤ 𝑦 ) ∧ ( 𝑥 ≤ 𝑦 → 𝜈 = true ) } T-Leq 
+
+(𝑥 :{ 𝜈 :Bool | 𝑟 }) ∈ ΓΓ ⊢𝐾 ¬𝑥 : { 𝜈 :Bool | 𝜈 = ¬𝑥 } T-Not (𝑥 :{ 𝜈 :Bool | 𝑟 1 }) ∈ Γ (𝑦 :{ 𝜈 :Bool | 𝑟 2 }) ∈ ΓΓ ⊢𝐾 𝑥 ∧ 𝑦 : { 𝜈 :Bool | 𝜈 = 𝑥 ∧ 𝑦 } T-And 
+
+(𝑥 :{ 𝜈 :Bool | 𝑟 }) ∈ Γ 𝑦 ∉ dom (Γ)
+
+Γ, 𝑦 :{ 𝜈 :Bool | 𝑥 = true } ⊢ 𝐾 𝑒 1 : 𝜏 
+
+Γ, 𝑦 :{ 𝜈 :Bool | 𝑥 = false } ⊢ 𝐾 𝑒 2 : 𝜏 
+
+Γ ⊢𝐾 if 𝑥 then 𝑒 1 else 𝑒 2 : 𝜏 T-If 
+
+Fig. 21. Declarative typing for 𝜆 𝑅𝐾 . The primitive rules ( T-Add , T-Leq , T-Not , T-And ) and T-If require variable arguments, enforcing ANF; T-If records the path condition 𝑥 = true (resp. 𝑥 = false ) in each branch via a fresh binding 𝑦 whose refinement mentions 𝑥 but not 𝜈 , leaving the scrutinee’s own refinement 𝑟 in scope. 
+
+Γ |=𝐾 ∀𝜈 :𝑏. 𝑟 1 → 𝑟 2
+
+Γ ⊢𝐾 { 𝜈 :𝑏 | 𝑟 1 } <: { 𝜈 :𝑏 | 𝑟 2 } S-Base Γ ⊢𝐾 𝜏 ′ 
+
+> 1
+
+<: 𝜏 1 Γ, 𝑥 :𝜏 ′ 
+
+> 1
+
+⊢𝐾 𝜏 2 <: 𝜏 ′
+
+> 2
+
+Γ ⊢𝐾 𝑥 :𝜏 1 → 𝜏 2 <: 𝑥 :𝜏 ′ 
+
+> 1
+
+→ 𝜏 ′
+
+> 2
+
+S-Fun 
+
+Fig. 22. Declarative subtyping for 𝜆 𝑅𝐾 .
+
+Lemma C.2 (Subtyping is Semantic Inclusion) . If Γ ⊢𝐾 𝑠 <: 𝑡 , then for every 𝛾 such that LΓM𝐾 𝛾 and every value 𝑣 , 𝑣 ∈ J𝑠 K𝐾 𝛾 implies 𝑣 ∈ J𝑡 K𝐾 𝛾 .
+
+Lemma C.3 (Fundamental Lemma) . Suppose Γ ⊢𝐾 𝑒 : 𝜏 and 𝛾 maps each variable bound in Γ to a closed value with 𝛾 (𝑥 ) ∈ J𝜏 𝑥 K𝐾 𝛾 for every (𝑥 :𝜏 𝑥 ) ∈ Γ. Then there exists a value 𝑣 such that 𝑒 𝛾 ⇓ 𝑣 and 
+
+𝑣 ∈ J𝜏 K𝐾 𝛾 , where 𝑒 𝛾 applies 𝛾 as a substitution to 𝑒 .Foundational Constraint Solving for Expressive Refinement Typing 1:43 
+
+Instantiating the fundamental lemma with the empty context and empty substitution yields type soundness, restating Theorem 5.2. 
+
+Theorem C.4 (Type soundness) . If · ⊢ 𝐾 𝑒 : 𝜏 , then there exists a value 𝑣 such that 𝑒 ⇓ 𝑣 and 𝑣 ∈ J𝜏 K𝐾  
+
+> ∅
+
+.
+
+C.3 Algorithmic Constraint Generation 
+
+The declarative system assumes a 𝐾 -assignment with the solutions for Horn variables that make a program safe. Now we describe a constraint generation algorithm that produces a CHC that can be discharged by our solver to find such 𝐾 -assignment. First, we define the syntax of constraints 𝑐 as described in Fig. 8 instantiating atoms as formulas 
+
+𝜑 . Next, we define constraint generation as a bidirectional typechecking procedure implemented by three judgments: synthesis Γ ⊢ 𝑒 ⇒ 𝜏 ⇝ 𝑐 , checking Γ ⊢ 𝑒 ⇐ 𝜏 ⇝ 𝑐 , and subtyping Γ ⊢ 𝑠 <: 𝑡 ⇝ 𝑐 .The full rules are given in Fig. 23 to 25. Like the declarative system, most rules are syntax directed and accumulate subconstraints by conjoining them. For example, function application mirrors  
+
+> T-App
+
+producing a constraint for each subexpression and conjoining them: 
+
+Γ ⊢ 𝑒 ⇒ 𝑥 :𝜏 1 → 𝜏 2 ⇝ 𝑐 1 Γ ⊢ 𝑦 ⇐ 𝜏 1 ⇝ 𝑐 2
+
+Γ ⊢ 𝑒 𝑦 ⇒ 𝜏 2 [𝑦 /𝑥 ] ⇝ 𝑐 1 ∧ 𝑐 2
+
+> Syn-App
+
+The interesting case is again subtyping on base refinements, which produces a constraint requiring that all values of base type 𝑏 satisfying 𝑟 1 also satisfy 𝑟 2:
+
+Γ ⊢ { 𝜈 :𝑏 | 𝑟 1 } <: { 𝜈 :𝑏 | 𝑟 2 } ⇝ ∀𝜈 :𝑏. 𝑟 1 → 𝑟 2
+
+> Sub-Base
+
+Implication Binders Rules that move under a binder wrap the subconstraint of the body in an 
+
+implication binder ⌈𝑥 :𝜏 ⌉, which quantifies over the values of a base-typed binding and assumes its refinement, and is the identity for function-typed bindings: 
+
+⌈𝑥 :{ 𝜈 :𝑏 | 𝑟 }⌉ 𝑐  ∀𝑥 :𝑏. 𝑟 [𝑥 /𝜈 ] → 𝑐 
+
+⌈𝑥 :(𝑦 :𝜏 1 → 𝜏 2)⌉ 𝑐  𝑐 
+
+Soundness The constraint generated by our procedure must imply the safety of the program. We formalize this guarantee by extending the interpretation of refinements to constraints as follows: 
+
+J⊤K𝐾 𝛾  ⊤
+
+J𝑟 1 → 𝑟 2K𝐾 𝛾  J𝑟 1K𝐾 𝛾 → J𝑟 2K𝐾 𝛾 
+
+J∀𝑥 :𝑏. 𝑐 ′K𝐾 𝛾  ∀𝑣 ∈ J𝑏 K. J𝑐 ′K𝐾 𝛾 [𝑥 ↦ →𝑣 ]
+
+J𝑐 1 ∧ 𝑐 2K𝐾 𝛾  J𝑐 1K𝐾 𝛾 ∧ J𝑐 2K𝐾 𝛾 
+
+and we write Γ |=𝐾 𝑐 for ∀𝛾 . LΓM𝐾 𝛾 → J𝑐 K𝐾 𝛾 . The generation judgments are sound for the declarative system in arbitrary contexts: 
+
+Lemma C.5 (Subtyping Generation) . If Γ ⊢ 𝑠 <: 𝑡 ⇝ 𝑐 and Γ |=𝐾 𝑐 , then Γ ⊢𝐾 𝑠 <: 𝑡 .
+
+Lemma C.6 (Generation Soundness) . If Γ ⊢ 𝑒 ⇒ 𝜏 ⇝ 𝑐 and Γ |=𝐾 𝑐 , then Γ ⊢𝐾 𝑒 : 𝜏 ; and likewise if 
+
+Γ ⊢ 𝑒 ⇐ 𝜏 ⇝ 𝑐 and Γ |=𝐾 𝑐 , then Γ ⊢𝐾 𝑒 : 𝜏 .
+
+Specializing Lemma C.6 to the empty context restates Theorem 5.3: 
+
+Theorem C.7 (Constraint Generation) . If · ⊢ 𝑒 ⇐ 𝜏 ⇝ 𝑐 and J𝑐 K𝐾  
+
+> ·
+
+is satisfiable, then · ⊢ 𝐾 𝑒 : 𝜏 .
+
+Second, composing constraint generation soundness with declarative type soundness (Theorem C.4) yields our end-to-end guarantee, restating Theorem 5.4: if a program passes constraint generation and the resulting constraints are satisfiable, then the program evaluates to a value in its type’s interpretation: 1:44 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+(𝑥 :𝜏 ) ∈ ΓΓ ⊢ 𝑥 ⇒ self (𝑥, 𝜏 ) ⇝ ⊤ Syn-Var Γ ⊢ 𝑧 ⇒ { 𝜈 :Int | 𝜈 = 𝑧 } ⇝ ⊤ Syn-Int 
+
+𝑢 ∈ { true , false }
+
+Γ ⊢ 𝑢 ⇒ { 𝜈 :Bool | 𝜈 = 𝑢 } ⇝ ⊤ Syn-Bool Γ ⊢ 𝑒 ⇐ 𝜏 ⇝ 𝑐 
+
+Γ ⊢ ( 𝑒 : 𝜏 ) ⇒ 𝜏 ⇝ 𝑐 Syn-Ann 
+
+Γ ⊢ 𝑒 ⇒ 𝑥 :𝜏 1 → 𝜏 2 ⇝ 𝑐 1 Γ ⊢ 𝑦 ⇐ 𝜏 1 ⇝ 𝑐 2
+
+Γ ⊢ 𝑒 𝑦 ⇒ 𝜏 2 [𝑦 /𝑥 ] ⇝ 𝑐 1 ∧ 𝑐 2
+
+Syn-App 
+
+(𝑥 :{ 𝜈 :Int | 𝑟 1 }) ∈ Γ (𝑦 :{ 𝜈 :Int | 𝑟 2 }) ∈ ΓΓ ⊢ 𝑥 + 𝑦 ⇒ { 𝜈 :Int | 𝜈 = 𝑥 + 𝑦 } ⇝ ⊤ Syn-Add 
+
+(𝑥 :{ 𝜈 :Int | 𝑟 1 }) ∈ Γ (𝑦 :{ 𝜈 :Int | 𝑟 2 }) ∈ ΓΓ ⊢ 𝑥 ≤ 𝑦 ⇒ { 𝜈 :Bool | ( 𝜈 = true → 𝑥 ≤ 𝑦 ) ∧ ( 𝑥 ≤ 𝑦 → 𝜈 = true ) } ⇝ ⊤ Syn-Leq 
+
+(𝑥 :{ 𝜈 :Bool | 𝑟 }) ∈ ΓΓ ⊢ ¬ 𝑥 ⇒ { 𝜈 :Bool | 𝜈 = ¬𝑥 } ⇝ ⊤ Syn-Not 
+
+(𝑥 :{ 𝜈 :Bool | 𝑟 1 }) ∈ Γ (𝑦 :{ 𝜈 :Bool | 𝑟 2 }) ∈ ΓΓ ⊢ 𝑥 ∧ 𝑦 ⇒ { 𝜈 :Bool | 𝜈 = 𝑥 ∧ 𝑦 } ⇝ ⊤ Syn-And 
+
+Fig. 23. Constraint synthesis for 𝜆 𝑅𝐾 .
+
+𝑥 ∉ dom (Γ) Γ, 𝑥 :𝜏 1 ⊢ 𝑒 ⇐ 𝜏 2 ⇝ 𝑐 
+
+Γ ⊢ 𝜆𝑥 . 𝑒 ⇐ 𝑥 :𝜏 1 → 𝜏 2 ⇝ ⌈𝑥 :𝜏 1⌉ 𝑐 Chk-Lam 
+
+Γ ⊢ 𝑒 1 ⇒ 𝑠 ⇝ 𝑐 1 𝑥 ∉ dom (Γ) ∪ fv (𝜏 ) Γ, 𝑥 :𝑠 ⊢ 𝑒 2 ⇐ 𝜏 ⇝ 𝑐 2
+
+Γ ⊢ let 𝑥 = 𝑒 1 in 𝑒 2 ⇐ 𝜏 ⇝ 𝑐 1 ∧ ⌈ 𝑥 :𝑠 ⌉ 𝑐 2
+
+Chk-Let 
+
+(𝑥 :{ 𝜈 :Bool | 𝑟 }) ∈ Γ 𝑦 ∉ dom (Γ)
+
+Γ, 𝑦 :{ 𝜈 :Bool | 𝑥 = true } ⊢ 𝑒 1 ⇐ 𝜏 ⇝ 𝑐 1
+
+Γ, 𝑦 :{ 𝜈 :Bool | 𝑥 = false } ⊢ 𝑒 2 ⇐ 𝜏 ⇝ 𝑐 2
+
+Γ ⊢ if 𝑥 then 𝑒 1 else 𝑒 2 ⇐ 𝜏 ⇝ ⌈𝑦 :{ 𝜈 :Bool | 𝑥 = true }⌉ 𝑐 1 ∧ ⌈ 𝑦 :{ 𝜈 :Bool | 𝑥 = false }⌉ 𝑐 2
+
+Chk-If 
+
+𝑒 is not a 𝜆 -, let -, or if -expression Γ ⊢ 𝑒 ⇒ 𝑠 ⇝ 𝑐 1 Γ ⊢ 𝑠 <: 𝜏 ⇝ 𝑐 2
+
+Γ ⊢ 𝑒 ⇐ 𝜏 ⇝ 𝑐 1 ∧ 𝑐 2
+
+Chk-Syn 
+
+Fig. 24. Constraint checking for 𝜆 𝑅𝐾 .
+
+Theorem C.8 (Verifier Soundness) . If · ⊢ 𝑒 ⇐ 𝜏 ⇝ 𝑐 and J𝑐 K𝐾  
+
+> ·
+
+then ∃𝑣 s.t. 𝑒 ⇓ 𝑣 and 𝑣 ∈ J𝜏 K𝐾  
+
+> ·
+
+.Foundational Constraint Solving for Expressive Refinement Typing 1:45 
+
+Γ ⊢ { 𝜈 :𝑏 | 𝑟 1 } <: { 𝜈 :𝑏 | 𝑟 2 } ⇝ ∀𝜈 :𝑏. 𝑟 1 → 𝑟 2
+
+> Sub-Base
+
+Γ ⊢ 𝜏 ′ 
+
+> 1
+
+<: 𝜏 1 ⇝ 𝑐 1 Γ, 𝑥 :𝜏 ′ 
+
+> 1
+
+⊢ 𝜏 2 <: 𝜏 ′ 
+
+> 2
+
+⇝ 𝑐 2
+
+Γ ⊢ 𝑥 :𝜏 1 → 𝜏 2 <: 𝑥 :𝜏 ′ 
+
+> 1
+
+→ 𝜏 ′ 
+
+> 2
+
+⇝ 𝑐 1 ∧ ⌈ 𝑥 :𝜏 ′
+
+> 1
+
+⌉ 𝑐 2  
+
+> Sub-Fun
+> Fig. 25. Constraint-emitting subtyping for 𝜆 𝑅𝐾 .
+
+⟨skip , 𝑠 ⟩ ⇓ 𝑠 E-Skip ⟨𝑥 := 𝑒, 𝑠 ⟩ ⇓ 𝑠 [𝑥 ↦ → 𝑒 (𝑠 )] E-Asgn 
+
+⟨𝑐 1, 𝑠 1⟩ ⇓ 𝑠 2 ⟨𝑐 2, 𝑠 2⟩ ⇓ 𝑠 3
+
+⟨𝑐 1; 𝑐 2, 𝑠 1⟩ ⇓ 𝑠 3 
+
+> E-Seq
+
+𝑔 (𝑠 1) ⟨𝑐 1, 𝑠 1⟩ ⇓ 𝑠 2
+
+⟨if 𝑔 then 𝑐 1 else 𝑐 2, 𝑠 1⟩ ⇓ 𝑠 2
+
+> E-IfT
+
+¬𝑔 (𝑠 1) ⟨𝑐 2, 𝑠 1⟩ ⇓ 𝑠 2
+
+⟨if 𝑔 then 𝑐 1 else 𝑐 2, 𝑠 1⟩ ⇓ 𝑠 2 
+
+> E-IfF
+
+¬𝑔 (𝑠 )⟨while 𝑔 do 𝑐 , 𝑠 ⟩ ⇓ 𝑠 E-WhF 
+
+𝑔 (𝑠 1) ⟨𝑐, 𝑠 1⟩ ⇓ 𝑠 2 ⟨while 𝑔 do 𝑐 , 𝑠 2⟩ ⇓ 𝑠 3
+
+⟨while 𝑔 do 𝑐 , 𝑠 1⟩ ⇓ 𝑠 3 
+
+> E-WhT
+> Fig. 26. Big-step operational semantics of Imp .
+
+D Full Rules for Imp 
+
+Commands, Assertions and Triples We represent Imp programs with a shallow embedding where states 𝑠 are functions Var → Z, expressions 𝑒 and guards 𝑔 are state-indexed, and assertions 
+
+𝑃 , 𝑄 are predicates State → Prop . A (Floyd-Hoare) triple comprising a pre-condition 𝑃 , command 𝑐 
+
+and post-condition 𝑄 is valid , written |= {𝑃 } 𝑐 {𝑄 }, if every terminating run of 𝑐 from a 𝑃 -state ends in a 𝑄 -state. 
+
+Operational Semantics The state update 𝑠 [𝑥 ↦ → 𝑣 ] rebinds 𝑥 to 𝑣 :
+
+𝑠 [𝑥 ↦ → 𝑣 ]  𝜆𝑦. if 𝑦 = 𝑥 then 𝑣 else 𝑠 (𝑦 )
+
+Fig. 26 gives the standard big-step evaluation judgment ⟨𝑐, 𝑠 1⟩ ⇓ 𝑠 2 (command 𝑐 takes state 𝑠 1 to state 𝑠 2), which makes triple validity formal: 
+
+|= {𝑃 } 𝑐 {𝑄 }  ∀𝑠 1 𝑠 2. ⟨𝑐, 𝑠 1⟩ ⇓ 𝑠 2 → 𝑃 (𝑠 1) → 𝑄 (𝑠 2)
+
+Floyd-Hoare Proof Rules Fig. 27 lists the standard proof rules [ 24 , 35 ], stated directly as lemmas about valid triples. 
+
+Lemma D.1 (Hoare Rules) . Every rule in Fig. 27 is valid: if the premises hold, so does the conclusion. 
+
+Constraint Generator Let 𝑉  {𝑥 1, . . . , 𝑥 𝑛 } be a set of 𝑛 ordered variables that occur in commands. The generator VC (𝑃, 𝑐, 𝑄 ) takes as input a triple 𝑃, 𝑐, 𝑄 (where 𝑐 uses variables from 𝑉 ) and outputs a CHC. The implementation is the textbook weakest precondition -based VC-generation method [ 18 ], except in two places. First, we do not require explicitly provided invariants for loops: when the generator hits a while it introduces a Horn variable 𝜅 for the unknown invariant — a |𝑉 |-ary 1:46 Jam Kabeer Ali Khan, Petros Markopoulos, Nico Lehmann, and Ranjit Jhala 
+
+|= {𝑃 } skip {𝑃 } H-Skip |= {𝜆𝑠.𝑄 (𝑠 [𝑥 ↦ → 𝑒 (𝑠 )])} 𝑥 := 𝑒 {𝑄 } H-Asgn 
+
+|= {𝑃 } 𝑐 1 {𝑅 } |= {𝑅 } 𝑐 2 {𝑄 }|= {𝑃 } 𝑐 1; 𝑐 2 {𝑄 } H-Seq 
+
+|= {𝜆𝑠.𝑃 (𝑠 ) ∧ 𝑔 (𝑠 )} 𝑐 1 {𝑄 } |= {𝜆𝑠.𝑃 (𝑠 ) ∧ ¬ 𝑔 (𝑠 )} 𝑐 2 {𝑄 }|= {𝑃 } if 𝑔 then 𝑐 1 else 𝑐 2 {𝑄 } H-If 
+
+∀𝑠. 𝑃 (𝑠 ) → 𝐼 (𝑠 ) |= {𝜆𝑠.𝐼 (𝑠 ) ∧ 𝑔 (𝑠 )} 𝑐 {𝐼 } ∀𝑠. 𝐼 (𝑠 ) ∧ ¬ 𝑔 (𝑠 ) → 𝑄 (𝑠 )|= {𝑃 } while 𝑔 do 𝑐 {𝑄 } H-While 
+
+|= {𝑃 ′ } 𝑐 {𝑄 } ∀𝑠. 𝑃 (𝑠 ) → 𝑃 ′ (𝑠 )|= {𝑃 } 𝑐 {𝑄 } H-ConsPre 
+
+|= {𝑃 } 𝑐 {𝑄 ′ } ∀𝑠. 𝑄 ′ (𝑠 ) → 𝑄 (𝑠 )|= {𝑃 } 𝑐 {𝑄 } H-ConsPost  
+
+> Fig. 27. Derived Floyd-Hoare proof rules for Imp .
+
+predicate — and constrains it to satisfy the usual initial, body and exit obligations: 
+
+VC (𝑃, while 𝑔 do 𝑐 , 𝑄 )  ∃ 𝜅 : Int |𝑉 | → Prop .
+
+∧ ∀ 𝑠. 𝑃 (𝑠 ) → J𝜅 K(𝑠 ) (initial) 
+
+∧ VC (𝜆𝑠. J𝜅 K(𝑠 ) ∧ 𝑔 (𝑠 ), 𝑐, J𝜅 K) (body) 
+
+∧ ∀ 𝑠. J𝜅 K(𝑠 ) → ¬ 𝑔 (𝑠 ) → 𝑄 (𝑠 ) (exit) where J𝜅 K  𝜆𝑠.𝜅 (𝑠 (𝑥 1), . . . , 𝑠 (𝑥 𝑛 )) 
+
+The full definition appears in Fig. 28. The generator is in continuation-passing weakest-precondition style: WP 𝑉 (𝑐, 𝑄, 𝑘 ) computes the weakest precondition 𝑤 of 𝑐 with respect to 𝑄 , emits proof obligations along the way, and hands 𝑤 to the continuation 𝑘 ; the top level VC 𝑉 (𝑃, 𝑐, 𝑄 ) instantiates 
+
+𝑘 with the requirement that 𝑃 imply the computed precondition. Only loops introduce a Horn variable; sequencing computes intermediate assertions by backward substitution. The scope 𝑉 
+
+makes the invariants’ arity explicit and grows through sequencing: the second command sees the variables asg (𝑐 1) assigned by the first. Invariants additionally receive the values of a fixed list 
+
+𝐶 = 𝑡 1, . . . , 𝑡 𝑚 of integer-valued specification terms harvested from 𝑃 and 𝑄 .The above constraints are not in the syntax from Fig. 8 as we are quantifying over states 𝑠 and not base-sorted values. Fortunately, Lean ’s simp tactic suffices to reduce them to our grammar. 
+
+Soundness We prove in Lean that whenever the CHC returned by VC 𝑉 (𝑃, 𝑐, 𝑄 ) is satisfiable, that the corresponding triple is valid. The proof factors through a generic lemma about the generator: any satisfied WP 𝑉 (𝑐, 𝑄, 𝑘 ) yields a genuine precondition. 
+
+Lemma D.2 (Generator Soundness) . If WP 𝑉 (𝑐, 𝑄, 𝑘 ), then there is an assertion 𝑤 such that |=
+
+{𝑤 } 𝑐 {𝑄 } and 𝑘 (𝑤 ).
+
+Theorem D.3 (VC-Generation soundness) . For any scope 𝑉 and spec terms 𝐶 , if VC 𝑉 (𝑃, 𝑐, 𝑄 ) then 
+
+|= {𝑃 } 𝑐 {𝑄 }.Foundational Constraint Solving for Expressive Refinement Typing 1:47 
+
+WP 𝑉 (skip , 𝑄, 𝑘 )  𝑘 (𝑄 )
+
+WP 𝑉 (𝑥 := 𝑒, 𝑄, 𝑘 )  𝑘 (𝜆𝑠.𝑄 (𝑠 [𝑥 ↦ → 𝑒 (𝑠 )])) 
+
+WP 𝑉 (𝑐 1; 𝑐 2, 𝑄, 𝑘 )  WP 𝑉 ′ (𝑐 2, 𝑄, 𝜆𝑤 . WP 𝑉 (𝑐 1, 𝑤, 𝑘 )) 
+
+WP 𝑉 (if 𝑔 then 𝑐 1 else 𝑐 2, 𝑄, 𝑘 )  WP 𝑉 (𝑐 1, 𝑄, 𝜆𝑤 1.WP 𝑉 (𝑐 2, 𝑄, 𝜆𝑤 2.𝑘 (𝑤 𝑔 ))) 
+
+WP 𝑉 (while 𝑔 do 𝑐 , 𝑄, 𝑘 )  ∃ 𝜅 : Int 𝑚 +| 𝑉 | → Prop .
+
+∧ WP 𝑉 ′′ (𝑐, J𝜅 K𝑉 , 𝜆𝑤 . ∀𝑠. J𝜅 K𝑉 (𝑠 ) ∧ 𝑔 (𝑠 ) → 𝑤 (𝑠 )) (preserve) 
+
+∧ ∀ 𝑠. J𝜅 K𝑉 (𝑠 ) ∧ ¬ 𝑔 (𝑠 ) → 𝑄 (𝑠 ) (exit) 
+
+∧ 𝑘 (J𝜅 K𝑉 ) (continue) 
+
+VC 𝑉 (𝑃, 𝑐, 𝑄 )  WP 𝑉 (𝑐, 𝑄, 𝜆𝑤 . ∀𝑠. 𝑃 (𝑠 ) → 𝑤 (𝑠 )) 
+
+where 𝑉 ′  𝑉 ∪ asg (𝑐 1), 𝑉 ′′  𝑉 ∪ asg (𝑐 ), 𝑤 𝑔  𝜆𝑠. (𝑔 (𝑠 ) → 𝑤 1 (𝑠 )) ∧ (¬ 𝑔 (𝑠 ) → 𝑤 2 (𝑠 )) 
+
+J𝜅 K𝑉  𝜆𝑠.𝜅 (𝑡 1 (𝑠 ), . . . , 𝑡 𝑚 (𝑠 ), 𝑠 (𝑥 1), . . . , 𝑠 (𝑥 𝑛 )) for 𝑉 = 𝑥 1, . . . , 𝑥 𝑛 and 𝐶 = 𝑡 1, . . . , 𝑡 𝑚 
+
+asg (skip )  ∅ asg (𝑥 := 𝑒 )  {𝑥 } asg (while 𝑔 do 𝑐 )  asg (𝑐 )
+
+asg (𝑐 1; 𝑐 2)  asg (𝑐 1) ∪ asg (𝑐 2) asg (if 𝑔 then 𝑐 1 else 𝑐 2)  asg (𝑐 1) ∪ asg (𝑐 2)
+
+Fig. 28. The full constraint generator for Imp , in continuation-passing weakest-precondition style; the spec-term list 𝐶 is fixed throughout. asg (𝑐 ) collects the assignment targets of 𝑐 in order of first appearance, and 
+
+𝑉 ∪ 𝑉 ′ appends the new variables of 𝑉 ′ to 𝑉 in that order.

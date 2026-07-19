@@ -1,6 +1,12 @@
 {
-  "generated_at": "2026-07-19T05:38:26.330720+00:00",
+  "generated_at": "2026-07-19T21:10:16.769016+00:00",
   "updated_date": "20260719",
   "carryover_days": 9,
-  "tag_states": {}
+  "tag_states": {
+    "safe-codegen": {
+      "updated_date": "20260719",
+      "carryover_days": 9,
+      "items": []
+    }
+  }
 }
