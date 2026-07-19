@@ -1,0 +1,2303 @@
+Title: 2026.acl-long.108.pdf
+
+URL Source: https://aclanthology.org/2026.acl-long.108.pdf
+
+Published Time: Thu, 11 Jun 2026 01:09:30 GMT
+
+Number of Pages: 31
+
+Markdown Content:
+> Proceedings of the 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 2352–2382 July 2-7, 2026 ©2026 Association for Computational Linguistics
+
+# CodeHacker: Automated Test Case Generation for Detecting Vulnerabilities in Competitive Programming Solutions 
+
+Jingwei Shi 1*, Xinxiang Yin 2*, Jing Huang 3*, Shengyu Tao 1, Jinman Zhao 4† 
+
+> 1
+
+Shanghai University of Finance and Economics 2 Northwestern Polytechnical University  
+
+> 3
+
+Meituan 4 University of Toronto 
+
+shijingwei@stu.sufe.edu.cn 
+
+Abstract 
+
+The evaluation of Large Language Models (LLMs) for code generation relies heavily on the quality and robustness of test cases. How-ever, existing benchmarks often lack cover-age for subtle corner cases, allowing incor-rect solutions to pass. To bridge this gap, we propose CodeHacker , an automated agent framework dedicated to generating targeted adversarial test cases that expose latent vul-nerabilities in program submissions. Mim-icking the hack mechanism in competitive programming, CodeHacker employs a multi-strategy approach, including stress testing, anti-hash attacks, and logic-specific targeting to break specific code submissions. To en-sure the validity and reliability of these at-tacks, we introduce a Calibration Phase, where the agent iteratively refines its own Valida-tor and Checker via self-generated adversarial probes before evaluating contestant code. Ex-periments demonstrate that CodeHacker sig-nificantly improves the True Negative Rate (TNR) of existing datasets, effectively filtering out incorrect solutions that were previously accepted. Furthermore, generated adversarial cases prove to be superior training data, boost-ing the performance of RL-trained models on benchmarks like LiveCodeBench. Our code is available at https://github.com/shi0712/ CodeHacker .
+
+1 Introduction 
+
+Large Language Models (LLMs, OpenAI, 2024; DeepSeek-AI, 2025) are commonly used for code generations and program reasoning. Sev-eral benchmarks have been developed to eval-uate whether LLMs can understand problem constraints correctly, derive correct programs logically, and produce executable implementa-tions (Chen et al., 2021a; Li et al., 2022a; Wang 
+
+> *Equal contribution.
+> †Corresponding author.
+
+et al., 2025a). One challenge is that the evaluation outcome for each LLM can depend sensitively on the quality and coverage of each test case, rais-ing the questions of how test cases should be con-structed and validated properly (Liu et al., 2023a). A substantial amount of effort has been applied to address this challenge. One line of work focuses on constructing larger and more rigorous bench-marks, thereby reducing bias introduced by sparse test cases. For example, LiveCodeBench (Jain et al., 2025) applies stricter evaluation proto-cols and contamination control, while CodeCon-tests (Li et al., 2022b) and CodeContest+ (Wang et al., 2025c) target competition-level algorithmic problems with more challenging test settings. An-other type of work considers automated test case generation (Li et al., 2023a; He et al., 2025; Zhou et al., 2025), attempting to expand test coverage and reach more potential error patterns through input mutation, rule-based construction, or lan-guage model generation. Several studies also rely on human experts to analyze program logic and construct targeted counterexamples or adversar-ial cases, achieving strong discriminative power at the cost of scalability (Ma et al., 2025; Wang et al., 2025b). However, we argue that these exist-ing automated approaches operate fundamentally as Black-box Fuzzers. They rely on probabilistic exploration of the input space, prioritizing statisti-cal coverage to maximize the likelihood of hitting a bug. Their evaluation outcomes often still hinge on whether their test cases happen to cover the cor-responding failure cases, rather than on whether the model truly understands the problems seman-tics and constraint structure. Increasing the number of test cases or expand-ing the input space in a coarse-grained manner is insufficient for boosting the reliability of the eval-uation. What ultimately matters is whether test cases can target the specific logical vulnerabili-ties of a concrete implementation (Li et al., 2023b; 
+
+2352 He et al., 2025). In competitive programming practice, constructing a valid counterexample that causes a program to fail (i.e., a successful hack) is often no easier than solving the original problem itself: it requires a deep understanding of algorith-mic assumptions, boundary conditions, and com-plexity constraints, which usually demands fine-grained reasoning about program behavior (Wang et al., 2025b). From this perspective, the ability to generate failure-inducing adversarial inputs re-flects not only a models understanding of program behavior, but also provides a more discriminative signal for assessing advanced program reasoning capabilities. While prior work often relies on human experts to generate effective counterexamples (i.e., hacks), and recent advancements have explored multi-agent frameworks for general vulnerability detec-tion (Wang et al., 2025d), we consider the follow-ing question: can such expert-level hacking be au-tomated within a rigorous competitive program-ming environment? We introduce CodeHacker, a program-centric adversarial framework for com-petitive programming. Unlike methods that rely on heuristic test generation, CodeHacker adopts a Code-Aware Adversarial perspective. Code-Hacker treats individual programs as first-class objects and systematically searches for failure-inducing counterexamples, addressing the limita-tions of existing evaluation approaches in terms of both targeting and scalability. Unlike methods that rely on static test cases or heuristic test genera-tion, our framework adopts a program-centric ad-versarial evaluation perspective, tightly coupling test construction with the actual execution behav-ior of the code under evaluation. Our main contri-butions are summarized as follows: 1. We formalize hacking as an adversarial test generation task and design an LLM-driven agent that actively searches for high-value corner cases and logical counterexamples that are difficult to capture with traditional mutation-based or prompt-based generation methods. 2. By deploying the agent on existing code datasets, we demonstrate substantial im-provements in both true negative rate (TNR) and true positive rate (TPR), indicating that the generated adversarial cases meaningfully strengthen evaluation robustness. 3. Building on the generated adversarial cases, we further propose CodeHackerBench, a new evaluation setting designed to better charac-terize models ability to reason about incorrect code and extreme failure scenarios. 
+
+2 Related Work 
+
+Code Benchmark. The existing code datasets mainly adopt three paradigms. Manual test cases such as MBPP (Austin et al., 2021), HumanEval (Chen et al., 2021b) and Live-CodeBench (Jain et al., 2025) are typically hand-crafted. Expert-designed cases can better target problem-specific corner cases; manual construc-tion is expensive, hard to automate, and difficult to scale, thus more suitable for small evaluation sets than large training corpora. Mutation-based 
+
+approaches aim to improve coverage by automat-ically recombining or mutating existing inputs (type-aware input mutation to reduce false pos-itives on MBPP/HumanEval (Liu et al., 2023a), and similar strategies in CodeContests (Li et al., 2022b)), but they may violate complex input con-straints, potentially introducing invalid tests and raising false negatives. Finally, LLM-based gen-eration produces tests conditioned on problem statements (e.g., Taco Li et al., 2023a) and has also been explored in several generators/meta-benchmarks (e.g., EvalPlus, HardTests, TestCase-Eval, LogiCase, and TCGBench Liu et al., 2023b; He et al., 2025; Cao et al., 2025; Sung et al., 2025; Ma et al., 2025) ; yet LLM outputs are not guaran-teed to satisfy intricate constraints and are limited by context/output length, making them less suit-able for very large or highly structured instances (e.g., million-node graphs). Furthermore, the eval-uation of LLM-generated code has expanded be-yond mere functional correctness to encompass execution efficiency (Gong et al., 2026). 
+
+Adversarial Data in Competitive Program-ming. Prior work (Hort and Moonen, 2025) in-troduced Codehacks , a dataset constructed by min-ing historical Codeforces hacks. Due to the in-accessibility of the original victim submissions via public APIs, this dataset relies on post-hoc matching based on observed execution failures. Mutation- or randomly generated test approaches expose false negatives but do not model adversar-ial intent (Liu et al., 2023b, 2025a). 2353 RLHF and RLVR. PPO (Schulman et al., 2017) is a standard RLHF optimizer based on on-policy rollouts and value-function estimation. GRPO (Shao et al., 2024) removes the explicit critic via group-based baselines, and the following works (Yu et al., 2025b; Liu et al., 2025b) further improves training stability. Recent work increas-ingly adopts RL with verifiable (RLVR) for code generation, often using GRPO-style method (Ek-bote et al., 2025; Pennino et al., 2025). 
+
+3 Method 
+
+3.1 Problem Formulation 
+
+We consider a Codeforces-style competitive pro-gramming environment where an LLM-based agent plays the role of an attacker that attempts to 
+
+hack existing submissions by generating adversar-ial test cases. Our use of “adversarial” refers to a submission-specific counterexample search under a fixed evaluation protocol. Unlike classical ad-versarial attacks in machine learning that construct small perturbations, our method searches directly within the valid input space for new test cases that expose latent logical errors. Let P denote the set of problems and, for each problem p ∈ P , let Xp be its input space and Yp
+
+the corresponding output space. A contestant sub-mission (program) s is expected to map an input to an output in Yp, but it may fail during execu-tion. We denote these execution failures as Run-time Error (RE) , Time Limit Exceeded (TLE) ,and Memory Limit Exceeded (MLE) . Formally, the submission induces a (partial) mapping: 
+
+s : Xp → Y p ∪ { RE , TLE , MLE }.
+
+The online judge implements an evaluation function to verify the submission. Let Jp(s, T ) de-note the judging verdict of submission s on a test suite T , where Jp(s, T ) = AC implies acceptance. We explicitly distinguish the roles of the agent and the environment: the LLM agent operates ex-clusively on the input space Xp to synthesize the test input x. It does not generate the expected output, preventing potential hallucinations. The corresponding ground truth output y∗ is derived externally by the execution environment (running the verified Standard Solution Sstd ). A Successful Hack on a target submission requires three strict conditions: 1. Validity : The input x ∈ X valid satisfies all problem constraints (verified by our Refined Validator). 2. Oracle Confirmation : The Standard Solu-tion accepts x (Jp(Sstd , {x}) = AC). 3. Target Failure : The target submission is judged as incorrect ( Jp(s, {x})̸ = AC). In our framework, we specifically target a set of submissions Starget that exhibit a ground-truth discrepancy between a local benchmark test suite 
+
+Tlocal and the official rigorous test suite Tofficial :
+
+Starget =
+
+{
+
+s ∈ D 
+
+∣∣∣∣∣
+
+Jp(s, T local ) = AC ∧
+
+Jp(s, T official )̸ = AC 
+
+}
+
+LLM agent as a hacking policy. An LLM agent with parameters θ interacts with a problem– submission pair (p, s ) and generates test inputs in order to trigger a non-AC verdict. We model the agent as a (possibly stochastic) policy 
+
+πθ : Hp,s → X p,
+
+where Hp,s denotes the interaction history (includ-ing the problem statement, the system feedback, and previously proposed tests). At step t, given history ht ∈ H p,s , the agent proposes an input 
+
+xt ∼ πθ(· | ht),
+
+which is evaluated by the judge to obtain vt =
+
+Jp(s, {xt}). The interaction proceeds for at most 
+
+T steps or until a non-AC verdict is observed. 
+
+Hack success and success rate. For a fixed problem–submission pair (p, s ) and a given agent 
+
+πθ, we define the hack success indicator 
+
+H(p, s ; πθ) = I[∃ t ≤ T : Jp(s, {xt})̸ = AC ].
+
+(1) where I[·] is the indicator function and the ran-domness is induced by the policy πθ (and, if ap-plicable, the environment). Intuitively, the hack succeeds if the agent can find at least one test in-put within T trials that causes the submission to receive a non-AC verdict. Given a dataset D of problem–submission pairs, the overall hack success rate (HSR) of the agent is defined as 
+
+HSR( πθ) = 1
+
+|D| 
+
+∑
+
+> (p,s )∈D
+
+E[H(p, s ; πθ)],2354 where the expectation is taken over the internal randomness of the LLM agent and, if relevant, the judging system. In our experiments, we empiri-cally approximate HSR( πθ) by averaging the ob-served hack success indicators over all evaluated pairs (p, s ) ∈ D .
+
+3.2 CodeHacker Agent 
+
+The CodeHacker is an LLM-based agent responsi-ble for generating adversarial test cases designed to exploit weaknesses in a given program. It in-teracts with the problem statement and the con-testants submission to generate inputs that aim to trigger non-AC verdicts such as Wrong Answer (WA), Runtime Error (RE), Time Limit Exceeded (TLE), or Memory Limit Exceeded (MLE). 
+
+3.3 Phase I: Evaluation Tool Calibration 
+
+Before attempting to hack contestant submissions, CodeHacker must ensure its “ammunition” (test cases) matches problem constraints and its “judg-ment” (checker) is flawless. We employ an itera-tive refinement process. 
+
+3.3.1 Validator Refinement 
+
+The Validator is the gatekeeper that ensures test cases lie within the allowed input space Φ. Similar to the Checker, the agent actively attacks the Val-idator from two directions to identify weaknesses: • Bypass Attack ( xinvalid ): The agent gener-ates an explicitly invalid input xinvalid (e.g., inputs violating constraints like N > N max 
+
+or malformed formatting). If the Validator returns Accepted , it exposes a False Positive flaw (the validator is too loose and fails to catch illegal inputs). • Rejection Attack ( xvalid ): The agent gener-ates a valid but tricky input xvalid (e.g., legiti-mate edge cases like N = 1 , values equal to 0, or maximum constraints). If the Validator returns Rejected , it exposes a False Negative flaw (the validator is too strict and incorrectly flags valid inputs). If the Validator fails in either case, it is patched to strictly align with the problem definition. The adversarial refinement process is detailed in Algo-rithm 1 (Appendix B). 
+
+3.3.2 Checker Refinement 
+
+The Checker verifies the correctness of the pro-grams output. In the refinement loop, the agent acts as a deceptive adversary, probing for two spe-cific types of vulnerabilities: • Deception Attack ( ywrong ): The agent con-structs an incorrect output ywrong that mim-ics the structure of a valid answer (e.g., cor-rect formatting but wrong value, or satisfy-ing only partial constraints). If the Checker returns Accepted , it exposes a False Positive flaw (the checker is too loose). • Rejection Attack ( ytrue ): The agent identi-fies a valid output ytrue (often an edge case or an alternative valid solution different from the standard reference) that a rigid checker might miss. If the Checker returns Wrong Answer , it exposes a False Negative flaw (the checker is too strict). If either attack succeeds, the Checker is flagged as compromised and subsequently updated us-ing the adversarial samples. The complete dual-attack workflow is outlined in Algorithm 2 in Ap-pendix B. 
+
+Anti-Hallucination Pipeline for Checker Up-date. To prevent incorrect LLM-generated ytrue 
+
+examples from contaminating the checker update process, we implement a rigorous three-step ver-ification pipeline: (1) Small-Scale Inputs : The adversarial inputs x are restricted to trivial bound-ary cases where derivation is simple. (2) Explicit Reasoning : The generator LLM must provide a step-by-step Chain-of-Thought to compute ytrue .(3) Cross-Verification : A separate, independent LLM (LLM-as-a-Judge) audits the generated in-put, reasoning, and final output against the strict problem constraints. The checker is only updated if it passes this cross-verification. 
+
+Expert Intervention for Complex Verification Logic. While our automated refinement pipeline is highly effective, we observed a small fraction of cases where the LLM struggles to generate cor-rect Validators or Checkers. This typically occurs when the verification logic itself embodies signif-icant algorithmic difficulty. For Validators, con-straints may require proving the existence of a so-lution (e.g., “guarantee the graph has a Hamilto-nian path”); for Checkers, verifying a contestant’s output can be equivalent to solving a secondary hard problem (e.g., checking graph isomorphism or computing geometric intersections with high 2355 Figure 1: The overall architecture of the CodeHacker framework. Phase I (Evaluation Tool Calibration): The agent iteratively refines the judging infrastructure to ensure reliability. This process begins by refining the Val-idator to strictly enforce input constraints, followed by refining the Checker to eliminate false verdicts. Phase II (Adversarial Case Generation): Utilizing the calibrated tools, the Code Analyst guides three distinct generation strategies (Stress, LLM-based, and Anti-hash) to synthesize adversarial test cases that expose specific vulnerabili-ties in the contestant’s submission. 
+
+precision). Since implementing such logic ex-ceeds the typical one-shot capability of LLMs, we employ human expert intervention for these rare instances to manually implement or patch the eval-uation tools, ensuring strict adherence to problem semantics. We clarify that human intervention is required in less than 5% of cases, primarily concentrated in high-difficulty problems (Code-forces rating > 2000 ). The cost of this interven-tion is minimal as it is a one-time setup cost per problem. Crucially, human intervention does not bias the reported improvements or LLM evalua-tion metrics. Experts only intervene in Phase I to ensure the judging system strictly adheres to offi-cial semantics. Phase II (Hack Case Generation) remains 100% autonomous. 
+
+3.4 Phase II: Adversarial Case Generation 
+
+Armed with robust evaluation tools (the calibrated Validator and Checker), CodeHacker proceeds to the execution phase. This phase aims to generate adversarial inputs that specifically trigger non-AC verdicts in the target submission. 
+
+3.4.1 Code Analyst 
+
+The Code Analyst serves as the strategist. Re-lying solely on static textual analysis often leads to hallucinations regarding complexity limits or logical edge cases. To ensure rigorous vulnera-bility identification, we equip the Analyst with a 
+
+Dual-Execution Interface , enabling a hybrid anal-ysis workflow: • Behavioral Probing (via C++ Sandbox): 
+
+The agent treats the target submission as a black box to verify logical hypotheses. For instance, if the agent suspects the code fails on disconnected graphs, it synthesizes a small probe input (e.g., two isolated nodes) and executes the target binary. Observing a crash (RE) or an incorrect output confirms the bug without guessing. • Precise Calculation (via Python Inter-preter): The agent utilizes Python as a computational engine to verify constraints and mathematical properties. This includes: (1) Complexity Verification: Writing scripts to calculate the exact worst-case operation count (e.g., ∑Ni=1 ⌊N/i ⌋ for harmonic se-2356 ries) to confirm TLE risks; (2) Boundary Checks: Computing whether specific inter-mediate values (e.g., CN 
+
+> 2N
+
+) exceed the 64-bit integer limit to confirm overflows; By combining behavioral observation with mathematical verification, the Code Analyst for-mulates a highly reliable hacking plan. 
+
+Note on Design: Distinct from the Analyst’s minimal logic probes (e.g., N = 5), the Gen-erator is essential for weaponizing these insights into large-scale hacks (e.g., N = 10 5). By out-putting executable C++ code rather than raw data, the Generator bypasses LLM context constraints to produce massive, format-compliant datasets. 
+
+3.4.2 Hack Case Generators 
+
+To maximize the diversity and effectiveness of the attacks, we employ three complementary genera-tion strategies: 
+
+Generated by Stress Test: This module ran-domly or systematically explores the boundary of the input space. It focuses on maximizing in-put size ( Nmax ) or creating specific structural pat-terns (e.g., fully connected graphs, skewed trees). While naturally testing asymptotic behavior, this strategy is particularly effective at exposing Run-time Errors (e.g., stack overflows, index out-of-bounds) and Wrong Answers caused by integer overflows or precision issues under extreme con-straints. 
+
+Generated by LLM: Guided by the Code Ana-lyst’s plan, the LLM crafts targeted semantic test cases. This method is versatile and capable of tar-geting all verdict types. Depending on the vulner-ability identified by the Analystwhether it is an un-handled hack case (WA), a deep recursion risk or segmentation fault (RE), a sub-optimal algorith-mic branch (TLE), or inefficient space manage-ment (MLE), the LLM synthesizes inputs specifi-cally designed to trigger the corresponding failure mode. 
+
+Generated by Anti-Hash Generator: This module targets submissions utilizing hashing al-gorithms. For fixed-parameter Polynomial Rolling Hashes, we formulate the collision search as a Shortest Vector Problem (SVP) and apply lat-tice reduction algorithms (e.g., LLL) (Sugar_fan, 2024) to deterministically construct collisions. Additionally, for scenarios with smaller moduli or non-linear hash functions where lattice reduction is inapplicable, we employ a Birthday Attack 
+
+strategy. By generating a large pool of random in-puts, we exploit the Birthday Paradox to identify collisions with high probability in O(√M ) com-plexity, where M is the modulus.Mathematical proofs and implementation details are provided in 
+
+Appendix H .
+
+3.5 CodeHackerBench 
+
+The CodeHackerBench dataset is constructed by mining judgment discrepancies within the 
+
+CodeContest + dataset. By cross-referencing the ground-truth correctness labels against the ver-dicts returned by the original (weaker) test cases, we identified approximately 6,000 controversial problem-submission pairs. To ensure the absolute reliability of this bench-mark, we implemented a Two-Tier Human Veri-fication Protocol covering all critical components (Hack Cases, Validators, and Checkers): • Infrastructure Audit (Refined Tools): We manually reviewed all of the Refined Valida-tors and Checkers modified during the cali-bration phase. This ensures that our judging logic serves as the gold standard, strictly ad-hering to the official problem definitions. • Hack Case Verification (Data Sampling): 
+
+For the Generated Hack Cases, we conducted a random sampling of 600 instances. These cases were inspected by expert competitive programmers, achieving a 100% validity rate (confirming they adhere to input constraints) and correctly triggering failure modes in the target submissions. 
+
+4 Experiments 
+
+Dataset. We randomly selected 2000 problems from the CodeContest+ dataset, consisting of: • 1000 traditional judge problems: These problems rely on the standard online judging systems (Traditional Judge), where the sys-tem typically evaluates the solution by com-paring the output against the expected results. • 1000 special judge problems: These prob-lems use a special judging mechanism (Spe-cial Judge), which involves custom evalua-tion logic. This often includes additional checks such as output formatting, time lim-its, or other domain-specific rules. 2357 Dataset Overall Traditional Judge Special Judge VPR ( % ↑) TPR ( % ↓) TNR ( % ↑) TPR ( % ↓) TNR ( % ↑)
+
+CodeContests (Li et al., 2022c) 71.41 98.96 76.33 84.73 77.69 HardTests (He et al., 2025) 97.32 98.33 79.25 86.56 75.37 TACO (Li et al., 2023b) 81.84 96.46 83.70 82.67 85.48 CodeContest + (Wang et al., 2025c) 99.66 96.02 85.72 96.62 84.04 CodeContest ++ (Ours) 100.00 95.86 96.31 96.38 96.05         
+
+> Note: To ensure evaluation fairness: (1) All test cases were pre-filtered by our refined validator to exclude invalid inputs; (2) Results in the Special Judge columns were evaluated using our refined checker to avoid false verdicts caused by original weak checkers.
+> Table 1: Comparison of Overall Validation Pass Rate (VPR) of original datasets, and correctness metrics (TPR/TNR) across 2000 problems with among different datasets.
+
+In our experiments, we specifically focused on the C++ code of the selected problems as C++ is the most widely used among current com-petitive programming contests for its high effi-ciency. Additionally, for RL-based evaluations, we used LiveCodeBench , consisting of 287 prob-lems from AtCoder. The models were evaluated based on the pass@k metrics and pass@1 , pass@5 
+
+indicate the percentage of problems solved by the model within the top-k attempts. 
+
+Metrics. We evaluate the quality of our bench-mark and agent using four key metrics. Detailed formal definitions and calculation methods are provided in Appendix E . (1) True Positive Rate (TPR) and (2) True Negative Rate (TNR) : Measure the discriminative power of the test cases against the ground truth labels. (3) Validation Pass Rate (VPR) : Measures the proportion of test cases in a dataset that satisfy the strict problem constraints (validity). Additionally, we report the Hack Suc-cess Rate (HSR) to quantify agent performance. 
+
+Implementation Details. We randomly selected 2,000 problems from CodeContest +. Crucially, to ensure verdict fidelity, we strictly replicated the official Codeforces Windows-based toolchain (MinGW) (Codeforces, 2023). For the genera-tion modules, we set the sampling temperature to 0.7, preventing the agent from collapsing into repetitive patterns and encouraging a broader ex-ploration of the input space. For Reinforcement Learning, we train Qwen3-4B using the DAPO al-gorithm (Yu et al., 2025a). Complete implemen-tation details, including exact compiler flags, in-frastructure setups, and RL hyperparameters, are detailed in Appendix C and Appendix D .
+
+4.1 Main Results Adversarial hacking acts as a discriminator for advanced reasoning. Table 2 shows that DeepSeek V3.2 achieves the highest HSR of 64.83%, outperforming GPT-5-Mini (51.40%) and Gemini-3.0 (35.65%). Crucially, we observe a dramatic performance gap when explicit reason-ing is disabled: DeepSeek V3.2’s success rate plummets to 23.76% (a 2.7 × decline) in non-thinking mode. This substantial performance gap between reasoning and non-reasoning models un-derscores a critical finding: Hacking is a Reason-ing Task . Complex adversarial inputs such as spe-cific tree topologies to maximize recursion depth or mathematically precise sequences cannot be re-trieved from memory or guessed. They require the model to perform constructive reasoning : de-riving a generative algorithm that satisfies multi-ple entangled constraints. This explains why stan-dard LLMs fail to generate valid complex hacks, whereas reasoning-enhanced models excel. 
+
+Performance Degradation as Metric Correc-tion. To quantify the "inflation" in current eval-uations, we evaluated SOTA models on Code-HackerBench. As shown in Table 3, Pass@1 scores drop across the board. We argue this is a 
+
+correction of metric inflation rather than a capa-bility loss. Standard benchmarks allow flawed so-lutions ("False Positives") to pass due to weak test coverage. CodeHackerBench filters these out. No-tably, we observe a rank reversal: while Gemini-3.0-Flash initially outperformed GPT-5-Mini on original tests, our rigorous adversarial evaluation reveals that GPT-5-Mini is actually more robust. 
+
+Adversarial hacking corrects metric infla-tion and enhances evaluation rigor. To ac-2358 Backbone Model HSR (%) Avg. #T Reasoning Models 
+
+DeepSeek V3.2 64.83 1.24 GPT-5-Mini 51.40 1.35 Qwen3-Next-80B-A3B 38.37 1.58 Gemini-3.0-Flash-Preview 35.65 1.62 Qwen3-32B 23.64 1.89 
+
+Non-Reasoning Models 
+
+DeepSeek V3.2 ∗ 23.76 2.45 Qwen3-Next-80B-A3B ∗ 20.06 2.68 Qwen3-32B ∗ 10.00 2.91 
+
+Table 2: Hack performance across different models. 
+
+HSR : Hack Success Rate. Avg. #T : The average num-ber of refinement turns required to successfully hack a submission by directly LLM generated (lower is better, max 5). The symbol * indicates non-thinking mode for hybrid-reasoning models.                   
+
+> Model Pass@1 Adjusted Pass@1 ∆
+> DeepSeek V3.2 83.3% 81.6% -1.7% GPT-5-Mini 78.4% 76.7% -1.7% Gemini-3.0-Flash 78.6% 76.5% -2.1% DeepSeek V3.2* 61.9% 59.7% -2.2% Qwen3-32B* 51.0% 47.5% -3.5%
+
+Table 3: Pass@1 Performance Correction on Code-HackerBench. The drop quantifies the proportion of "lucky" submissions that contained latent bugs but passed the original weak tests.The symbol * indicates non-thinking mode for hybrid-reasoning models. 
+
+curately assess the impact of adversarial test cases, we constructed a new benchmark variant, 
+
+CodeContests ++ . We posit that under the strict premises of input validity and verdict correctness (guaranteed by our refined validator and checker), the hallmark of a rigorous benchmark is a sig-nificantly higher TNR coupled with a moderately lower TPR. As shown in Table 1, unlike baselines with inflated TPRs ( ≈99%) that often mask subtle flaws, CodeHacker achieves a superior TNR (e.g., 
+
+96.05% on Special Judge problems). This perfor-mance confirms that our framework successfully corrects historical misclassifications: the observed drop in TPR is not a degradation but a correction of inflated metrics, exposing latent bugs in previ-ously “Accepted” solutions rather than incorrectly rejecting valid code. 
+
+Adversarial data improves RL efficiency and generalization. Table 2 shows that the model RL-trained on the augmented CodeContests ++ 
+
+consistently outperforms the baseline trained on standard data (see Appendix G for detailed numer-Easy Medium Hard 
+
+0
+
+50 
+
+100 97   
+
+> 73 .5
+> 25
+> 97
+> 75
+> 27
+> 98 .5
+> 80 .9
+> 27 .6
+> Pass@5 Acc (%) on LiveCodeBench  Base Model RL w/ CC+ RL w/ Ours
+
+Figure 2: Pass@5 performance comparison on Live-CodeBench. Models trained with adversarial data show consistent improvements. The model trained on our augmented subset achieves the highest accuracy across all difficulty levels. 
+
+ical breakdowns). This indicates that high-quality adversarial inputs serve as dense reward signals during reinforcement learning, forcing the policy to optimize for strict boundary condition handling and deep logical robustness rather than simple pat-tern matching. Crucially, the performance gains on the out-of-distribution LiveCodeBench confirm that learning from hack cases fosters genuine al-gorithmic reasoning capabilities rather than over-fitting to the training set. 
+
+4.2 Ablation Study 
+
+To rigorously evaluate the contributions of our framework, we conduct a two-fold ablation study. First, we analyze the impact of individual agent modules on the Hack Success Rate (HSR), de-termining which components are essential for generating valid attacks. Second, we examine the Sanitation Pipeline step-by-step to understand how each refinement stage improves the reliability (TNR and TPR) of the final benchmark. 
+
+Impact of Agent Components We investigate the necessity of the Code Analyst, Refinement Loop, and Stress Test modules by removing them one by one from the CodeHacker agent. As shown in Table 4, the full CodeHacker agent achieves the highest success rate (51.40% using GPT-5-mini). The Refinement Loop proves to be the most critical component; its removal causes a signifi-cant performance drop ( 51 .40% → 46 .60% ). This highlights the difficulty of generating strictly valid adversarial cases in a single passiterative feed-back is essential for correcting invalid inputs. The 2359 Variant Hack Success Rate (% ↑)CodeHacker (Full) 51.40     
+
+> w/o Code Analyst 49.86 w/o Stress Test 50.12 w/o Anti-Hash Generator 51.00 w/o Refinement Loop 46.60
+> Table 4: Ablation study of CodeHacker agent compo-nents.
+
+Code Analyst also plays a vital role ( 49 .86% →
+
+51 .40% ) by guiding the generator toward logical vulnerabilities rather than blind guessing. The Stress Test module provides a minor but necessary boost ( 50 .12% → 51 .40% ) by covering asymp-totic complexity failures that semantic analysis might miss. It is worth noting that while the Anti-Hash Gen-erator was triggered in only a small fraction of cases (approximately 0.4% of submissions using rolling hashes), it achieved a 100% success rate in breaking these solutions. This confirms that while niche, domain-specific adversarial modules are es-sential for achieving perfect coverage against al-gorithmic shortcuts. 
+
+Impact of Dataset Enhancement Pipeline We further analyze how our infrastructure improve-mentsspecifically the tool calibration (Valida-tor/Checker) and the adversarial data augmenta-tion (Hack Cases) affect evaluation reliability. To isolate the impact of judging logic, we conduct this ablation study specifically on the 1000 prob-lems requiring Special Judges. Table 5 details the cumulative effect of the refined validator, refined checker, and the addition of hack cases.           
+
+> Configuration TNR (% ↑)TPR (%)
+> Baseline (CodeContest +)82.18 95.34 + Refined Validator 82.08 95.50 + Refined Checker 84.04 96.62 + Hack Cases (Ours) 96.05 96.38
+> Table 5: Stepwise analysis of the dataset enhancement pipeline on Special Judge problems. Adding adversar-ial Hack Cases provides the decisive boost to TNR.
+
+An interesting phenomenon occurs when intro-ducing the refined validator: the TNR slightly drops from 82.18% to 82.08%. This reveals a 
+
+masking effect in the baseline, where invalid inputs previously caused incorrect solutions to fail, inad-vertently counting them as correctly rejected. By filtering these invalid inputs, the refined validator exposes the baseline’s true, weaker discriminatory power. While the refined checker improves verdict pre-cision (raising TPR to 96.62%), the most substan-tial improvement in robustness comes from the augmentation with hack cases. This step leaps the TNR to 96.05%, confirming that standard test cases lack the coverage to catch subtle logi-cal errors, and that adversarial generation is non-negotiable for rigorous evaluation. 
+
+5 Conclusion 
+
+In this work, we introduced CodeHacker , an au-tonomous framework that iteratively refines com-petitive programming evaluations via a novel Self-Hacking mechanism. By correcting legacy judg-ing flaws and augmenting the test cases with targeted adversarial inputs, our augmented sub-set achieves highest True Negative Rate (TNR), offering a significantly more trustworthy stan-dard than existing benchmarks. Furthermore, we presented CodeHackerBench , a benchmark de-signed to evaluate the adversarial reasoning ca-pabilities of LLMs. Our experiments demon-strate that the ability to generate valid hacks serves as a strong differentiator for advanced reasoning models, mirroring the cognitive demands of rig-orous algorithm design. We hope this work es-tablishes adversarial generation as a critical as-pect for evaluating general algorithmic intelli-gence. Beyond academic evaluation, we envision CodeHacker as a vital component of the next-generation competitive programming infrastruc-ture, assisting both problem setters in quality as-surance and contestants in personalized training. Furthermore, our framework is conceptually trans-ferable to real-world issue-solving benchmarks such as SWE-bench and broader repository-level evaluations (Li et al., 2026; Lian et al., 2026). The core principle-systematic regression-test augmen-tation that probes untested boundary conditions to challenge overestimated correctnesscan be applied to broader software engineering tasks to improve evaluation rigor in real-world applications. 2360 Ethic Statement 
+
+We emphasize two critical ethical principles re-garding the research and application of automated hacking agents, strictly adhering to the community standards of the competitive programming ecosys-tem: 
+
+Prohibition of Unauthorized Data Scraping. 
+
+While platforms like Codeforces and QOJ pub-licly display hack attempts, they explicitly prohibit the use of automated web crawlers or scrapers to harvest such data in bulk. Unauthorized scraping violates the Terms of Service of these platforms and places an unsustainable load on community-maintained servers. Our research strictly respects these prohibitions; we urge future researchers to avoid unauthorized data harvesting and to rely solely on officially released datasets or compliant data access methods to preserve platform integrity. 
+
+Mandatory Local Evaluation. It is fundamen-tally impermissible to evaluate AI agents by sub-mitting generated test cases to public Online Judges. Using public judging queues for au-tomated testing constitutes a Denial of Service (DoS) risk and degrades the service quality for hu-man contestants. Therefore, it is mandatory that all adversarial evaluations be conducted in a local, sandboxed environment. CodeHacker is specifi-cally designed with a Self-Hacking loop to oper-ate entirely offline, ensuring zero interference with live judging infrastructure. 
+
+Limitations 
+
+While our approach has shown promising results, there are several limitations that need to be ad-dressed in future work. While the CodeHacker agent is capable of generating valuable test cases, it is not infallible. There may still be certain edge cases or subtle algorithmic flaws that the agent fails to identify. Expanding the agents capability to detect more complex failures, especially those related to performance (e.g., time or memory lim-itations), remains an open challenge. Besides, our current evaluation focuses on a subset of program-ming languages and problem domains. Expanding the CodeHackerBench benchmark to include ad-ditional languages and a broader set of problem types will provide a more comprehensive assess-ment of the approachs generalizability. As com-petitive programming and algorithmic challenges evolve, we plan to adapt our framework to ensure it stays up-to-date with the latest trends and chal-lenges in the field. 
+
+References 
+
+Jacob Austin, Augustus Odena, Maxwell Nye, Maarten Bosma, Henryk Michalewski, David Dohan, Ellen Jiang, Carrie Cai, Michael Terry, Quoc Le, and Charles Sutton. 2021. Program synthesis with large language models. Preprint , arXiv:2108.07732. Yuhan Cao, Zian Chen, Kun Quan, Ziliang Zhang, Yu Wang, Xiaoning Dong, Yeqi Feng, Guanzhong He, Jingcheng Huang, Jianhao Li, Yixuan Tan, Ji-afu Tang, Yilin Tang, Junlei Wu, Qianyu Xiao, Can Zheng, Shouchen Zhou, Yuxiang Zhu, Yim-ing Huang, and 2 others. 2025. Can llms gen-erate reliable test case generators? a study on competition-level programming problems. Preprint ,arXiv:2506.06821. Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, Alex Ray, Raul Puri, Gretchen Krueger, Michael Petrov, Heidy Khlaaf, Girish Sastry, Pamela Mishkin, Brooke Chan, Scott Gray, and 39 others. 2021a. Evaluating large language models trained on code. Preprint , arXiv:2107.03374. Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde de Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph, Greg Brockman, Alex Ray, Raul Puri, Gretchen Krueger, Michael Petrov, Heidy Khlaaf, Girish Sastry, Pamela Mishkin, Brooke Chan, Scott Gray, and 39 others. 2021b. Evaluating large language models trained on code. Preprint , arXiv:2107.03374. Codeforces. 2023. Codeforces command lines. 
+
+https://codeforces.com/blog/entry/121114 .DeepSeek-AI. 2025. Deepseek-v3 technical report. 
+
+Preprint , arXiv:2412.19437. Chanakya Ekbote, Vijay Lingam, Behrooz Omidvar-Tehrani, Jun Huan, Sujay Sanghavi, Anoop Deo-ras, and Stefano Soatto. 2025. Murphy: Multi-turn grpo for self correcting code generation. Preprint ,arXiv:2511.07833. Zhihao Gong, Zeyu Sun, Dong Huang, Qingyuan Liang, Jie M. Zhang, and Dan Hao. 2026. Trace: Evaluating execution efficiency of llm-based code translation. Preprint , arXiv:2508.11468. Zhongmou He, Yee Man Choi, Kexun Zhang, Jiabao Ji, Junting Zhou, Dejia Xu, Ivan Bercovich, Aidan Zhang, and Lei Li. 2025. Hardtests: Synthesiz-ing high-quality test cases for llm coding. Preprint ,arXiv:2505.24098. Max Hort and Leon Moonen. 2025. Codehacks: Adataset of adversarial tests for competitive program-ming problems obtained from codeforces. In 2025 2361 IEEE Conference on Software Testing, Verification and Validation (ICST) , pages 742–746. IEEE. Naman Jain, King Han, Alex Gu, Wen-Ding Li, Fan-jia Yan, Tianjun Zhang, Sida Wang, Armando Solar-Lezama, Koushik Sen, and Ion Stoica. 2025. Live-codebench: Holistic and contamination free evalua-tion of large language models for code. In The Thir-teenth International Conference on Learning Repre-sentations .Jia Li, Yuxin Su, and Michael R. Lyu. 2026. From laboratory to real-world applications: Benchmark-ing agentic code reasoning at the repository level. 
+
+arXiv preprint arXiv:2601.03731 .Rongao Li, Jie Fu, Bo-Wen Zhang, Tao Huang, Zhi-hong Sun, Chen Lyu, Guang Liu, Zhi Jin, and Ge Li. 2023a. Taco: Topics in algorithmic code generation dataset. Preprint , arXiv:2312.14852. Rongao Li, Jie Fu, Bo-Wen Zhang, Tao Huang, Zhi-hong Sun, Chen Lyu, Guang Liu, Zhi Jin, and Ge Li. 2023b. Taco: Topics in algorithmic code generation dataset. arXiv preprint arXiv:2312.14852 .Yujia Li, David Choi, Junyoung Chung, Nate Kush-man, Julian Schrittwieser, Rémi Leblond, Tom Eccles, James Keeling, Felix Gimeno, Agustin Dal Lago, Thomas Hubert, Peter Choy, Cyprien de Masson dAutume, Igor Babuschkin, Xinyun Chen, Po-Sen Huang, Johannes Welbl, Sven Gowal, Alexey Cherepanov, and 7 others. 2022a. Competition-level code generation with alphacode. 
+
+Science , 378(6624):10921097. Yujia Li, David Choi, Junyoung Chung, Nate Kush-man, Julian Schrittwieser, Rémi Leblond, Tom Ec-cles, James Keeling, Felix Gimeno, Agustin Dal Lago, Thomas Hubert, Peter Choy, Cyprien de Mas-son dAutume, Igor Babuschkin, Xinyun Chen, Po-Sen Huang, Johannes Welbl, Sven Gowal, Alexey Cherepanov, and 7 others. 2022b. Competition-level code generation with alphacode. Science ,378(6624):1092–1097. Yujia Li, David Choi, Junyoung Chung, Nate Kush-man, Julian Schrittwieser, Rémi Leblond, Tom Ec-cles, James Keeling, Felix Gimeno, Agustin Dal Lago, Thomas Hubert, Peter Choy, Cyprien de Mas-son dAutume, Igor Babuschkin, Xinyun Chen, Po-Sen Huang, Johannes Welbl, Sven Gowal, Alexey Cherepanov, and 7 others. 2022c. Competition-level code generation with AlphaCode. Science ,378(6624):1092–1097. Shuquan Lian, Juncheng Liu, Yazhe Chen, Yuhong Chen, and Hui Li. 2026. Swe-agile: A software agent framework for efficiently managing dynamic reasoning context. Preprint , arXiv:2604.11716. Jiawei Liu, Chunqiu Steven Xia, Yuyao Wang, and LINGMING ZHANG. 2023a. Is your code gen-erated by chatgpt really correct? rigorous evalua-tion of large language models for code generation. In Advances in Neural Information Processing Sys-tems , volume 36, pages 21558–21572. Curran Asso-ciates, Inc. Jiawei Liu, Chunqiu Steven Xia, Yuyao Wang, and LINGMING ZHANG. 2023b. Is your code gener-ated by chatGPT really correct? rigorous evalua-tion of large language models for code generation. In Thirty-seventh Conference on Neural Information Processing Systems .Kaibo Liu, Zhenpeng Chen, Yiyang Liu, Jie M. Zhang, Mark Harman, Yudong Han, Yun Ma, Yihong Dong, Ge Li, and Gang Huang. 2025a. LLM-powered test case generation for detecting bugs in plausible pro-grams. In Proceedings of the 63rd Annual Meet-ing of the Association for Computational Linguistics (Volume 1: Long Papers) , pages 430–440, Vienna, Austria. Association for Computational Linguistics. Zichen Liu, Changyu Chen, Wenjun Li, Penghui Qi, Tianyu Pang, Chao Du, Wee Sun Lee, and Min Lin. 2025b. Understanding r1-zero-like training: A crit-ical perspective. In 2nd AI for Math Workshop @ ICML 2025 .Zihan Ma, Taolin Zhang, Maosongcao, Junnan Liu, Wenwei Zhang, Minnan Luo, Songyang Zhang, and Kai Chen. 2025. Rethinking verification for LLM code generation: From generation to testing. In The Thirty-ninth Annual Conference on Neural Informa-tion Processing Systems .OpenAI. 2024. Gpt-4 technical report. Preprint ,arXiv:2303.08774. Federico Pennino, Bianca Raimondi, Massimo Ron-delli, Andrea Gurioli, and Maurizio Gabbrielli. 2025. From reasoning to code: Grpo optimiza-tion for underrepresented languages. Preprint ,arXiv:2506.11027. John Schulman, Filip Wolski, Prafulla Dhariwal, Alec Radford, and Oleg Klimov. 2017. Prox-imal policy optimization algorithms. Preprint ,arXiv:1707.06347. Zhihong Shao, Peiyi Wang, Qihao Zhu, Runxin Xu, Junxiao Song, Xiao Bi, Haowei Zhang, Mingchuan Zhang, Y. K. Li, Y. Wu, and Daya Guo. 2024. Deepseekmath: Pushing the limits of mathemati-cal reasoning in open language models. Preprint ,arXiv:2402.03300. Sugar_fan. 2024. A tool for hacking rolling hashes with fixed modulos and bases. https:// codeforces.com/blog/entry/129538 .Sicheol Sung, Aditi, Dogyu kim, Yo-Sub Han, and Sang-Ki Ko. 2025. Logicase: Effective test case generation from logical description in competitive programming. Preprint , arXiv:2505.15039. Xingyao Wang, Boxuan Li, Yufan Song, Frank F. Xu, Xiangru Tang, Mingchen Zhuge, Jiayi Pan, Yueqi Song, Bowen Li, Jaskirat Singh, Hoang H. Tran, 2362 Fuqiang Li, Ren Ma, Mingzhang Zheng, Bill Qian, Yanjun Shao, Niklas Muennighoff, Yizhe Zhang, Binyuan Hui, and 5 others. 2025a. Openhands: An open platform for ai software developers as general-ist agents. Preprint , arXiv:2407.16741. Zihan Wang, Jiaze Chen, Zhicheng Liu, Markus Mak, Yidi Du, Geonsik Moon, Luoqi Xu, Aaron Tua, Kunshuo Peng, Jiayi Lu, and 1 others. 2025b. Aethercode: Evaluating llms’ ability to win in pre-mier programming competitions. arXiv preprint arXiv:2508.16402 .Zihan Wang, Siyao Liu, Yang Sun, Hongyan Li, and Kai Shen. 2025c. Codecontests+: High-quality test case generation for competitive programming. 
+
+arXiv preprint arXiv:2506.05817 .Ziliang Wang, Ge Li, Jia Li, Hao Zhu, and Zhi Jin. 2025d. Vulagent: Hypothesis-validation based multi-agent vulnerability detection. arXiv preprint arXiv:2509.11523 .Qiying Yu, Zheng Zhang, Ruofei Zhu, Yufeng Yuan, Xiaochen Zuo, Yu Yue, Weinan Dai, Tiantian Fan, Gaohong Liu, Lingjun Liu, and 1 others. 2025a. Dapo: An open-source llm reinforcement learning system at scale. arXiv preprint arXiv:2503.14476 .Qiying Yu, Zheng Zhang, Ruofei Zhu, Yufeng Yuan, Xiaochen Zuo, YuYue, Weinan Dai, Tiantian Fan, Gaohong Liu, Juncai Liu, LingJun Liu, Xin Liu, Haibin Lin, Zhiqi Lin, Bole Ma, Guangming Sheng, Yuxuan Tong, Chi Zhang, Mofan Zhang, and 17 oth-ers. 2025b. DAPO: An open-source LLM reinforce-ment learning system at scale. In The Thirty-ninth Annual Conference on Neural Information Process-ing Systems .Shang Zhou, Zihan Zheng, Kaiyuan Liu, Zeyu Shen, Zerui Cheng, Zexing Chen, Hansen He, Jianzhu Yao, Huanzhi Mao, Qiuyang Mang, and 1 oth-ers. 2025. Autocode: Llms as problem set-ters for competitive programming. arXiv preprint arXiv:2510.12803 .
+
+A Terms and Definitions 
+
+To ensure clarity and consistency throughout this paper, we provide formal definitions for stan-dard terms used in the competitive programming ecosystem. The evaluation of a solution typically involves a rigorous interaction between the con-testant’s code and the Online Judge (OJ) system’s components. Understanding the precise roles of the Validator , Checker , and the mechanics of a 
+
+Hack is essential for grasping the workflow of our CodeHacker framework. Table 6 summarizes these key definitions and their specific contexts within this work. 
+
+B Refinement Algorithms 
+
+We provide the detailed pseudocode for the itera-tive refinement of the Validator and Checker be-low. 
+
+Algorithm 1 Iterative LLM-based Refinement of Validator 
+
+Require: Problem constraints Φ, validation prompt Pval ,hacking prompt Pval-hack , LLM M, max failures K
+
+Ensure: Validator V
+
+1: V ← M (Pval , Φ) 
+
+2: kfail ← 0
+
+3: while kfail < K do 
+
+4: (xvalid , x invalid ) ← M (Pval-hack , Φ, V )
+
+5: is_FP ← (V (xinvalid ) == Accepted )
+
+6: is_FN ← (V (xvalid )̸ = Accepted )
+
+7: if is_FP ∨ is_FN then 
+
+8: kfail ← 0
+
+9: Update Pval with failure cases xinvalid and xvalid 
+
+10: V ← M (Pval , Φ) 
+
+11: else 
+
+12: kfail ← kfail + 1 
+
+13: end if 
+
+14: end while 
+
+15: return V
+
+Algorithm 2 Iterative LLM-based Refinement of Checker 
+
+Require: Problem spec Φ, checking prompt Pc, hacking prompt Pc-hack , oracle O, LLM M, max failures K
+
+Ensure: Checker C
+
+1: C ← M (Pc, Φ) 
+
+2: kfail ← 0
+
+3: while kfail < K do 
+
+4: (xcand , y wrong , y true ) ← M (Pc-hack , Φ, C )
+
+5: is _F P ← (C(xcand , y wrong ) == Accepted )
+
+6: is _F N ← (C(xcand , y true )̸ = Accepted )
+
+7: if is _F P or is _F N then 
+
+8: kfail ← 0
+
+9: ygt ← O (Φ , x cand )
+
+10: Update Pc with failure case (xcand , y wrong , y true , y gt )
+
+11: C ← M (Pc, Φ) 
+
+12: else 
+
+13: kfail ← kfail + 1 
+
+14: end if 
+
+15: end while 
+
+16: return C
+
+C Codeforces C++ Compilation Environments 
+
+To ensure full reproducibility and consistency with competitive-programming settings, we faith-fully replicated all official Codeforces C++ com-piler configurations. Contrary to common Linux-based setups, Codeforces officially employs a Windows-based judging infrastructure. Conse-quently, we strictly utilized the official flags (e.g., 2363 Table 6: Common Terms in Competitive Programming 
+
+Term Description Submission In programming competitions, a submission is a program submitted by a contestant. This submission is evaluated by a judging system, resulting in a verdict such as Accepted (AC) , Wrong Answer (WA) , Time Limit Exceeded (TLE) , Runtime Error (RE) , or Compile Error (CE) ,among others. 
+
+Test case A test case is used to check whether the participants submission is correct. It usually consists of input data and the corresponding correct output (reference answer). 
+
+Test input The input data of a test case will be fed into the contestants program. The programs output will then be compared with the reference output to determine correctness. 
+
+Test output The output data of a test case is the correct answer corresponding to the input data. For problems with multiple correct solutions, the reference output typically represents one of the possible correct answers. 
+
+Validator A validator is a program used to check whether the input data satisfies the problem constraints and format. 
+
+Generator A generator is a program used to produce test input automatically, especially when the input data is large, random, or complex and cannot be easily handcrafted. 
+
+Checker A checker is a program used to determine if a contestants output is correct. Usually, it simply compares the contestants output with the expected output, but for problems with multiple solutions (e.g., floating-point answers or different valid orderings), it may include more complex judging logic. 
+
+Hack In Codeforces , a hack is a special mechanism available during the hacking phase of some rounds. Participants can test other contestants solutions by providing a test case that causes them to fail. If a hack succeeds, the hacker gains additional points, and the hacked participant may lose points or their solution becomes marked as hacked . Hacks help ensure solution robustness and encourage writing well-tested code. 2364 -Wl,–stack=268435456 ) to prevent discrepan-cies in TLE or RE verdicts. 
+
+D RL Training Hyperparameters 
+
+We employed the DAPO algorithm (Yu et al., 2025a) to train the Qwen3-4B base model. To accommodate the lengthy context often required in competitive programming (e.g., long problem statements and complex logic), we set the max-imum generation length to 24,000 tokens. The training was conducted with a global batch size of 32 and an actor learning rate of 5 × 10 −7. Dur-ing the exploration phase, we sampled N = 8 so-lutions per prompt. We adopted a dual clipping strategy with ϵlow = 0 .2 and ϵhigh = 0 .3. The re-ward is rule-based: the model receives a reward of +1 if the generated code successfully passes all test cases, and 0 otherwise. We provide the detailed hyperparameters used for the DAPO training in Table 8. All experiments were conducted on a cluster of NVIDIA H100 GPUs. 
+
+E Metric Definitions and Calculations 
+
+To ensure the reproducibility and clarity of our evaluation, we provide the formal definitions for all metrics used in the experimental section. Let D be the dataset of problem-submission pairs. For a specific submission s ∈ D, let 
+
+Jorig (s) denote the verdict provided by the origi-nal dataset (ground truth), and Jnew (s) denote the verdict obtained using our augmented test cases (CodeHacker generated cases). We define the binary correctness function V (s)
+
+as: 
+
+V (verdict ) = 
+
+{
+
+1( Correct ) if verdict is Accepted 
+
+0( Incorrect ) otherwise. 
+
+E.1 True Positive Rate (TPR) and True Negative Rate (TNR) 
+
+These metrics evaluate the discriminative power of the test case with respect to the original ground truth labels. 
+
+True Positive Rate (TPR): The proportion of solutions originally marked as correct that are also accepted by the new test case. TPR =
+
+∑ 
+
+> s∈D pos
+
+I[V (Jnew (s)) = 1] 
+
+|D pos |
+
+where Dpos = {s ∈ D | V (Jorig (s)) = 1 }. ATPR significantly lower than 100% implies that the new test case has successfully hacked solutions that were previously thought to be correct (expos-ing False Positives in the original data). 
+
+True Negative Rate (TNR): The proportion of solutions originally marked as incorrect that are correctly rejected by the new test case. TNR =
+
+∑ 
+
+> s∈D neg
+
+I[V (Jnew (s)) = 0] 
+
+|D neg |
+
+where Dneg = {s ∈ D | V (Jorig (s)) = 0 }. A low TNR indicates that a test case is too weak, allow-ing incorrect solutions to pass (False Positives). 
+
+E.2 Validation Pass Rate (VPR) 
+
+VPR measures the quality of the test cases them-selves, specifically ensuring they adhere to prob-lem constraints. Let Torig be the set of all test cases in the original dataset. Let V(t) be our Refined Validator , which returns 1 if an input t satisfies all problem constraints and 0 otherwise. VPR =
+
+∑ 
+
+> t∈Torig
+
+V(t)
+
+|Torig | × 100% 
+
+A VPR less than 100% indicates that the original dataset contained invalid test cases that were sub-sequently filtered out in our benchmark. 
+
+E.3 Hack Success Rate (HSR) 
+
+HSR measures the agent’s ability to trigger a fail-ure in a submission. For a specific set of target submissions Starget :HSR =
+
+∑ 
+
+> s∈Starget
+
+I[∃x ∈ Xgen : J(s, x )̸ = AC ]
+
+|Starget |
+
+where Xgen is the set of adversarial inputs gener-ated by the agent for submission s.
+
+F Data Decontamination and Benchmark Independence 
+
+To ensure the validity of our reinforcement learn-ing results and strictly prevent data leakage, we implemented a Source-Based Decontamination Protocol .2365 Compiler Arch Version Compilation Command                           
+
+> GNU G++14 32-bit 6.4.0 -static -DONLINE_JUDGE -Wl,–stack=268435456 -O2 -std=c++14
+> GNU G++17 32-bit 7.3.0 -static -DONLINE_JUDGE -Wl,–stack=268435456 -O2 -std=c++17
+> GNU G++20 64-bit 11.2.0 (WinLibs) -Wall -Wextra -Wconversion -static -DONLINE_JUDGE -Wl,–stack=268435456 -O2 -std=c++20
+> GNU G++23 64-bit 14.2 (MSYS2) -Wall -Wextra -Wconversion -static -DONLINE_JUDGE -Wl,–stack=268435456 -O2 -std=c++23 -lstdc++exp
+
+Table 7: C++ compilation environments reproduced from the official Codeforces judge configuration.            
+
+> Hyperparameter Value
+> Algorithm DAPO Base Model Qwen3-4B Train Batch Size 32 Samples per Prompt ( N)8Actor Learning Rate 5×10 −7
+> Max Generation Length 24,000 Clip Range ( ϵlow , ϵ high )0.2, 0.3
+
+Table 8: Hyperparameters for Reinforcement Learning (DAPO). 
+
+Source Separation. Our training and evaluation datasets are derived from disjoint algorithmic con-test platforms, ensuring structural independence: • Training Set ( CodeContests ++ ): The aug-mented training data is exclusively sourced from Codeforces problems. • Evaluation Set (LiveCodeBench): For the evaluation of RL-trained models, we specif-ically utilized the subset of LiveCodeBench consisting entirely of AtCoder problems. Since Codeforces and AtCoder are distinct plat-forms with unique problem sets, checking sys-tems, and editorial styles, there is effectively zero overlap between our training and evaluation data. This physical separation guarantees that the per-formance improvements observed in Table 9 are due to the generalization of adversarial reasoning capabilities rather than memorization of specific problem patterns. 
+
+G Detailed Reinforcement Learning Results 
+
+In this section, we provide the comprehensive nu-merical results for the Reinforcement Learning evaluation on LiveCodeBench. Table 9 details the pass@1 and pass@5 accuracy across three diffi-culty levels (Easy, Medium, Hard). 
+
+H Mathematical Derivation of Anti-Hash Generator 
+
+In this section, we detail the construction used to generate hash collisions for polynomial rolling hashes with fixed moduli {pi}n−1 
+
+> i=0
+
+and bases 
+
+{qi}n−1 
+
+> i=0
+
+.
+
+H.1 Problem Definition 
+
+The hash function for a string a of length L is de-fined as: 
+
+hi(a) = 
+
+
+
+> L−1
+
+∑
+
+> j=0
+
+aj qji
+
+ (mod pi)
+
+Our goal is to find two distinct strings a and b such that hi(a) = hi(b) for all i. This is equivalent to finding a difference array d = a − b satisfying: 1. ∑L−1 
+
+> j=0
+
+dj qji ≡ 0 (mod pi) for all i.2. |dj | < 26 (assuming lowercase English let-ters) for all j, and d̸ = 0 .
+
+H.2 Lattice Construction 
+
+We formulate this as a Shortest Vector Problem (SVP). We construct a lattice basis matrix M of size (n + L) × (n + L). To prioritize satisfying the modular equations (i.e., forcing the remainder to be 0), we introduce a large weight factor λ.The matrix M is defined as a block matrix: 
+
+M =
+
+[λQ IλP 0
+
+]
+
+where: • Q is an L × n matrix where Qji = qji
+
+(mod pi).• I is an L × L identity matrix representing the coefficients of d.• P is an n×n diagonal matrix where Pii = pi,representing the moduli constraints. • 0 is an n × L zero matrix. 2366 Training Stage Easy pass@1 Easy pass@5 Medium pass@1 Medium pass@5 Hard pass@1 Hard pass@5                   
+
+> Base Model (Qwen3-4B) 91.04 97.01 63.24 73.53 11.84 25.00 RL w/ CodeContests +94.03 97.01 58.82 75.00 15.13 26.97 RL w/ CodeContests ++ 94.03 98.51 66.18 80.88 17.11 27.63
+
+Table 9: Detailed Pass@ k performance on LiveCodeBench across different difficulty levels. Comparing the Base Model against versions trained via RL using standard vs. adversarial datasets. 
+
+H.3 Reduction and Reconstruction 
+
+The rows of M span a lattice. A vector v in this lattice has the form: 
+
+v = ( λ · R, d )
+
+where R represents the remainder of the polyno-mial evaluation modulo pi. We aim to find a vec-tor where R = 0 (meaning the hash difference is a multiple of the modulus) and d is small (non-zero but within character range). By multiplying the top-left and bottom-left blocks by a sufficiently large λ, we penalize any non-zero remainder R. We then apply the L2 re-duction algorithm (a variant of LLL) to reduce the basis M . The shortest vector in the reduced basis typically yields a vector with R = 0 and a valid difference array d. From d, we construct strings a and b by setting aj = max(0 , d j ) and 
+
+bj = max(0 , −dj ) (shifted by a base character), guaranteeing a collision. 
+
+H.4 Birthday Attack Strategy 
+
+While Lattice Reduction is effective for polyno-mial rolling hashes with large moduli (e.g., 264 ), it requires the hash function to have a specific linear structure. For generic hash functions or smaller moduli (e.g., M ≈ 10 9), we utilize a probabilistic approach based on the Birthday Paradox .The Birthday Paradox states that in a set of n
+
+randomly chosen elements, where each element is drawn uniformly from a domain of size M , the probability that at least two elements are identical (a collision) is approximately: 
+
+P (collision ) ≈ 1 − e− n(n−1) 2M ≈ 1 − e− n22M
+
+To achieve a collision probability of P ≈ 0.5
+
+(50%), the required number of generated test cases 
+
+n is: 
+
+n ≈ √2M ln 2 ≈ 1.177 √M
+
+For a typical 32-bit integer hash ( M ≈ 4 × 10 9), the agent only needs to generate approximately 
+
+n ≈ 75 , 000 inputs to find a collision with high confidence. This is computationally trivial for the CodeHacker agent. 
+
+Implementation: The agent generates two sets of random strings, SA and SB . It computes the hash values for all strings in SA and stores them in a hash map. Then, it computes hashes for strings in SB and checks for existence in the map. This 
+
+meet-in-the-middle approach efficiently discovers collisions for single-hash checks commonly found in weaker solutions. 
+
+I Case Study 
+
+I.1 A Weak Checker 
+
+In this section, we analyze a weak checker from the problem Codeforces 25_B . The problem al-lows multiple valid output formats, making strict string comparison insufficient. 
+
+I.1.1 Problem: Phone Numbers Description: Given a string of n digits ( 2 ≤ n ≤
+
+100 ), divide it into groups of length 2 or 3, sepa-rated by hyphens (’-’). 
+
+Output Requirements: 
+
+• The output must contain only digits and hy-phens. • Every group must have a length of exactly 2 or 3. • The concatenation of the groups (removing hyphens) must exactly match the original string. 
+
+I.1.2 Vulnerability Analysis 
+
+The original weak checker (Figure 3) attempts to validate the output by splitting the string by hy-phens. However, it lacks robust parsing logic for edge cases: 1. It may crash or misbehave if the output con-tains consecutive hyphens or leading/trailing hyphens. 2. It fails to rigorously check for non-digit char-acters (e.g., whitespace or letters) in some implementations. 2367 Our refined checker (Figure 4) performs character-level validation, ensuring that no illegal charac-ters exist and that the structure strictly follows the grouping rules before content verification. 
+
+I.2 A Wrong Validator 
+
+In this section, we examine a validator flaw in 
+
+Codeforces 309_C . The validator restricts input values more strictly than the problem statement al-lows, causing valid test cases to be rejected. 
+
+I.2.1 Problem: Memory Management Description: You are given an array A of N inte-gers and an array B of M integers. Each element 
+
+bj ∈ B represents a memory block of size 2bj .
+
+Constraints: 
+
+• 1 ≤ N, M ≤ 10 6.• Elements of A: 1 ≤ ai ≤ 10 9.• Elements of B: 0 ≤ bj ≤ 29 . (Crucially, 
+
+20 = 1 is valid). 
+
+I.2.2 Vulnerability Analysis 
+
+The original validator (Figure 5) incorrectly en-forces the range [1 , 60] for array B. This logic explicitly forbids bj = 0 , effectively disallowing memory blocks of size 20 = 1 . However, the prob-lem statement allows bj = 0 . This False Negative error prevents the system from testing edge cases involving the smallest unit of memory, potentially masking bugs in solutions that fail to handle size 1 blocks. Figure 5 shows the original validator code in CodeContest +. In this validator, the program checks the value of each element in b to ensure that 2bj ≤ 10 9. However, the range for bj is incor-rectly limited to [1 , 60] , excluding the case where 
+
+bj = 0 . This results in the rejection of valid test cases where bj = 0 .In our revised version of the validator, shown in Figure 6, we have updated the validator to allow for bj = 0 by adjusting the input range for bj from 
+
+[0 , 60] to [0 , 29] . This change ensures that the case where bj = 0 is now accepted, thus allowing 20 =1 to pass the validation. This adjustment corrects the original validator’s oversight and ensures that all valid test cases are processed correctly. This case study illustrates the importance of properly defining the valid input ranges and cor-ner cases in the validator. The original error high-lights how minor oversights in constraint handling can lead to unnecessary test failures, affecting the overall reliability of the contest system. By fixing this, we ensure that all valid edge cases are prop-erly accepted, making the validator more robust and reliable. 
+
+I.3 Another Wrong Validator 
+
+This case study uses Codeforces 177_C2 to illus-trate a discrepancy where the validator is too per-missive compared to the problem statement, po-tentially leading to Time Limit Exceeded (TLE) on valid solutions. 
+
+I.3.1 Problem: Party Description: A social network with N people. There are k pairs of friends and m pairs of en-emies. Find the maximum size of a valid party group. 
+
+Constraints: 
+
+• N ≤ 2000 .• k ≤ 100 , 000 (The number of friendship pairs). • The graph of friends must be simple (no self-loops, no duplicate edges). 
+
+I.3.2 Vulnerability Analysis 
+
+The problem statement explicitly limits k to 
+
+100 , 000 . However, the maximum possible edges in a graph of N = 2000 nodes is N (N − 1) /2 ≈
+
+2 × 10 6. The original validator (Figure 7) calcu-lates the theoretical maximum edges ( max_edges )and allows k to go up to this value. This means the validator accepts test cases with up to 2 million edges, far exceeding the stated limit of 100,000. Solutions optimized for k = 10 5 (e.g., using ad-jacency lists) might unexpectedly TLE when fed 
+
+2 × 10 6 edges. In our revised version of the validator, shown in Figure 8, we have updated the validator to prop-erly handle the k constraint. Specifically, we now enforce that k cannot exceed 100000 , as stated in the problem description. This ensures that the val-idator only accepts valid test cases and prevents the Time Limit Exceeded (TLE) errors caused by excessively large values of k.This case study highlights the importance of aligning the validator with the problem’s con-straints to avoid unnecessary errors. By ensur-ing that k does not exceed the value of 100,000, as specified in the problem description, we ensure 2368 1 # include " testlib .h"  
+
+> 2
+
+# include < bits / stdc ++. h >  
+
+> 3
+
+using namespace std ;  
+
+> 4
+
+void readAndCheckAnswer ( InStream & stream , const string & pn , const string & who ) { 
+
+> 5
+
+string line = stream . readLine () ;  
+
+> 6
+
+// Remove spaces  
+
+> 7
+
+line . erase ( remove ( line . begin () , line . end () , ’ ’) , line . end () );  
+
+> 8
+
+// Split line into groups on ’-’  
+
+> 9
+
+vector < string > groups ;  
+
+> 10
+
+stringstream ss ( line );  
+
+> 11
+
+string group ;  
+
+> 12
+
+while ( getline (ss , group , ’-’)) { 
+
+> 13
+
+groups . push_back ( group );  
+
+> 14
+
+} 
+
+> 15
+
+// For each group , check that length is 2 or 3 and consists of digits  
+
+> 16
+
+for ( size_t i = 0; i < groups . size () ; ++ i) { 
+
+> 17
+
+if ( groups [i ]. length () < 2 || groups [i ]. length () > 3) { 
+
+> 18
+
+stream . quitf ( _wa , "%s: group %d has invalid length % zu ( should be 2or 3) " , who . c_str () , int (i + 1) , groups [i ]. length () );  
+
+> 19
+
+} 
+
+> 20
+
+if (! all_of ( groups [i ]. begin () , groups [i ]. end () , :: isdigit )) { 
+
+> 21
+
+stream . quitf ( _wa , "%s: group %d contains non - digit characters " , who . c_str () , int (i + 1) );  
+
+> 22
+
+} 
+
+> 23
+
+} 
+
+> 24
+
+// Concatenate all groups and check if it matches pn  
+
+> 25
+
+string reconstructed ;  
+
+> 26
+
+for ( const auto & g : groups ) { 
+
+> 27
+
+reconstructed += g;  
+
+> 28
+
+} 
+
+> 29
+
+if ( reconstructed != pn ) { 
+
+> 30
+
+stream . quitf ( _wa , "%s: concatenated groups do not match original phone number " , who . c_str () );  
+
+> 31
+
+} 
+
+> 32
+
+} 
+
+> 33
+
+int main ( int argc , char * argv []) { 
+
+> 34
+
+registerTestlibCmd ( argc , argv );  
+
+> 35
+
+int n = inf . readInt (2 , 100) ;  
+
+> 36
+
+string pn = inf . readToken ( format (" [0 -9]{% d}" , n) , " phone number ");  
+
+> 37
+
+readAndCheckAnswer ( ans , pn , " jury ’s answer ");  
+
+> 38
+
+readAndCheckAnswer ( ouf , pn , " participant ’s answer ");  
+
+> 39
+
+quitf ( _ok , " Correct answer ");  
+
+> 40
+
+}
+
+Figure 3: Weak Checker in CodeContest + for problem Codeforces 25_B 
+
+that all valid test cases are accepted while prevent-ing performance issues and TLE errors. This ad-justment improves the reliability of the validator and ensures consistency with the problem’s de-fined limits. 2369 1 # include " testlib .h"  
+
+> 2
+
+# include < bits / stdc ++. h >  
+
+> 3
+
+using namespace std ;  
+
+> 4
+
+void readAndCheckAnswer ( InStream & stream , const string & pn , const string & who ) { 
+
+> 5
+
+string line = stream . readLine () ;  
+
+> 6
+
+if ( line . empty () ) { 
+
+> 7
+
+stream . quitf ( _wa , "%s: empty output " , who . c_str () );  
+
+> 8
+
+} 
+
+> 9
+
+// Validate characters : no whitespace allowed , only digits and ’-’  
+
+> 10
+
+for ( size_t i = 0; i < line . size () ; ++ i) { 
+
+> 11
+
+unsigned char uc = static_cast < unsigned char >( line [i ]) ;  
+
+> 12
+
+if ( std :: isspace ( uc )) { 
+
+> 13
+
+stream . quitf ( _wa , "%s: output contains whitespace characters " , who . c_str () );  
+
+> 14
+
+} 
+
+> 15
+
+if ( line [i] != ’-’ && ! std :: isdigit ( uc )) { 
+
+> 16
+
+// Print the offending character ; if non - printable , show its code  
+
+> 17
+
+if ( std :: isprint ( uc )) { 
+
+> 18
+
+stream . quitf ( _wa , "%s: output contains invalid character ’%c ’" , who . c_str () , line [i ]) ;  
+
+> 19
+
+} else { 
+
+> 20
+
+stream . quitf ( _wa , "%s: output contains invalid character with code %d" , who . c_str () , int ( uc ));  
+
+> 21
+
+} 
+
+> 22
+
+} 
+
+> 23
+
+} 
+
+> 24
+
+// Split line into groups on ’-’  
+
+> 25
+
+vector < string > groups ;  
+
+> 26
+
+string cur ;  
+
+> 27
+
+for ( char c : line ) { 
+
+> 28
+
+if (c == ’-’) { 
+
+> 29
+
+groups . push_back ( cur );  
+
+> 30
+
+cur . clear () ;  
+
+> 31
+
+} else { 
+
+> 32
+
+cur . push_back (c);  
+
+> 33
+
+} 
+
+> 34
+
+} 
+
+> 35
+
+groups . push_back ( cur );  
+
+> 36
+
+// For each group , check that length is 2 or 3 and consists of digits  
+
+> 37
+
+for ( size_t i = 0; i < groups . size () ; ++ i) { 
+
+> 38
+
+int len = int ( groups [i ]. length () );  
+
+> 39
+
+if ( len < 2 || len > 3) { 
+
+> 40
+
+stream . quitf ( _wa , "%s: group %d has invalid length %d ( should be 2or 3) " , who . c_str () , int (i + 1) , len );  
+
+> 41
+
+} 
+
+> 42
+
+if (! all_of ( groups [i ]. begin () , groups [i ]. end () , []( char ch ) { return std :: isdigit ( static_cast < unsigned char >( ch )); }) ) { 
+
+> 43
+
+stream . quitf ( _wa , "%s: group %d contains non - digit characters " , who . c_str () , int (i + 1) );  
+
+> 44
+
+} 
+
+> 45
+
+} 
+
+> 46
+
+// Concatenate all groups and check if it matches pn  
+
+> 47
+
+string reconstructed ;  
+
+> 48
+
+for ( const auto & g : groups ) { 
+
+> 49
+
+reconstructed += g;  
+
+> 50
+
+} 
+
+> 51
+
+if ( reconstructed != pn ) { 
+
+> 52
+
+stream . quitf ( _wa , "%s: concatenated groups do not match original phone number " , who . c_str () );  
+
+> 53
+
+} 
+
+> 54
+
+} 
+
+> 55
+
+int main ( int argc , char * argv []) { 
+
+> 56
+
+registerTestlibCmd ( argc , argv );  
+
+> 57
+
+int n = inf . readInt (2 , 100) ;  
+
+> 58
+
+string pn = inf . readToken ( format (" [0 -9]{% d}" , n) , " phone number ");  
+
+> 59
+
+readAndCheckAnswer ( ans , pn , " jury ’s answer ");  
+
+> 60
+
+readAndCheckAnswer ( ouf , pn , " participant ’s answer ");  
+
+> 61
+
+quitf ( _ok , " Correct ");  
+
+> 62
+
+}
+
+Figure 4: Our Checker for problem Codeforces 25_B 2370 1 # include " testlib .h"  
+
+> 2
+
+# include < bits / stdc ++. h >  
+
+> 3
+
+using namespace std ;  
+
+> 4
+
+int main ( int argc , char * argv []) { 
+
+> 5
+
+registerValidation ( argc , argv );  
+
+> 6
+
+int n = inf . readInt (1 , 1000000 , "n");  
+
+> 7
+
+inf . readSpace () ;  
+
+> 8
+
+int m = inf . readInt (1 , 1000000 , "m");  
+
+> 9
+
+inf . readEoln () ;  
+
+> 10
+
+vector < int > a = inf . readInts (n , 1, 1000000000 , " a_i ");  
+
+> 11
+
+inf . readEoln () ;  
+
+> 12
+
+vector < int > b = inf . readInts (m , 1, 60 , " b_j ");  
+
+> 13
+
+inf . readEoln () ;  
+
+> 14
+
+for ( int i = 0; i < m; i ++) { 
+
+> 15
+
+long long s = 1 LL << b[i ];  
+
+> 16
+
+ensuref (s <= 1000000000 LL , " 2^% d is % lld , which is greater than 1 e9 " , b[ i], s);  
+
+> 17
+
+} 
+
+> 18
+
+inf . readEof () ;  
+
+> 19
+
+return 0;  
+
+> 20
+
+}
+
+Figure 5: Wrong Validator in CodeContest +for problem Codeforces 309_C  
+
+> 1
+
+# include " testlib .h"  
+
+> 2
+
+# include < bits / stdc ++. h >  
+
+> 3
+
+using namespace std ;  
+
+> 4
+
+int main ( int argc , char * argv []) { 
+
+> 5
+
+registerValidation ( argc , argv );  
+
+> 6
+
+int n = inf . readInt (1 , 1000000 , "n");  
+
+> 7
+
+inf . readSpace () ;  
+
+> 8
+
+int m = inf . readInt (1 , 1000000 , "m");  
+
+> 9
+
+inf . readEoln () ;  
+
+> 10
+
+vector < int > a = inf . readInts (n , 1, 1000000000 , " a_i ");  
+
+> 11
+
+inf . readEoln () ;  
+
+> 12
+
+vector < int > b = inf . readInts (m , 0, 29 , " b_j ");  
+
+> 13
+
+inf . readEoln () ;  
+
+> 14
+
+inf . readEof () ;  
+
+> 15
+
+return 0;  
+
+> 16
+
+}
+
+Figure 6: Our Corrected Validator for problem Codeforces 309_C 2371 1 # include " testlib .h"  
+
+> 2
+
+# include < bits / stdc ++. h >  
+
+> 3
+
+using namespace std ;  
+
+> 4
+
+int main ( int argc , char * argv []) { 
+
+> 5
+
+registerValidation ( argc , argv );  
+
+> 6
+
+int n = inf . readInt (2 , 2000 , "n");  
+
+> 7
+
+inf . readEoln () ;  
+
+> 8
+
+int64_t max_edges = int64_t (n) * (n - 1) / 2;  
+
+> 9
+
+int k = inf . readInt (0 , max_edges , "k");  
+
+> 10
+
+inf . readEoln () ;  
+
+> 11
+
+set < pair < int , int >> friendship_pairs ;  
+
+> 12
+
+for ( int i = 0; i < k; i ++) { 
+
+> 13
+
+int u = inf . readInt (1 , n , " u_i ");  
+
+> 14
+
+inf . readSpace () ;  
+
+> 15
+
+int v = inf . readInt (1 , n , " v_i ");  
+
+> 16
+
+inf . readEoln () ;  
+
+> 17
+
+ensuref (u != v , "A person cannot be friends with themselves : u =%d , v =% d" , u , v);  
+
+> 18
+
+int x = min (u , v);  
+
+> 19
+
+int y = max (u , v);  
+
+> 20
+
+pair < int , int > p = make_pair (x , y);  
+
+> 21
+
+ensuref ( friendship_pairs . count (p) == 0, " Duplicate friendship pair (%d , %d)" , x , y);  
+
+> 22
+
+friendship_pairs . insert (p);  
+
+> 23
+
+} 
+
+> 24
+
+int m = inf . readInt (0 , max_edges , "m");  
+
+> 25
+
+inf . readEoln () ;  
+
+> 26
+
+set < pair < int , int >> dislike_pairs ;  
+
+> 27
+
+for ( int i = 0; i < m; i ++) { 
+
+> 28
+
+int u = inf . readInt (1 , n , " u_i ");  
+
+> 29
+
+inf . readSpace () ;  
+
+> 30
+
+int v = inf . readInt (1 , n , " v_i ");  
+
+> 31
+
+inf . readEoln () ;  
+
+> 32
+
+ensuref (u != v , "A person cannot dislike themselves : u =%d , v =% d" , u , v);  
+
+> 33
+
+int x = min (u , v);  
+
+> 34
+
+int y = max (u , v);  
+
+> 35
+
+pair < int , int > p = make_pair (x , y);  
+
+> 36
+
+ensuref ( dislike_pairs . count (p) == 0, " Duplicate dislike pair (%d , %d)" , x , y);  
+
+> 37
+
+ensuref ( friendship_pairs . count (p) == 0, " Pair (%d , %d) cannot be both friends and dislike each other " , x , y);  
+
+> 38
+
+dislike_pairs . insert (p);  
+
+> 39
+
+} 
+
+> 40
+
+inf . readEof () ;  
+
+> 41
+
+return 0;  
+
+> 42
+
+}
+
+Figure 7: Wrong Validator in CodeContest +for problem Codeforces 177_C2 2372 1 # include " testlib .h"  
+
+> 2
+
+# include < bits / stdc ++. h >  
+
+> 3
+
+using namespace std ;  
+
+> 4
+
+int main ( int argc , char * argv []) { 
+
+> 5
+
+registerValidation ( argc , argv );  
+
+> 6
+
+int n = inf . readInt (2 , 2000 , "n");  
+
+> 7
+
+inf . readEoln () ;  
+
+> 8
+
+int64_t max_edges = min (100000 ll , int64_t (n) * (n - 1) / 2) ;  
+
+> 9
+
+int k = inf . readInt (0 , max_edges , "k");  
+
+> 10
+
+inf . readEoln () ;  
+
+> 11
+
+set < pair < int , int >> friendship_pairs ;  
+
+> 12
+
+for ( int i = 0; i < k; i ++) { 
+
+> 13
+
+int u = inf . readInt (1 , n , " u_i ");  
+
+> 14
+
+inf . readSpace () ;  
+
+> 15
+
+int v = inf . readInt (1 , n , " v_i ");  
+
+> 16
+
+inf . readEoln () ;  
+
+> 17
+
+ensuref (u != v , "A person cannot be friends with themselves : u =%d , v =% d" , u , v);  
+
+> 18
+
+int x = min (u , v);  
+
+> 19
+
+int y = max (u , v);  
+
+> 20
+
+pair < int , int > p = make_pair (x , y);  
+
+> 21
+
+ensuref ( friendship_pairs . count (p) == 0, " Duplicate friendship pair (%d , %d)" , x , y);  
+
+> 22
+
+friendship_pairs . insert (p);  
+
+> 23
+
+} 
+
+> 24
+
+int m = inf . readInt (0 , max_edges , "m");  
+
+> 25
+
+inf . readEoln () ;  
+
+> 26
+
+set < pair < int , int >> dislike_pairs ;  
+
+> 27
+
+for ( int i = 0; i < m; i ++) { 
+
+> 28
+
+int u = inf . readInt (1 , n , " u_i ");  
+
+> 29
+
+inf . readSpace () ;  
+
+> 30
+
+int v = inf . readInt (1 , n , " v_i ");  
+
+> 31
+
+inf . readEoln () ;  
+
+> 32
+
+ensuref (u != v , "A person cannot dislike themselves : u =%d , v =% d" , u , v);  
+
+> 33
+
+int x = min (u , v);  
+
+> 34
+
+int y = max (u , v);  
+
+> 35
+
+pair < int , int > p = make_pair (x , y);  
+
+> 36
+
+ensuref ( dislike_pairs . count (p) == 0, " Duplicate dislike pair (%d , %d)" , x , y);  
+
+> 37
+
+ensuref ( friendship_pairs . count (p) == 0, " Pair (%d , %d) cannot be both friends and dislike each other " , x , y);  
+
+> 38
+
+dislike_pairs . insert (p);  
+
+> 39
+
+} 
+
+> 40
+
+inf . readEof () ;  
+
+> 41
+
+return 0;  
+
+> 42
+
+}
+
+Figure 8: Our Corrected Validator for problem Codeforces 177_C2 2373 J Case Study: Heuristic Failure in Number Theory 
+
+In this section, we examine a case where a so-lution relies on flawed mathematical heuristics and floating-point arithmetic for a number theory problem. This case study illustrates how Code-Hacker can detect vulnerabilities that arise from false generalizations, which are often missed by weak random test cases. 
+
+J.1 Problem: Quadratic Set 
+
+The problem asks us to find the maximum size subset of {1, 2, . . . , n } such that the product of their factorials is a perfect square. The constraints are n ≤ 10 6.A correct solution typically requires examining the prime factorization of the factorials (specifi-cally the parity of prime exponents) using tech-niques like XOR hashing (Zobrist Hashing). How-ever, the submission below attempts to solve the problem using a greedy heuristic based on n
+
+(mod 4) and simple floating-point square checks. 
+
+J.2 The Vulnerable Submission 
+
+The code in Figure 9 attempts to guess which el-ements to remove (at most 2) to make the prod-uct a square. It relies on the helper function 
+
+is_perfect_square to check conditions derived from loose patterns observed in small numbers. 
+
+J.3 Vulnerability Analysis 
+
+This submission exhibits a Logic Error rooted in a False Generalization .• Mathematical Flaw: The condition ∏ ai! = 
+
+k2 depends on the parity of prime factors. The code tries to satisfy this by checking if specific arithmetic combinations of N (e.g., 
+
+N + 2 or N (N/ 2 − 1) ) are perfect squares. There is no number-theoretic basis guaran-teeing that these specific checks cover all cases where the factorial product becomes a square. • Floating Point Risk: The use of 
+
+remainderf and pow/sqrt introduces precision risks, although the primary failure here is logical. 
+
+The Hack. Standard small test cases often sat-isfy the modulo patterns hardcoded in the solu-tion. However, CodeHacker’s Stress Test module, configured to explore high-magnitude inputs with specific prime properties, identifies N = 998787 
+
+as a failure case. For N = 998787 , the code en-ters the else branch ( 998787 (mod 4) = 3 ). The heuristics fail to find the optimal removal set, or incorrecty identify the removal set due to the lack of rigor in the ‘is_perfect_square‘ logic applied to non-factorial numbers. The correct solution re-quires a hashing approach to track the parity of prime factors up to N , which this code completely lacks. 2374 1 # include < bits / stdc ++. h >  
+
+> 2
+
+using namespace std ;  
+
+> 34
+
+// Flaw 1: Floating point precision issues and logic error  
+
+> 5
+
+// This function checks if a number is a perfect square using sqrt  
+
+> 6
+
+// which is unreliable for large integers and irrelevant for the  
+
+> 7
+
+// factorial product property required by the problem .  
+
+> 8
+
+bool is_perfect_square ( unsigned long long int n) { 
+
+> 9
+
+if ( pow (( long int )( sqrt (n)) , 2) == n) { 
+
+> 10
+
+return true ; 
+
+> 11
+
+} 
+
+> 12
+
+return false ; 
+
+> 13
+
+} 
+
+> 14 15
+
+void solve () { 
+
+> 16
+
+unsigned long int n;  
+
+> 17
+
+cin >> n;  
+
+> 18
+
+vector < unsigned long int > arr = {};  
+
+> 19
+
+unsigned long int halfi = ( long int )n / 2;  
+
+> 20 21
+
+// Flaw 2: Heuristic logic based on modulo 4 
+
+> 22
+
+// The code assumes that the set of removed numbers can always  
+
+> 23
+
+// be found among { halfi , n , halfi +1 , 2, ...} based on n % 4.  
+
+> 24
+
+// This generalization holds for small N but fails for complex cases .  
+
+> 25
+
+unsigned long long int asdf = ( unsigned long long int )2 * ( halfi ) * ( halfi -1) ;  
+
+> 26 27
+
+if ( remainderf (n , 4) == 0) { 
+
+> 28
+
+arr = { halfi };  
+
+> 29
+
+} else if (n == 1) { 
+
+> 30
+
+arr = {};  
+
+> 31
+
+} else if ( remainderf (n , 4) == 1) { 
+
+> 32
+
+arr = { halfi , n };  
+
+> 33
+
+} else if (( n % 4) == 2) { 
+
+> 34
+
+if ( is_perfect_square (( unsigned long long int )(n + 2) ))  
+
+> 35
+
+arr = { halfi + 1};  
+
+> 36
+
+else if ( is_perfect_square (( unsigned long long int )(n * ( halfi - 1) )))  
+
+> 37
+
+arr = { halfi - 2};  
+
+> 38
+
+else  
+
+> 39
+
+arr = { halfi , 2};  
+
+> 40
+
+} else { 
+
+> 41
+
+// This branch handles n % 4 == 3 
+
+> 42
+
+if ( is_perfect_square (( unsigned long long int )(n + 1) ))  
+
+> 43
+
+arr = { halfi + 1, n };  
+
+> 44
+
+else if ( is_perfect_square ( asdf ))  
+
+> 45
+
+arr = {n , halfi - 2};  
+
+> 46
+
+else if ( is_perfect_square (( halfi - 1) * n))  
+
+> 47
+
+arr = { halfi - 2, n - 2};  
+
+> 48
+
+else  
+
+> 49
+
+arr = {2 , halfi , n };  
+
+> 50
+
+} 
+
+> 51 52
+
+vector < int > ans = {};  
+
+> 53
+
+for ( int i = 1; i < n + 1; i ++) { 
+
+> 54
+
+if ( find ( arr . begin () , arr . end () , i) == arr . end () ) ans . push_back (i);  
+
+> 55
+
+} 
+
+> 56
+
+cout << ans . size () << endl ;  
+
+> 57
+
+for ( int el = 0; el < ans . size () ; el ++) { 
+
+> 58
+
+cout << ans [ el ] << ’ ’;  
+
+> 59
+
+} 
+
+> 60
+
+cout << endl ;  
+
+> 61
+
+} 
+
+> 62 63
+
+int main () { 
+
+> 64
+
+solve () ;  
+
+> 65
+
+return 0;  
+
+> 66
+
+}
+
+Figure 9: Submission for "Quadratic Set" using flawed heuristics. 2375 K Case Study: Logical Oversight in Construction 
+
+In this section, we present a successful hack gen-erated by CodeHacker against a heuristic solu-tion for Codeforces 1388A . This case illustrates how the agent identifies corner cases where a greedy construction strategy violates distinctness constraints. 
+
+K.1 Problem: Captain Flint and Crew Recruitment Description: Given an integer N , represent it as the sum of 4 distinct positive integers, such that at least 3 of them are "nearly prime". 
+
+Definitions: 
+
+• A number is "nearly prime" if it is the product of two distinct prime numbers (e.g., 6 = 2 · 3,
+
+10 = 2 · 5, 14 = 2 · 7). 
+
+K.2 Vulnerability Analysis 
+
+The submitted code (Figure 10) adopts a static greedy strategy. It always attempts to use the three smallest nearly primes: 6, 10, and 14. Their sum is 30 . The code logic sets the fourth number to be 
+
+x = N − 30 .
+
+The Flaw: The problem requires all 4 integers to be different . The code fails to check if the cal-culated fourth number x coincides with one of the fixed numbers {6, 10 , 14 }.• If x = 6 = ⇒ N = 36 , output is 6 10 14 6 
+
+(Duplicate 6). • If x = 10 =⇒ N = 40 , output is 6 10 14 10 (Duplicate 10). • If x = 14 =⇒ N = 44 , output is 6 10 14 14 (Duplicate 14). CodeHacker successfully identified these collision points and generated the adversarial inputs N ∈{36 , 40 , 44 }.
+
+Correct Approach: A robust solution must han-dle these collisions. For example, if N − 30 
+
+causes a collision (e.g., N = 36 ), one can replace the fixed set {6, 10 , 14 } (sum 30) with {6, 10 , 15 }
+
+(sum 31), making the fourth number N − 31 . For 
+
+N = 36 , this yields 6 10 15 5, which are all distinct. 2376 1 # include < bits / stdc ++. h >  
+
+> 2
+
+using namespace std ;  
+
+> 34
+
+int main () { 
+
+> 5
+
+int t; cin >> t;  
+
+> 6
+
+while (t - -) { 
+
+> 7
+
+int n; cin >> n;  
+
+> 8
+
+// The code correctly identifies that any N <= 30 is impossible  
+
+> 9
+
+// because 6+10+14+1 = 31 is the minimum possible sum .  
+
+> 10
+
+if (n < 31) { 
+
+> 11
+
+cout << " NO \n";  
+
+> 12
+
+} else { 
+
+> 13
+
+cout << " YES \n";  
+
+> 14
+
+// BUG : This construction assumes the 4 th number (n -30)  
+
+> 15
+
+// will never collide with 6, 10 , or 14.  
+
+> 16
+
+// For N =36 , it prints "6 10 14 6" , which has duplicates .  
+
+> 17
+
+cout << "6 10 14 " << n - 30 << "\n";  
+
+> 18
+
+} 
+
+> 19
+
+} 
+
+> 20
+
+}
+
+Figure 10: The vulnerable submission fails to handle collision cases. 2377 L Prompt Templates 
+
+In this section, we present some prompt templates. 
+
+Checker Hack Generator Prompt 
+
+Please review the provided checker code and identify logical flaws. Each flaw should target a different logical issue that causes the checker to incorrectly judge the output. 
+
+# Inputs Problem Description: {problem_description} 
+
+Checker Code: {checker_code} 
+
+# Reasoning Steps 
+
+1. Understand Requirements : Analyze the problem to determine if multiple valid solutions are allowed (Special Judge). 2. Analyze Checker Logic : Look for missing checks (too permissive) or overly rigid comparisons against standard output (too strict). 3. Construct Hack :• False Positive : Construct an invalid output that the checker accepts. • False Negative : Construct a valid alternative output (different from std) that the checker rejects. 4. Verify : Ensure your constructed output strictly follows the format. 
+
+# Target Bug Types Type 1: False Positive (Too Permissive) 
+
+The checker wrongly ACCEPTS an invalid output. 
+
+Type 2: False Negative (Too Strict) 
+
+The checker wrongly REJECTS a valid output. This often happens when the checker requires the output to be identical to the standard solution, ignoring other valid permutations or solutions. 
+
+# Output Format (JSON)  
+
+> 1
+
+{ 
+
+> 2
+
+" test_cases ": [ 
+
+> 3
+
+{ 
+
+> 4
+
+" strategy ": " Checker ignores array sorting ( False Positive )",  
+
+> 5
+
+" bug_type ": " false_positive ",  
+
+> 6
+
+" test_input ": "< INPUT >" ,  
+
+> 7
+
+" fake_output ": "< WRONG_OUTPUT_ACCEPTED >"  
+
+> 8
+
+},  
+
+> 9
+
+{ 
+
+> 10
+
+" strategy ": " Checker rejects valid reverse order ( False Negative )",  
+
+> 11
+
+" bug_type ": " false_negative ",  
+
+> 12
+
+" test_input ": "< INPUT >" ,  
+
+> 13
+
+" fake_output ": "< VALID_ALT_OUTPUT_REJECTED >"  
+
+> 14
+
+} 
+
+> 15
+
+] 
+
+> 16
+
+}
+
+Validator Hack Generator Prompt 
+
+Please review the provided validator code and identify logical flaws. Each flaw should target a different logical issue that causes the validator to incorrectly judge the input case. 
+
+# Inputs Constraints Description: {problem_description} (Focus on Input Format and Data Ranges) 
+
+Validator Code: {validator_code} 
+
+# Reasoning Steps 
+
+1. Extract Constraints : List every constraint from the text (e.g., 1 ≤ N ≤ 10 5, graph is connected, no duplicate edges). 2. Audit Code : Check if the Validator enforces each constraint using ensuref() or strict reading methods. 3. Construct Hack :2378 • Type 1 (False Positive) : Generate an ILLEGAL input that the Validator likely ACCEPTS (e.g., Validator uses int but input is 10 10 ). • Type 2 (False Negative) : Generate a LEGAL input that the Validator likely REJECTS (e.g., Validator checks 
+
+N < 100 but text says N ≤ 100 ). 
+
+# Bug Types False Positive (Too Loose) The Validator accepts an input that violates the constraints. (This is dangerous as it crashes solutions). 
+
+False Negative (Too Strict) The Validator rejects a perfectly valid input. 
+
+# Output Format (JSON)  
+
+> 1
+
+{ 
+
+> 2
+
+" test_cases ": [ 
+
+> 3
+
+{ 
+
+> 4
+
+" strategy ": " The problem requires a DAG ( no cycles ) , but the validator only checks connectivity . This input contains a cycle ." ,  
+
+> 5
+
+" bug_type ": " false_positive ",  
+
+> 6
+
+" test_input ": "3 3\n1 2\n2 3\n3 1",  
+
+> 7
+
+" expected_validity ": " invalid " // This input SHOULD be invalid  
+
+> 8
+
+} 
+
+> 9
+
+] 
+
+> 10
+
+}
+
+Code Analyst System Prompt 
+
+You are an expert Code Auditor for Competitive Programming. Your goal is to identify bugs (WA, TLE, RE, MLE) in a C++ submission by interacting with an execution environment. 
+
+# Communication Protocol This is a multi-turn dialogue. In each turn, you must output a **Thought** followed by a **Tool Call** (or a Final Report). The system will execute your tool and return the [Tool Output] in the next message. 
+
+# Available Tools 
+
+run_python(script_code) 
+
+Executes arbitrary Python code . You can use loops ( for/while ), define functions, imports (math, itertools), etc. 
+
+run_cpp(input_content) 
+
+Compiles and runs the target C++ code with the provided input_content (string). Returns: stdout , stderr , and 
+
+ExitCode .
+
+finish(code_analysis_report) 
+
+Submits the final vulnerability report. 
+
+# One-Shot Example User: Problem: Sum of squares 12 + · · · + N 2. N ≤ 10 6. Code uses int . Assistant: Thought: The formula is N (N + 1)(2 N + 1) /6. I need to check if N = 10 6 overflows a 32-bit signed int ( 2 × 10 9). 
+
+Call: 
+
+run_python (""" sum = 0for i in range (1 , 10000001) : sum += i * iprint ( sum ) """) 
+
+User: [Tool Output] 333333833333500000 
+
+Assistant: Thought: The result is ≈ 3.3 × 10 17 , which far exceeds 2 × 10 9. This confirms Overflow. Now I’ll probe the code with a small case to see if logic is correct otherwise. Expected: 12 + 2 2 + 3 2 = 14 .Call: run_cpp("3") 
+
+User: [Tool Output] Stdout: "14", ExitCode: 0 
+
+Assistant: Thought: Small case works, but large case will definitely overflow. Call: finish("The code implements the summation formula correctly but risks overflow for N
+
+close to upper bounds. While N = 10 6 fits, any intermediate calculation without modulo might exceed limits. The vulnerability is Integer Overflow on large inputs.") 2379 # Your Task Problem: {problem_description} 
+
+Code: {target_code} 
+
+Stress Test Generator Prompt 
+
+You are an expert in Competitive Programming. Your task is to write a **Randomized Test Case Generator** in C++. This generator will be used for "Stress Testing" (Fuzzing) a target solution. 
+
+# Problem Description 
+
+{problem_description} 
+
+# Your Task 
+
+Write a complete C++ program that prints a SINGLE valid test case to standard output. 
+
+# Requirements for the Generator Code: 
+
+1. Randomization : Initialize the random seed using mt19937 rng(chrono::steady_clock::now().time_since_epoch().count()); 
+
+or srand(time(0)) .2. Validity : The output MUST strictly follow the problem’s input format and constraints (e.g., if the graph must be a tree, ensure no cycles and connectivity). 3. Scale : Bias the generation towards large inputs (close to the maximum N ) to test for Time Limit Exceeded (TLE) errors, but occasionally generate small edge cases. 4. Robustness : Avoid undefined behavior in your generator (e.g., ensure rand() % 0 never happens). 
+
+# Helper Functions Recommendation 
+
+You may define helper functions like long long rand(long long a, long long b) to generate numbers in range [a, b ].
+
+# Output Format 
+
+Provide ONLY the C++ code block. Start with #include <bits/stdc++.h> .
+
+Generator Prompt: Bug Discovery & Test Case Generation 
+
+You are an expert in competitive programming. Your task is to find a bug in the following code and generate a test case that will expose it. 
+
+# Problem Description: 
+
+{problem_description} 
+
+# Incorrect Code:  
+
+> 1
+
+{ incorrect_code } 
+
+# Hash Collision Data (Optional): 
+
+Our anti-hash generator has found two strings which have same hash values. {Hash Collision Data} 
+
+### Your Task Construct a test case (input) that: 
+
+1. Satisfies all the constraints of the original problem 2. Will cause the buggy implementation to produce an incorrect result 
+
+3. A correct solution would handle properly 
+
+### Types of Errors to Target 
+
+The buggy code may fail in one of these ways: • WA (Wrong Answer) : Produces incorrect output due to logical errors, wrong algorithms, or edge case mishandling • TLE (Time Limit Exceeded) : Takes too long to execute, often due to inefficient algorithms or infinite loops • MLE (Memory Limit Exceeded) : Requires too much memory space, often due to increasing space needed in the program. • RE (Runtime Error) : Crashes during execution due to array out of bounds, division by zero, stack overflow, etc. Your test case should be designed to trigger one of these error types. 
+
+# Output Format: 
+
+Provide a complete C++ program that generates the test input. The program should: • Always include bits/stdc++.h first • Have a main() function that outputs the test case 2380 • Follow the input format specified in the problem 
+
+### Example Output Format 
+
+Your generator can be as simple or complex as needed. Here are examples: 
+
+Simple Example (Direct Output):  
+
+> 1
+
+# include < bits / stdc ++. h >  
+
+> 2
+
+using namespace std ;  
+
+> 34
+
+int main () { 
+
+> 5
+
+// Bug : code assumes n <= 1000 , but constraint allows up to 10^5  
+
+> 6
+
+// This test case uses n = 100000 to trigger array overflow  
+
+> 7
+
+cout << " 100000 " << endl ;  
+
+> 8
+
+return 0;  
+
+> 9
+
+}
+
+Complex Example (Algorithmic Generation):  
+
+> 1
+
+# include < bits / stdc ++. h >  
+
+> 2
+
+using namespace std ;  
+
+> 34
+
+int main () { 
+
+> 5
+
+// Bug : O(n ^2) algorithm will TLE on large inputs  
+
+> 6
+
+// Generate maximum size test case with worst - case pattern  
+
+> 7
+
+int n = 200000;  
+
+> 8
+
+cout << n << endl ;  
+
+> 910
+
+// Generate adversarial pattern : descending order  
+
+> 11
+
+for ( int i = n; i >= 1; i - -) { 
+
+> 12
+
+cout << i;  
+
+> 13
+
+if (i > 1) cout << " ";  
+
+> 14
+
+} 
+
+> 15
+
+cout << endl ;  
+
+> 16
+
+return 0;  
+
+> 17
+
+}
+
+Note: Your generator can include loops, conditionals, calculations, or any logic needed to construct the test case. 
+
+### Additional Guidelines 
+
+1. Analyze the bug : First identify what type of bug exists (Logic errors → WA, Inefficient loops → TLE, etc.) 2. Target the weakness : Design your test case to specifically trigger that bug 3. Stay within constraints : Your test case must be valid according to the problem constraints 4. Maximize impact : Choose values that make the error obvious and deterministic 
+
+Now, write the C++ generator based on this advice. Think step by step. 
+
+Anti-Hash Generator 
+
+You are a Cryptanalysis and Competitive Programming Expert specializing in **Hash Collisions**. Your target is to break a solution that uses **Polynomial Rolling Hash** by generating two different strings with the same hash value (Collision). 
+
+# Workflow 
+
+1. Identify Hashing : Locate the hash calculation logic (usually h = (h * B + c) % M ). 2. Extract Parameters :• Base (B) : The multiplier (e.g., 31, 131, 13331, or a random value). • Modulus (M) : The modulo (e.g., 10 9 + 7 , 10 9 + 9 ). • Character Set (C) : The valid alphabet (e.g., ’a’-’z’). • Mapping (C) : The character-to-integer conversion logic (e.g., s[i] - ’a’ + 1 or raw ASCII values). • Note : If the code uses unsigned long long without explicit modulo, M = 2 64 .
+
+# Input Problem: {problem_description} 
+
+Code: {target_code} 
+
+# Output Format (JSON) 2381 1 { 
+
+> 2
+
+" vulnerability_type ": " Hash Collision ",  
+
+> 3
+
+" hash_parameters ": { 
+
+> 4
+
+" base ": " List of Integer (e.g., [131 , 13331 ]) ",  
+
+> 5
+
+" modulus ": " List of Integer or expression ( corresponding one -to - one with base , e.g., [998244353 , 2^64 ]) ",  
+
+> 6
+
+" character set ": "a ,b ,c ,... , x ,y ,z",  
+
+> 7
+
+" mapping ": "{ ’a ’: 1 ,’b ’: 2 ,...}"  
+
+> 8
+
+} 
+
+> 9
+
+}2382

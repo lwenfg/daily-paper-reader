@@ -1,0 +1,363 @@
+Title: AP2O-Coder: Adaptively Progressive Preference Optimization for Reducing Compilation and Runtime Errors in LLM-Generated Code
+
+URL Source: https://ojs.aaai.org/index.php/AAAI/article/download/40771/44732
+
+Number of Pages: 9
+
+Markdown Content:
+# AP2O-Coder: Adaptively Progressive Preference Optimization for Reducing Compilation and Runtime Errors in LLM-Generated Code 
+
+## Jianqing Zhang 1* , Wei Xia 2† , Hande Dong 2, Qiang Lin 2, Jian Cao 1† 
+
+> 1
+
+Shanghai Jiao Tong University 
+
+> 2
+
+Tencent tsingz@sjtu.edu.cn, xwellxia@tencent.com, cao-jian@sjtu.edu.cn 
+
+Abstract 
+
+LLMs’ code generation capabilities have yielded substan-tial improvements in the effectiveness of programming tasks. However, LLM-generated code still suffers from compilation and runtime errors. Existing preference optimization meth-ods primarily focus on enhancing LLMs’ coding abilities using pass/fail signals in the preference data, overlooking the deep-level error types in the failed codes. To address this, we propose Adaptively Progressive Preference Opti-mization ( AP2O ) for coding ( i.e ., AP2O-Coder ), a method that guides LLMs adaptively and methodically to reduce code errors for code generation. Specifically, we construct an er-ror notebook from failed codes and progressively optimize the LLM to correct errors type by type. Furthermore, we adaptively replay error types to tailor to the LLM’s evolving weaknesses throughout training. Through extensive experi-ments on both code and general LLMs (Llama, Qwen, and DeepSeek series) with parameters ranging from 0.5B to 34B, our AP2O-Coder improves code generation performance by up to 3% in pass @k while using less preference data. 
+
+Code — https://github.com/TsingZ0/AP2O 
+
+## Introduction 
+
+Among all the capabilities of large language models (LLMs), code generation is one of the most attractive abili-ties (Sheokand and Sawant 2025; Dou et al. 2024). However, LLM-generated code still suffers from compilation and run-time errors (Tambon et al. 2025), such as SyntaxError 
+
+and TypeError . Reinforcement Learning with Verifiable Rewards (RLVR) is a powerful technique for post-training to correct pre-trained LLMs’ weaknesses, particularly in the code domain (Yue et al. 2025; Zhao et al. 2025; Wang et al. 2025). It only requires the problem prompts and unit tests to construct training data, with no need for output answers (codes). The LLM can self-generate multiple answers for each problem and use the corresponding unit tests to ver-ify the correctness of these answers, automatically obtaining pass/fail signals (Liu et al. 2024). 
+
+> *
+
+Work done during the internship at Tencent 
+
+> †
+
+Corresponding authors. Copyright © 2026, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved. 
+
+Nevertheless, online RL approaches are unstable dur-ing training due to the changing models or environments (Moskovitz et al. 2024). As an offline method, Direct Pref-erence Optimization (DPO) (Rafailov et al. 2023) was in-troduced as a more stable alternative that does not require reward models and can be easily applied with verifiable re-wards. However, DPO and its variants (Liu et al. 2025a; Pattnaik et al. 2024; Meng, Xia, and Chen 2024; Croitoru et al. 2025) with identical data utilization exhibit three key shortcomings in reducing self-generated code errors: (1) un-awareness of code errors , as preference data is constructed solely from pass/fail signals; (2) inability to focus on specific error types , since errors appear randomly in each training batch; and (3) neglect of the LLM’s changing weaknesses ,as DPO samples preference data only once, and the static training set is pre-constructed, failing to adapt to the LLM’s updating ability during training process. To address these issues, we propose Adaptively Progres-sive Preference Optimization ( AP2O ), which consists of pro-gressive preference optimization and adaptive error replay 
+
+modules. We integrate AP2O into the code LLM training and sandbox evaluation pipeline, creating our AP2O-Coder .Inspired by human error correction practices (Xu 2023), we treat the acquisition of only pass/fail signals in exist-ing DPO-based methods as taking exams , akin to grading exam papers. In DPO-based methods, LLMs are guided to reduce failed answers solely based on these pass/fail signals, making it difficult for the model to understand why, where, and how it fails. Therefore, our AP2O-Coder first ana-lyzes the failed answers in the exam using a programming-language-specific analyzer ( e.g ., a Python interpreter), act-ing as an expert. After analyzing, we organize the errors into an error notebook, ordered by error frequency (ascending or descending). To mimic human correction practices and en-hance code error correction effectiveness, we correct errors type by type based on this error notebook within the progres-sive preference optimization module. During the correction 
+
+process, as the LLM is updated at each training step, the pre-viously collected error notebook may no longer fit its current weaknesses. To mitigate this, we introduce the adaptive er-ror replay module, which periodically evaluates the LLM on a small validation set, akin to taking small quizzes . This process identifies the error types in the LLM’s current failed answers and replays these error types, enabling the LLM to The Fortieth AAAI Conference on Artificial Intelligence (AAAI-26) 
+
+34701 better focus on and correct them. Through the systematic process of exam , analysis , correc-tion , and quiz , our AP2O-Coder outperforms five state-of-the-art baselines by up to 3% in pass @k on EvalPlus (Liu et al. 2023) and LiveCodeBench v6 (Jain et al. 2024). This improvement is achieved across code and general LLMs, in-cluding CodeLlama (Roziere et al. 2023), DeepSeek-Coder (Guo et al. 2024), Qwen2.5-Coder (Hui et al. 2024), Llama3 (Grattafiori et al. 2024), Qwen2.5 (Qwen Team 2024), and Qwen3 (Yang et al. 2025), with parameter sizes ranging from 0.5B to 34B. We also find that progressing from low-to-high (L2H) error frequency is better for small models (e.g ., 0.5B), while high-to-low (H2L) progression is more effective for large models ( e.g ., 34B). Our AP2O-Coder 
+
+also requires a smaller amount of preference data, thanks to its organized and adaptive data utilization. Below, we summarize our contributions: • We analyze existing offline preference optimization methods in reducing LLM-generated code errors and identify three shortcomings: (1) inability to focus on spe-cific errors, (2) erratic error identification, and (3) neglect of the LLM’s changing weaknesses. • We propose AP2O-Coder , with AP2O as its core, to ad-dress these shortcomings by devising progressive prefer-ence optimization and adaptive error replay modules with a systematic process of exam, analysis, correction, and quiz, mimicking human error correction practices. • We evaluate AP2O-Coder on EvalPlus and Live-CodeBench, using various LLM types and sizes ranging from 0.5B to 34B parameters, demonstrating up to 3% improvement in pass @k over baselines. 
+
+## Related Work 
+
+Post-Training for Code Generation 
+
+LLM is becoming an essential tool and valuable companion for programming tasks, especially with the rise of code gen-eration capabilities (Cursor 2025; Anthropic 2025). There are three main post-training techniques for code genera-tion tasks: (1) instruction tuning (Ma et al. 2024; Weyssow et al. 2023), (2) model distillation (Chen et al. 2023; Sun et al. 2024), and (3) reinforcement learning (RL) (Mu et al. 2024; Gehring et al. 2025). Instruction tuning is a founda-tional approach for post-training tasks (Lai et al. 2025), but it heavily depends on high-cost expert-written annotations, such as problem-code pairs for code generation (Wu et al. 2025). Although model distillation mitigates this by lever-aging existing high-performance models, it suffers from is-sues like error propagation and data leakage (Lei and Tao 2023). RL with human feedback (RLHF (Kirk et al. 2024)) is another approach, though RLHF can be biased and con-flicting (Xiao et al. 2024a; Cheng et al. 2024). In contrast, RL with verifiable rewards (RLVR (Zhao et al. 2025)) has garnered increasing attention in recent years. While online RL suffers from instability caused by model and environ-ment shifts during training (Moskovitz et al. 2024), offline methods—especially offline preference optimization—offer greater stability when managing self-generated code errors. Hence, this paper focuses on offline preference optimization. 
+
+Offline Preference Optimization 
+
+There are a few offline preference optimization methods specifically proposed or evaluated for coding tasks (Liu et al. 2025a; Da et al. 2025), with most research focused on math-ematical tasks (Liu et al. 2025b). In this work, we review general offline preference optimization methods, particu-larly those related to data utilization. These can be catego-rized into two main approaches: (1) dynamic sampling (Rao et al. 2025; Gee et al. 2025) and (2) curriculum learning (Pat-tnaik et al. 2024; Shi et al. 2025; Hou 2025; Li and Zhang 2025). Dynamic sampling methods mainly focus on resam-pling or active learning. Most resampling approaches require complex data quality criteria (Hu et al. 2024) or auxiliary models (Huang et al. 2025), limiting their utility. Active learning approaches (Muldrew et al. 2024; Xia et al. 2025) typically require re-training after each data selection step or rely on external large oracle LLMs ( e.g ., GPT-4 (Achiam et al. 2023)), resulting in high costs. On the other hand, cur-riculum learning requires easy/hard task criteria (Lin, Mi, and Gao 2025), which are often absent and difficult to estab-lish, particularly in complex post-training tasks like correct-ing self-generated code errors. 
+
+## Preliminaries 
+
+Problem Formulation 
+
+For the code generation tasks, we are given problem prompts and unit tests. Then, preference data P = {< x, y w, y l >1
+
+, < x, y w, y l >2, . . . } can be constructed by any LLM itself, where x represents any problem prompt, yw is the preferred answer, and yl is the rejected answer w.r.t . the given x.Our objective is to design an offline preference optimiza-tion method L that optimizes a pre-trained LLM θ to correct self-generated compilation and runtime errors and enhance its code generation ability. Formally, our problem is defined as: θ⋆ ← arg min L(θ; P).
+
+Direct Preference Optimization 
+
+Among offline preference optimization methods, DPO (Rafailov et al. 2023) is both fundamental and widely used, so we begin with it. DPO does not require a critic model and a reward model. Instead, it directly leverages the contrastive relationships among preference pairs from P. Based on the Bradley-Terry model (Bradley and Terry 1952), preference probability model that yw is preferred over yl is 
+
+P (yw ≻ yl|x) = σ
+
+
+
+β log π∗(yw|x)
+
+πref (yw|x) − β log π∗(yl|x)
+
+πref (yl|x)
+
+
+
+,
+
+(1) where σ(·) is the sigmoid function, β > 0 is a hyperparame-ter, π∗ is the optimal policy, and πref is the reference policy. The sample-level DPO loss function used to optimize the policy πθ , parameterized by the LLM θ, is defined as 
+
+ℓDPO (θ; x,y w, y l) = 
+
+− log σ
+
+
+
+β log πθ (yw|x)
+
+πref (yw|x) − β log πθ (yl|x)
+
+πref (yl|x)
+
+
+
+. (2) The DPO objective over the entire preference dataset P is to minimize the following loss function: 
+
+LDPO (θ; P) = E(x,y w ,y l)∼P [ℓDPO (θ; x, y w, y l)] . (3) 34702 Method 
+
+Motivation 
+
+Upon further analysis of the sample-level (Eq. (2)) and dataset-level (Eq. (3)) DPO loss functions, we identify three key shortcomings for DPO in correcting LLM-generated code errors: 1. Unawareness of code errors. Unit tests can easily iden-tify passed and failed answers, forming chosen ( yw) and rejected ( yl) pairs. However, there is no clear criterion to assign proper (negative) rewards to different error types (e.g ., KeyError vs. TypeError ), and constructing chosen-rejected pairs specifically for code error correc-tion becomes challenging. Moreover, it’s difficult to as-sess which errors are easier or harder to correct, render-ing curriculum DPO variants inapplicable .2. Inability to focus on specific error types. DPO con-structs a static preference dataset P by randomly shuf-fling, optimizing Eq. (3) batch by batch. This leads the LLM to encounter unpredictable error types, causing confusion in code error correction. 3. Neglect of the LLM’s changing weaknesses. Optimiz-ing over uniformly scattered preference pairs overlooks the LLM’s changing weaknesses. This also leads to inef-ficient training, wasted effort on irrelevant samples, and, in the worst case, degradation of the LLM’s existing ca-pabilities. To address these shortcomings, inspired by human er-ror correction practices (Yang et al. 2021), we propose 
+
+AP2O-Coder for AI coding tasks to: (1) construct an er-ror notebook by collecting and analyzing errors, (2) guide the LLM to focus on correcting errors type by type, and (3) adaptively adjust the focus through small quizzes to fit the LLM’s current capacity. 
+
+Overview 
+
+Our AP2O-Coder enhances any LLM based on its initial personalized coding ability by having it generate code for problem prompts across M problems, akin to taking exams; we then give pass/fail signals to the answers (codes) using unit tests. We further analyze these errors by counting the frequency of different errors to create an error notebook. Based on this error notebook, AP2O-Coder improves the LLM by progressively guiding it to correct errors (via pro-gressive preference optimization) and reinforcing running errors with small quizzes (via adaptive error replay). Specif-ically, AP2O-Coder consists of four steps: (1) code an-swer generation (exam) , (2) error diagnosis (analysis) , (3) 
+
+progressive preference optimization (correction) , and (4) 
+
+adaptive error replay (quiz) . Our core AP2O consists of two key steps: correction and quiz .
+
+Code Answer Generation (Exam) 
+
+Initially, to assess a given LLM’s baseline ability for sub-sequent targeted and personalized correction, we have the LLM take exams on M coding problems {xm}Mm=1 and evaluate its answers using the corresponding multiple unit tests {(ut 1, ut 2, . . . )m}Mm=1 . Since it is difficult to gather 
+
+Figure 1: The illustration of our AP2O-Coder includes four steps: (1) code answer generation (exam), (2) error di-agnosis (analysis), (3) progressive preference optimization (correction), and (4) adaptive error replay (quiz). a sufficient number of high-quality coding problems with unit tests, our AP2O-Coder allow the LLM θ to gener-ate N answers (using a high temperature value 1) for each problem to thoroughly explore the LLM’s capability limits. Subsequently, our AP2O-Coder obtains the grading results (pass or fail) for each problem, which serve as the inter-mediate LLM-generated preference data, denoted as Dtr =
+
+{(x,y1 
+
+> p
+
+, . . . , y Np 
+
+> p
+
+, y 1 
+
+> f
+
+, . . . , y Nf 
+
+> f
+
+)m}Mm=1 , where p and f are short for passed and failed, respectively, and Np + Nf = N .Formally, we have 
+
+Dtr = Γ( θ; {xm}Mm=1 , {(ut 1, ut 2, . . . )m}Mm=1 ), (4) where we use Γ( ·) to represent the exam procedure. We il-lustrate this procedure by the Exam part in Figure 1. 
+
+Error Diagnosis (Analysis) 
+
+Simply knowing whether an answer is correct or incorrect does not provide enough information for the LLM to im-prove itself, especially on complex tasks like code error correction. Inspired once again by human error correction practices (Xu 2023), we propose diagnosing failed answers through detailed error type analysis and organizing them into an error notebook . However, the challenge lies in the need for an analyzer (expert) to perform the error diagnosis. Fortunately, in domains like Python coding, interpreters can serve as experts, efficiently analyzing various errors with minimal effort. Specifically, we run the failed answers through a programming-language-specific analyzer, denoted as Ψ( ·), to obtain detailed error type information. Formally,   
+
+> 1Following the widely used temperature setting for exploration (Shao et al. 2024), our AP2O-Coder set it to 1.0. 34703
+
+our AP2O-Coder annotates the original ym,n f with its cor-responding ErrorType (E) tag: 
+
+ym,n E = Ψ( ym,n f ), ∀n ∈ [N mf ], m ∈ [M ]. (5) Thus, we obtain a new error-notebook-structured Dtr , repre-sented as 
+
+Dtr = {(x,{ynp }Np
+
+> n=1
+
+, {ynE }Nf
+
+> n=1
+
+)m}Mm=1 , (6) where the error frequency for each error type is also counted, as shown by the Analysis part in Figure 1. Note that high-frequency errors are not necessarily easy or hard to solve. A high-frequency error, e.g ., a SyntaxError , may be easy for the LLM to correct, and once addressed, this error can be swiftly eliminated across massive problems and answers. 
+
+Progressive Preference Optimization (Correction) 
+
+However, it remains challenging for the LLM to learn and correct errors from an unordered error notebook. Reflect-ing on human error correction practices, we humans typi-cally prioritize error types and correct them type by type .Inspired by this, we propose sorting ym,n f based on their er-ror frequency in AP2O-Coder . The sorting order—L2H or H2L—depends on the strength of the LLM’s ability, where L2H indicates progression from low to high frequency, and H2L vice versa. Here, we consider AP2O-Coder (H2L) as an example, as shown by the Correction part in Figure 1. In vanilla DPO and its variants, the training data is uni-formly sampled, randomly shuffled, and static, resulting in three shortcomings, as discussed earlier. To address this, we propose a progressive preference optimization module that progressively focuses on correcting a specific type of error. Specifically, we construct an error sliding window (with a width of ⌈ N mf 
+
+> T
+
+⌉ and a depth of M , where T is the total num-ber of epochs) on the ordered list of failed answers across M
+
+problems. For each problem x, we employ a dynamic-but-organized preference data construction approach to progres-sively select failed answers ( yE ) with a specific type of error as the rejected samples. These are then paired with dynam-ically and randomly sampled passed answers ( yp) to form progressive preference data, denoted as < x, y p, y E >. For-mally, we have 
+
+LAP2O −H2L (θ; Dtr ) = 
+
+EE∈E Em∼[M ]En∼[N mp ]En′∼[N mf,E ][ℓDPO (θ; xm, y m,n p , y m,n ′ 
+
+> E
+
+)] ,
+
+(7) where E =< E 1, E 2, . . . > denotes the ordered error type list and φ(E1) > φ (E2) > · · · . Here, φ(·) returns the fre-quency of a given error type E. We sample E from E in or-der, and N mf,E represents the size of the failed answer subset with error type E for problem m.In the beginning, our AP2O-Coder (H2L) focuses on correcting high-frequency errors, meaning the LLM encoun-ters the same error across consecutive training steps, allow-ing it to concentrate on correcting a single type of error . As training progresses, AP2O-Coder (H2L) gradually shifts the error sliding window to focus on lower-frequency errors, exposing the LLM to a wider variety of errors in consecutive steps, thus enhancing generalization .
+
+Adaptive Error Replay (Quiz) 
+
+As the training process progresses, the LLM’s ability changes. The current rule-abiding training data may no longer fit the LLM’s changing weaknesses, leading to wasted effort on irrelevant samples and, at worst, potential degradation of its existing capabilities. To address this issue, we propose an adaptive error replay module to periodically evaluate the LLM’s ability on a small validation set during the progressive preference optimization process, mimicking taking small quizzes. Originally, there is a validation dataset Dvl = {< x, y p, y f >1, < x, y p, y f >2
+
+, . . . } to evaluate a running model with unit tests and decide whether to save the current model as a checkpoint. Building on this existing training infrastructure, we apply the above analyzer to the answers generated on the validation set (one answer per validation problem), incurring negligible addi-tional cost. Here, we do not calculate frequency but just get the ratio of each current error type. Then, we randomly sam-ple yEvl from the entire failed answer list for each problem according to the ratio of the error type Evl . Subsequently, we replay these failed answers by adding them into the cur-rent error sliding window to give superiority to these failed answers, as they represent the current LLM’s weaknesses. Formally, we update Eq. (7) to be 
+
+LAP2O −H2L (θ; Dtr ,Dvl ) = 
+
+EE∈E Em∼[M ]En∼[N mp ]En′∼[N mf,E ][ℓDPO (θ; xm, y m,n p , y m,n ′ 
+
+> E
+
+)+ 
+
+ℓDPO (θ; xm, y m,n p , y m,n ′ 
+
+> Evl
+
+)] ,
+
+(8) where {E1vl , E 2vl , . . . } = Φ( θ, Dvl ) and Φ( ·) is the quiz pro-cedure. We also guarantee that the number of total replayed failed answers is identical the width of the error sliding win-dow to balance the current focusing and replayed data. We illustrate this procedure with the Quiz part in Figure 1. 
+
+## Experiment 
+
+LLMs. We evaluate the effectiveness of AP2O-Coder 
+
+by applying it to popular, state-of-the-art (SOTA) open-sourced code LLMs and general LLMs (Instruct versions) and post-training them to improve code generation perfor-mance. Code LLMs : CodeLlama (Roziere et al. 2023), DeepSeek-Coder (Guo et al. 2024), and Qwen2.5-Coder (Hui et al. 2024). General LLMs : Llama3 (Grattafiori et al. 2024), Qwen2.5 (Qwen Team 2024), and Qwen3 (Yang et al. 2025). We use LLMs ranging from 0.5B to 34B parameters. 
+
+Baselines. Since AP2O-Coder operates as an offline preference optimization method that emphasizes progres-sion through code preference data pairs, we select the fol-lowing related baselines for comparison in the code domain. (1) Init : The initial pre-trained (code) LLMs; (2) SFT-Coder :Optimizing the pre-trained LLMs via supervised fine-tuning (Dodge et al. 2020) on coding tasks; (3) DPO-Coder : Using DPO (Rafailov et al. 2023) with code-domain-specific train-ing and sandbox evaluation pipelines; (4) Curri-DPO-Coder 
+
+(Pattnaik et al. 2024): A representative curriculum DPO variant with code-specific pipelines; (5) Dyn-DPO-Coder 34704 LLM Type CodeLlama DeepSeek-Coder Qwen2.5-Coder LLM Size 7B 13B 34B 1.3B 6.7B 33B 0.5B 1.5B 3B 7B 14B 32B Init 36.8 41.3 46.2 64.6 77.4 78.4 53.0 69.3 83.5 87.1 90.4 91.5 SFT-Coder 37.9 43.2 46.8 64.8 75.9 78.9 60.1 70.4 85.1 87.4 90.7 90.9 DPO-Coder 38.3 42.3 45.2 63.5 77.2 78.7 56.8 73.2 84.5 87.9 90.8 91.0 Curri-DPO-Coder 38.7 42.4 46.5 63.8 76.6 79.2 53.3 73.1 83.7 87.2 90.2 90.8 Dyn-DPO-Coder 38.6 42.3 44.9 63.4 76.2 78.8 57.1 71.5 84.7 87.6 90.7 91.6 
+
+AP2O-Coder (L2H) 39.8 43.1 47.9 65.9 77.6 79.1 61.5 76.3 85.7 88.1 90.8 91.8 
+
+AP2O-Coder (H2L) 38.9 44.5 49.6 64.7 78.8 80.1 56.5 71.7 86.3 88.9 91.4 92.2 
+
+Table 1: The pass @1 on EvalPlus (HumanEval) across various types and sizes of code LLMs. (Gee et al. 2025): A DPO variant that replaces the static pref-erence dataset with dynamically sampled preference data during training progress. As for our AP2O-Coder , we have two versions: AP2O-Coder (L2H), and AP2O-Coder 
+
+(H2L), corresponding to two progression directions of the progressive preference optimization module. 
+
+Training Data. Here, we focus on Python, one of the most frequently used programming languages. To obtain LLM-generated preference data, we use the coding problems and unit tests from the training/validation sets of MBPP (Austin et al. 2021) (384/90 problems for training/validation) and TACO (Li et al. 2023) (1678/420 problems for training/val-idation), respectively. We use MBPP by default. Since we focus on fine-grained learning from failed answers, we filter out coding problems with fewer than two failed answers. As the code answers are self-generated, the filter results are spe-cific to the ability of the given LLMs but remains consistent across all baselines. 
+
+Other Settings. Building on existing code LLM works (Qwen Team 2024; Hui et al. 2024), we use popular benchmarks such as EvalPlus (Liu et al. 2023) and Live-CodeBench v6 (Feb 2025–Apr 2025) (Jain et al. 2024), eval-uating them with two metrics: pass @k (k ∈ {1, 5, 10 })(Roziere et al. 2023) and sample efficiency (Gao et al. 2022) with a temperature 0.6. Here, sample efficiency refers to the amount of data required during post-training. We conduct three training trials and report the average values. For more details and results, please refer to the Appendix. 
+
+Main Experiment 
+
+Here, we select three widely used types of code LLMs along with their open-sourced versions of varying sizes. Due to space limitations, we present all types for the widely used EvalPlus (HumanEval) benchmark in Table 1, while showcasing only the strongest Qwen2.5-Coder for EvalPlus (MBPP) and LiveCodeBench v6 Table 2. 
+
+Pass Rate Comparison. Across various types and sizes of code-specific LLMs, AP2O-Coder consistently achieves superior pass rates, particularly for smaller models. It out-performs baselines by up to 3.1% and improves over the pre-trained initial models by up to 8.5% in Table 1. Even for well-pretrained large models ( e.g ., 30B+), AP2O-Coder                                                     
+
+> Benchmark MBPP LiveCodeBench v6 LLM Size 0.5B 3B 7B 0.5B 3B 7B Init 50.8 72.9 81.8 2.3 14.3 18.3 SFT-Coder 55.4 74.5 82.4 2.9 14.7 18.2 DPO-Coder 51.9 76.0 83.5 2.9 14.8 18.4 Curri-DPO-Coder 50.9 74.3 81.7 2.7 14.4 18.2 Dyn-DPO-Coder 55.0 75.7 83.7 2.9 14.6 18.3
+> AP2O-Coder (L2H) 56.7 77.5 84.9 3.3 14.7 18.8
+> AP2O-Coder (H2L) 51.5 77.0 85.4 3.2 15.2 19.0
+
+Table 2: The pass @1 on EvalPlus (MBPP) and Live-CodeBench across various sizes of Qwen2.5-Coder. surpasses both baselines and initial models by up to 2.8% and 3.4%, respectively. In contrast to AP2O-Coder ’s consistent improvements, all baselines occasionally degrade performance compared to the initial pre-trained models, particularly on large mod-els. This is mainly due to the catastrophic forgetting prob-lem (Li et al. 2025), common in post-training methods ( e.g ., SFT and most DPO variants) (Fernando et al. 2024), where continual optimization on a small post-training set leads to overfitting and loss of previously learned generalizable knowledge. Directly organizing the training data order, as done in Curri-DPO-Coder, also fails to mitigate this issue and may even exacerbate it, as shown in Table 2. Since 
+
+AP2O-Coder assesses the current capabilities of the grad-ually updating LLM and adaptively replays failed answers that fit its present weaknesses during the quiz phase, we can recover previously learned generalizable knowledge while effectively acquiring new knowledge. 
+
+Interesting Findings. A deeper analysis of the pass rate reveals that AP2O-Coder (L2H) outperforms 
+
+AP2O-Coder (H2L) on small and old models, whereas H2L performs better on larger and advanced models, as shown in Table 1 and Table 2. This trend reflects the core distinction between “L” (low-frequency errors) and “H” (high-frequency errors): learning from diverse error types (L) enhances generalization, while repeated exposure to similar errors (H) promotes specialization. Thus, using L2H for weaker models—starting broadly then narrow-ing focus—risks convergence to local optima and poor generalization. For larger models, H2L and L2H perform 34705 similarly, but H2L yields better later-stage generalization by emphasizing low-frequency errors and exposing the model to more diverse error types in subsequent training. This distinction is both insightful and intriguing. 
+
+Code Error Reduction WrongResult NameEr. TypeEr. SyntaxEr. IndexEr. RecursionEr. OSEr. ValueEr. TimeoutEr. ZeroDivisionEr. AttributeEr. OverflowEr. RuntimeEr. KeyEr. UnknownEr. 
+
+> Error Type
+> 020 40
+> Count  Init SFT DPO Curri-DPO Dyn-DPO AP2O (L2H) AP2O (H2L)
+
+Figure 2: The statistics of errors on the test benchmark using Qwen2.5-Coder-7B. “Er.” is short for “Error”. Figure 2 provides interpretability into the effectiveness of our AP2O-Coder . For better visibility, we clip the error count at 50. In general, the initial LLMs introduce the most errors, while post-training methods help reduce them, partic-ularly for errors like OSError . However, these methods can also lead to regressions, such as increasing the frequency of certain error types like ValueError , or even intro-ducing new types of errors, such as KeyError . In con-trast, our AP2O-Coder , with its progressive and adaptive modules, consistently reduces error counts without intro-ducing new errors. Since the initial LLM here is the strong Qwen2.5-Coder-7B, AP2O-Coder (H2L) performs better than AP2O-Coder (L2H) by correcting a larger number of errors on high-frequency errors, although H2L may be slightly less impressive than L2H on low-frequency errors. WrongResult TypeError ValueError IndexError 
+
+> Error Type
+> 0510
+> Count
+> 050 100 150 200
+> Training Steps
+
+Figure 3: The statistics of errors on the validation set during the quiz phase using Qwen2.5-Coder-7B. Our 
+
+AP2O-Coder progressively reduces errors. 
+
+Progressive Benefits. To gain deeper insights into the training dynamics of AP2O-Coder (H2L), we analyze the error reduction process in Figure 3. Initially, there are a to-tal of 19 failed answers dominated by the high-frequency 
+
+WrongResult error in the validation set, along with sev-eral low-frequency error types. Following the H2L progres-sive strategy, AP2O-Coder (H2L) first focuses on correct-ing the WrongResult errors while temporarily overlook-ing the others. As a result, the WrongResult is rapidly reduced in the early progression steps, but the less fre-quent errors may be negatively impacted. As training pro-ceeds, AP2O-Coder (H2L) shifts attention to the remain-ing low-frequency errors; however, this causes a resurgence in the WrongResult errors. Thanks to the adaptive er-ror replay module, both high- and low-frequency errors are continually reduced, as the model revisits (prioritizes) the WrongResult errors while learning from the low-frequency ones. Notably, the IndexError is eliminated 
+
+by step 200 in Figure 3. 
+
+Generalization Ability on Large k for pass @k.1.3B 6.7B 33B 
+
+> LLM Size
+> 80 85 90
+> Pass@k
+> Pass@5 Pass@10 Init SFT-Coder DPO-Coder Curri-DPO-Coder Dyn-DPO-Coder AP2O-Coder (L2H) AP2O-Coder (H2L)
+
+Figure 4: The pass @5 and pass @10 on EvalPlus (Hu-manEval) using DeepSeek-Coder across various sizes. We evaluate the generalization ability of post-trained code LLMs by benchmarking pass @k for larger values of k (i.e ., 
+
+k ∈ 5, 10 ), as shown in Figure 4. A commonly observed phenomenon in the literature is that post-training often im-proves pass @1 while degrading performance at higher k
+
+values (Yue et al. 2025; Lyu et al. 2025). This is also evi-dent in Figure 4, where Curri-DPO-Coder shows significant performance degradation on large models, indicating that it may exacerbate the catastrophic forgetting problem. In con-trast, our AP2O-Coder (H2L) not only maintains improve-ments at pass @1 but also enhances generalization at larger 
+
+k values. This is attributed to its ability to emphasize low-frequency errors in the later stages of training. 
+
+Sample Efficiency 3B 14B 32B 
+
+> Qwen2.5-Coders
+> 0% 50% 100%
+> Data Used  DPO-Coder Curri-DPO-Coder Dyn-DPO-Coder AP2O-Coder (L2H) AP2O-Coder (H2L)
+
+Figure 5: The preference data pair requirements for training Qwen2.5-Coder across various sizes on the MBPP training set to achieve optimal performance. In addition to improvements in pass rate, our 
+
+AP2O-Coder also demonstrates greater data efficiency, requiring only 4%–60% preference data pairs compared to the DPO’s requirements, which is especially evident on large models. The H2L variant is more data-efficient than 34706 L2H, as prioritizing correcting high-frequency errors aligns with efficient human learning strategies (Larionova and Martynova 2022). As shown in Figure 5, Curri-DPO-Coder exhibits the opposite trend, needing more data for larger models. Although Dyn-DPO-Coder uses the least data, its performance is poor, as shown in Table 1 and Table 2. 
+
+Adapting General LLMs to the Code Domain Qwen2.5-7B Qwen3-8B Llama3.1-8B 
+
+> General LLMs (Instuct version)
+> 65 70 75 80 85
+> Pass@1
+> Init SFT-Coder DPO-Coder Curri-DPO-Coder Dyn-DPO-Coder AP2O-Coder (L2H) AP2O-Coder (H2L)
+
+Figure 6: The pass @1 on EvalPlus (MBPP) when adapting general LLMs, such as Qwen2.5, Qwen3, and Llama3, to the code domain. The evaluations above focus on existing code LLMs. Here, we demonstrate that our AP2O-Coder can also effec-tively adapt pre-trained general LLMs to the code domain. Notably, some general models ( e.g ., Qwen3) are “thinking” models that tend to generate lengthy reasoning by default, leading to lower pass rates due to the 512-token budget con-straint on the MBPP benchmark set by EvalPlus (Liu et al. 2023). While SFT struggles to mitigate this issue, the other offline preference optimization methods perform better in Figure 6. Among these, our AP2O-Coder (L2H) achieves the best results, as the general 7B+ LLMs are poor in the specific code domain and benefit more from low-to-high-frequency (L2H) progressive optimization. 
+
+Another Training Set Qwen2.5-Coder-3B Qwen3-4B Llama3.2-3B 
+
+> Code and General LLMs
+> 50 60 70 80 90
+> Pass@1
+> Init SFT-Coder DPO-Coder Curri-DPO-Coder Dyn-DPO-Coder AP2O-Coder (L2H) AP2O-Coder (H2L)
+
+Figure 7: The pass @1 on EvalPlus (HumanEval) after post-training on the TACO training set, using both code and gen-eral LLMs, such as Qwen2.5-Coder, Qwen3, and Llama3. We also demonstrate the robustness of our AP2O-Coder 
+
+by training on an alternative dataset, TACO, across both code and general LLMs. The performance trends of base-lines remain consistent with previous results—Curri-DPO-Coder still yields relatively low pass rates. Notably, when using TACO, AP2O-Coder (L2H) slightly outperforms 
+
+AP2O-Coder (H2L) on models with 3B+ parameters. Benchmark MBPP LiveCodeBench LLM Type qw2.5-c qw2.5 qw2.5-c qw2.5 
+
+AP2O-Coder (L2H) 84.9 82.9 18.8 15.1 
+
+− Adaptive Replay 82.7 81.6 18.4 14.2 
+
+AP2O-Coder (H2L) 85.4 82.2 19.0 14.4 
+
+− Adaptive Replay 82.1 81.0 18.5 13.6 Table 3: The ablation study on EvalPlus (MBPP) and LiveCodeBench across various types of 7B+ code and general LLMs. We report the pass @1 results. “qw2.5-c” and “qw2.5” are abbreviations for Qwen2.5-Coder and Qwen2.5, respectively. 
+
+Ablation Study 
+
+In the previous experiments, we have demonstrated the supe-riority of our AP2O-Coder over the ablation variant Dyn-DPO-Coder. Here, we investigate additional ablation vari-ants. Since the adaptive error replay module builds upon the progressive preference optimization module, we can only perform ablation by removing the adaptive replay compo-nent from both the L2H and H2L versions of AP2O-Coder .As shown in Table 3, this removal consistently leads to per-formance degradation across both code-specific and general LLMs, with performance in some cases falling below that of existing baselines (see Table 2). This confirms the role of the adaptive replay module in mitigating the catastrophic forgetting problem. 
+
+Reward Curves 0 25 50 75 100 125 150 175 200 Progression Step 012345678Reward Margin 
+
+> Qwen3, 4B, L2H Qwen3, 4B, H2L Qwen3, 8B, L2H Qwen3, 8B, H2L
+
+Figure 8: Reward margins of chosen and rejected answers in 
+
+AP2O-Coder with Qwen3 during training. Following prior work (Xiao et al. 2024b), we illustrate the training dynamics of our AP2O-Coder in Figure 8. The re-sults show that optimization converges, with the H2L ver-sion outperforming L2H in reward measurement. 
+
+## Conclusion 
+
+We propose an AP2O-Coder that pioneers a human-inspired paradigm—exam, analysis, correction, quiz—to optimize LLMs to reduce LLM-generated code errors sys-tematically. By introducing AP2O that focuses on specific error types and continuously adapts the training data to the LLM’s changing weaknesses, AP2O-Coder achieves up to 3% gains in pass @k across diverse LLMs (0.5B–34B) while requiring less preference data. This advancement in error correction establishes a new state of the art, offering a ro-bust, scalable solution to enhance code generation quality. 34707 Acknowledgments 
+
+This work is supported by the Shanghai Municipal Health Commission (grant number 2025ZHYL003). The work is also sponsored by the CodeBuddy 2 product. 
+
+## References 
+
+Achiam, J.; Adler, S.; Agarwal, S.; Ahmad, L.; Akkaya, I.; Aleman, F. L.; Almeida, D.; Altenschmidt, J.; Altman, S.; Anadkat, S.; et al. 2023. Gpt-4 technical report. arXiv preprint arXiv:2303.08774 .Anthropic. 2025. Claude Code - A New AI Programming Assistant. Accessed: 2025-07-31. Austin, J.; Odena, A.; Nye, M.; Bosma, M.; Michalewski, H.; Dohan, D.; Jiang, E.; Cai, C.; Terry, M.; Le, Q.; et al. 2021. Program synthesis with large language models. arXiv preprint arXiv:2108.07732 .Bradley, R. A.; and Terry, M. E. 1952. Rank analysis of incomplete block designs: I. the method of paired compar-isons. Biometrika , 39(3/4): 324–345. Chen, H.; Saha, A.; Hoi, S.; and Joty, S. 2023. Personalized Distillation: Empowering Open-Sourced LLMs with Adap-tive Learning for Code Generation. In EMNLP .Cheng, R.; Ma, H.; Cao, S.; Li, J.; Pei, A.; Wang, Z.; Ji, P.; Wang, H.; and Huo, J. 2024. Reinforcement learning from multi-role debates as feedback for bias mitigation in llms. 
+
+arXiv preprint arXiv:2404.10160 .Croitoru, F.-A.; Hondru, V.; Ionescu, R. T.; Sebe, N.; and Shah, M. 2025. Curriculum direct preference optimization for diffusion and consistency models. In CVPR .Cursor. 2025. Cursor - A Platform for Modern Software Development. Accessed: 2025-07-31. Da, J.; Wang, C.; Deng, X.; Ma, Y.; Barhate, N.; and Hendryx, S. 2025. Agent-RLVR: Training Software En-gineering Agents via Guidance and Environment Rewards. 
+
+arXiv preprint arXiv:2506.11425 .Dodge, J.; Ilharco, G.; Schwartz, R.; Farhadi, A.; Hajishirzi, H.; and Smith, N. 2020. Fine-tuning pretrained language models: Weight initializations, data orders, and early stop-ping. arXiv preprint arXiv:2002.06305 .Dou, S.; Liu, Y.; Jia, H.; Zhou, E.; Xiong, L.; Shan, J.; Huang, C.; Wang, X.; Fan, X.; Xi, Z.; et al. 2024. StepCoder: Improving Code Generation with Reinforcement Learning from Compiler Feedback. In ACL .Fernando, H.; Shen, H.; Ram, P.; Zhou, Y.; Samulowitz, H.; Baracaldo, N.; and Chen, T. 2024. Mitigating forgetting in llm supervised fine-tuning and preference learning. arXiv preprint arXiv:2410.15483 .Gao, W.; Fu, T.; Sun, J.; and Coley, C. 2022. Sample ef-ficiency matters: a benchmark for practical molecular opti-mization. NeurIPS .Gee, L.; Gritta, M.; Lampouras, G.; and Iacobacci, I. 2025. Code-Optimise: Self-Generated Preference Data for Cor-rectness and Efficiency. In Findings of NAACL .
+
+> 2https://www.codebuddy.ai
+
+Gehring, J.; Zheng, K.; Copet, J.; Mella, V.; Cohen, T.; and Synnaeve, G. 2025. RLEF: Grounding Code LLMs in Exe-cution Feedback with Reinforcement Learning. In ICML .Grattafiori, A.; Dubey, A.; Jauhri, A.; Pandey, A.; Kadian, A.; Al-Dahle, A.; Letman, A.; Mathur, A.; Schelten, A.; Vaughan, A.; et al. 2024. The llama 3 herd of models. arXiv preprint arXiv:2407.21783 .Guo, D.; Zhu, Q.; Yang, D.; Xie, Z.; Dong, K.; Zhang, W.; Chen, G.; Bi, X.; Wu, Y.; Li, Y.; et al. 2024. DeepSeek-Coder: When the Large Language Model Meets Programming–The Rise of Code Intelligence. arXiv preprint arXiv:2401.14196 .Hou, J. 2025. De Novo Molecular Design Enabled by Direct Preference Optimization and Curriculum Learning. arXiv preprint arXiv:2504.01389 .Hu, Y.; Hu, P.; Zhao, H.; and Ma, J. 2024. Most influ-ential subset selection: Challenges, promises, and beyond. 
+
+NeurIPS .Huang, Z.; Ban, Y.; Fu, L.; Li, X.; Dai, Z.; Li, J.; and Wang, D. 2025. Adaptive Sample Scheduling for Direct Preference Optimization. arXiv preprint arXiv:2506.17252 .Hui, B.; Yang, J.; Cui, Z.; Yang, J.; Liu, D.; Zhang, L.; Liu, T.; Zhang, J.; Yu, B.; Lu, K.; et al. 2024. Qwen2. 5-coder technical report. arXiv preprint arXiv:2409.12186 .Jain, N.; Han, K.; Gu, A.; Li, W.-D.; Yan, F.; Zhang, T.; Wang, S.; Solar-Lezama, A.; Sen, K.; and Stoica, I. 2024. Livecodebench: Holistic and contamination free eval-uation of large language models for code. arXiv preprint arXiv:2403.07974 .Kirk, R.; Mediratta, I.; Nalmpantis, C.; Luketina, J.; Ham-bro, E.; Grefenstette, E.; and Raileanu, R. 2024. Under-standing the Effects of RLHF on LLM Generalisation and Diversity. In ICLR .Lai, H.; Liu, X.; Gao, J.; Cheng, J.; Qi, Z.; Xu, Y.; Yao, S.; Zhang, D.; Du, J.; Hou, Z.; et al. 2025. A Survey of Post-Training Scaling in Large Language Models. In ACL .Larionova, E. V.; and Martynova, O. V. 2022. Frequency ef-fects on spelling error recognition: An ERP study. Frontiers in Psychology , 13: 834852. Lei, S.; and Tao, D. 2023. A comprehensive survey of dataset distillation. IEEE Transactions on Pattern Analysis and Machine Intelligence , 46(1): 17–32. Li, M.; and Zhang, Z. 2025. 2D-Curri-DPO: Two-Dimensional Curriculum Learning for Direct Preference Optimization. arXiv preprint arXiv:2504.07856 .Li, R.; Fu, J.; Zhang, B.-W.; Huang, T.; Sun, Z.; Lyu, C.; Liu, G.; Jin, Z.; and Li, G. 2023. Taco: Topics in algorithmic code generation dataset. arXiv preprint arXiv:2312.14852 .Li, X.; Ren, W.; Qin, W.; Wang, L.; Zhao, T.; and Hong, R. 2025. Analyzing and reducing catastrophic forgetting in parameter efficient tuning. In ICASSP , 1–5. IEEE. Lin, S.; Mi, Q.; and Gao, T. 2025. A Survey of Curriculum Learning in Deep Reinforcement Learning. In CCWC .Liu, J.; Xia, C. S.; Wang, Y.; and Zhang, L. 2023. Is your code generated by chatgpt really correct? rigorous evalua-tion of large language models for code generation. NeurIPS .34708 Liu, J.; Zhu, Y.; Xiao, K.; FU, Q.; Han, X.; Wei, Y.; and Ye, D. 2024. RLTF: Reinforcement Learning from Unit Test Feedback. Transactions on Machine Learning Research .Liu, S.; Fang, W.; Hu, Z.; Zhang, J.; Zhou, Y.; Zhang, K.; Tu, R.; Lin, T.-E.; Huang, F.; Song, M.; et al. 2025a. Asurvey of direct preference optimization. arXiv preprint arXiv:2503.11701 .Liu, X.; Liang, T.; He, Z.; Xu, J.; Wang, W.; He, P.; Tu, Z.; Mi, H.; and Yu, D. 2025b. Trust, But Verify: A Self-Verification Approach to Reinforcement Learning with Ver-ifiable Rewards. arXiv preprint arXiv:2505.13445 .Lyu, Z.; Li, X.; Xie, Z.; and Li, M. 2025. Top Pass: improve code generation by pass@ k-maximized code ranking. Fron-tiers of Computer Science , 19(8): 198341. Ma, Z.; Guo, H.; Chen, J.; Peng, G.; Cao, Z.; Ma, Y.; and Gong, Y.-J. 2024. Llamoco: Instruction tuning of large language models for optimization code generation. arXiv preprint arXiv:2403.01131 .Meng, Y.; Xia, M.; and Chen, D. 2024. Simpo: Simple pref-erence optimization with a reference-free reward. NeurIPS .Moskovitz, T.; Singh, A. K.; Strouse, D.; Sandholm, T.; Salakhutdinov, R.; Dragan, A. D.; and McAleer, S. 2024. Confronting Reward Model Overoptimization with Con-strained RLHF. In ICLR .Mu, F.; Shi, L.; Wang, S.; Yu, Z.; Zhang, B.; Wang, C.; Liu, S.; and Wang, Q. 2024. Clarifygpt: A framework for en-hancing llm-based code generation via requirements clarifi-cation. Proceedings of the ACM on Software Engineering ,1(FSE): 2332–2354. Muldrew, W.; Hayes, P.; Zhang, M.; and Barber, D. 2024. Active Preference Learning for Large Language Models. In 
+
+ICML .Pattnaik, P.; Maheshwary, R.; Ogueji, K.; Yadav, V.; and Madhusudhan, S. T. 2024. Enhancing alignment using cur-riculum learning & ranked preferences. In Findings of EMNLP .Qwen Team. 2024. Qwen2 technical report. arXiv preprint arXiv:2407.10671 .Rafailov, R.; Sharma, A.; Mitchell, E.; Manning, C. D.; Er-mon, S.; and Finn, C. 2023. Direct preference optimization: Your language model is secretly a reward model. NeurIPS .Rao, J.; Liu, X.; Deng, H.; Lin, Z.; Yu, Z.; Wei, J.; Meng, X.; and Zhang, M. 2025. Dynamic Sampling that Adapts: Iter-ative DPO for Self-Aware Mathematical Reasoning. arXiv preprint arXiv:2505.16176 .Roziere, B.; Gehring, J.; Gloeckle, F.; Sootla, S.; Gat, I.; Tan, X. E.; Adi, Y.; Liu, J.; Sauvestre, R.; Remez, T.; et al. 2023. Code llama: Open foundation models for code. arXiv preprint arXiv:2308.12950 .Shao, Z.; Wang, P.; Zhu, Q.; Xu, R.; Song, J.; Bi, X.; Zhang, H.; Zhang, M.; Li, Y.; Wu, Y.; et al. 2024. Deepseekmath: Pushing the limits of mathematical reasoning in open lan-guage models. arXiv preprint arXiv:2402.03300 .Sheokand, M.; and Sawant, P. 2025. CodeMixBench: Eval-uating Large Language Models on Code Generation with Code-Mixed Prompts. arXiv preprint arXiv:2505.05063 .Shi, S.; Zuo, R.; He, G.; Wang, J.; Xu, C.; and Yang, Z. 2025. CuDIP: Enhancing Theorem Proving in LLMs via Curriculum Learning-based Direct Preference Optimization. 
+
+arXiv preprint arXiv:2502.18532 .Sun, Z.; Lyu, C.; Li, B.; Wan, Y.; Zhang, H.; Li, G.; and Jin, Z. 2024. Enhancing Code Generation Performance of Smaller Models by Distilling the Reasoning Ability of LLMs. In LREC-COLING .Tambon, F.; Moradi-Dakhel, A.; Nikanjam, A.; Khomh, F.; Desmarais, M. C.; and Antoniol, G. 2025. Bugs in large language models generated code: An empirical study. Em-pirical Software Engineering , 30(3): 65. Wang, Y.; Yang, Q.; Zeng, Z.; Ren, L.; Liu, L.; Peng, B.; Cheng, H.; He, X.; Wang, K.; Gao, J.; et al. 2025. Reinforce-ment learning for reasoning in large language models with one training example. arXiv preprint arXiv:2504.20571 .Weyssow, M.; Zhou, X.; Kim, K.; Lo, D.; and Sahraoui, H. 2023. Exploring parameter-efficient fine-tuning techniques for code generation with large language models. ACM Transactions on Software Engineering and Methodology .Wu, Y.; Huang, D.; Shi, W.; Wang, W.; Pu, Y.; Gao, L.; Liu, S.; Nan, Z.; Yuan, K.; Zhang, R.; et al. 2025. InverseCoder: Self-improving Instruction-Tuned Code LLMs with Inverse-Instruct. In AAAI .Xia, Y.; Mukherjee, S.; Xie, Z.; Wu, J.; Li, X.; Aponte, R.; Lyu, H.; Barrow, J.; Chen, H.; Dernoncourt, F.; et al. 2025. From selection to generation: A survey of llm-based active learning. arXiv preprint arXiv:2502.11767 .Xiao, J.; Li, Z.; Xie, X.; Getzen, E.; Fang, C.; Long, Q.; and Su, W. J. 2024a. On the algorithmic bias of aligning large language models with RLHF: Preference collapse and matching regularization. arXiv preprint arXiv:2405.16455 .Xiao, T.; Yuan, Y.; Zhu, H.; Li, M.; and Honavar, V. G. 2024b. Cal-dpo: Calibrated direct preference optimization for language model alignment. NeurIPS .Xu, Y. 2023. The importance of “sorting out wrong ques-tions” in high school mathematics learning. The Educational Review, USA , 7(10). Yang, A.; Li, A.; Yang, B.; Zhang, B.; Hui, B.; Zheng, B.; Yu, B.; Gao, C.; Huang, C.; Lv, C.; et al. 2025. Qwen3 technical report. arXiv preprint arXiv:2505.09388 .Yang, C.; Luo, L.; Vadillo, M. A.; Yu, R.; and Shanks, D. R. 2021. Testing (quizzing) boosts classroom learning: A sys-tematic and meta-analytic review. Psychological bulletin ,147(4): 399. Yue, Y.; Chen, Z.; Lu, R.; Zhao, A.; Wang, Z.; Song, S.; and Huang, G. 2025. Does reinforcement learning really in-centivize reasoning capacity in llms beyond the base model? 
+
+arXiv preprint arXiv:2504.13837 .Zhao, A.; Wu, Y.; Yue, Y.; Wu, T.; Xu, Q.; Lin, M.; Wang, S.; Wu, Q.; Zheng, Z.; and Huang, G. 2025. Absolute zero: Re-inforced self-play reasoning with zero data. arXiv preprint arXiv:2505.03335 .34709

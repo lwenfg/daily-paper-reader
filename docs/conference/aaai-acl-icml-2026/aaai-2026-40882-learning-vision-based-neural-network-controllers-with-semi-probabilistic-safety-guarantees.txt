@@ -1,0 +1,395 @@
+Title: Learning Vision-Based Neural Network Controllers with Semi-Probabilistic Safety Guarantees
+
+URL Source: https://ojs.aaai.org/index.php/AAAI/article/download/40882/44843
+
+Number of Pages: 9
+
+Markdown Content:
+# Learning Vision-Based Neural Network Controllers with Semi-Probabilistic Safety Guarantees 
+
+# Xinhang Ma 1, Junlin Wu 1, Hussein Sibai 1, Yiannis Kantaros 1, Yevgeniy Vorobeychik 1
+
+> 1
+
+Washington University in St. Louis 
+
+{m.owen, junlin.wu, ioannisk, sibai, yvorobeychik }@wustl.edu 
+
+Abstract 
+
+Ensuring safety in autonomous systems with vision-based control remains a critical challenge due to the high dimen-sionality of image inputs and the fact that the relationship between true system state and its visual manifestation is unknown. Existing methods for learning-based control in such settings typically lack formal safety guarantees. To ad-dress this challenge, we introduce a novel semi-probabilistic verification framework that integrates reachability analysis with conditional generative networks and distribution-free tail bounds to enable efficient and scalable verification of vision-based neural network controllers. Next, we develop a gradient-based training approach that employs a novel safety loss function, safety-aware data-sampling strategy to effi-ciently select and store critical training examples, and cur-riculum learning, to efficiently synthesize safe controllers in the semi-probabilistic framework. Empirical evaluations in X-Plane 11 airplane landing simulation, CARLA-simulated autonomous lane following, F1Tenth vehicle lane follow-ing in a physical visually-rich miniature environment, and Airsim-simulated drone navigation and obstacle avoidance demonstrate the effectiveness of our method in achieving for-mal safety guarantees while maintaining strong nominal per-formance. 
+
+Code — https://github.com/xhOwenMa/SPVT 
+
+Extended version — https://arxiv.org/abs/2503.00191 
+
+# 1 Introduction 
+
+Many real-world applications, such as self-driving cars and robotic navigation, require controllers that process high-dimensional image inputs to make real-time decisions. The centrality of visual inputs (particularly when other modali-ties are limited or unreliable) thus makes ensuring the safety of vision-based control an important problem in trustwor-thy AI. However, verifying the safety of such controllers remains a major open challenge due to the complexity of image-based inputs and the high computational cost of tra-ditional verification methods (Huang et al. 2019; Katz et al. 2017; Huang et al. 2017). While reinforcement learning (RL) with high-dimensional image inputs has shown promise in learning 
+
+Copyright © 2026, Association for the Advancement of Artificial Intelligence (www.aaai.org). All rights reserved. 
+
+control policies that optimize performance (Le et al. 2022; Kiran et al. 2021), most methods lack formal guarantees 
+
+of safety (Kochdumper et al. 2023). Moreover, verifying the safety of neural network controllers operating in high-dimensional observation spaces remains computationally intractable. Existing approaches to safe control primarily focus on low-dimensional state inputs (Dawson et al. 2022) and empirical safety evaluations. Other approaches, such as verified safety over the entire input region and control barrier function-based methods, have also been explored (Wu, Zhang, and Vorobeychik 2024; Emam et al. 2022). However, these methods struggle when the controller operates on image inputs due to the high dimensionality of the observation space. Moreover, while dynamic behavior of many autonomous systems of interest has established models approximating their trajectories through the system state space, physics that map state to its visual representa-tion are considerably more complex, and associated models far more complex and less reliable. In this work, we integrate reachability analysis with gen-erative modeling to enable efficient verification of neural network controllers operating on high-dimensional image spaces (Katz et al. 2022; Cai, Fan, and Bak 2024). Specif-ically, we employ a generative neural network with latent inputs representing environmental and perceptual variation to model the perceptual mapping from states to images, al-lowing us to verify safety properties in a structured and lower-dimensional latent space. To address the scalability challenges of verification, we introduce a semi-probabilistic verification (SPV) framework , where safety properties are verified over a sampled distribution of initial states (using distribution-free tail bounds) but for all possible latent en-vironment representations of the trained generative percep-tion model. In addition, we present a training algorithm that makes use of a novel safety loss as a differentiable proxy to this verification objective. A key component of this algo-rithm is our approach to adapt the training set, stochastically biasing it towards states for which safety is difficult to ver-ify. Our experiments in simulated plane landing, simulated and physical autonomous lane following, and drone naviga-tion and obstacle avoidance, demonstrate that the proposed approach yields policies that exhibit significantly stronger safety properties compared to state-of-the-art safe control baselines. The Fortieth AAAI Conference on Artificial Intelligence (AAAI-26) 
+
+35698 In summary, our key contributions are as follows: • A novel semi-probabilistic safety verification (SPV) framework that provides formal safety guarantees while remaining computationally feasible in high-dimensional vision-based control settings. • A novel training approach which uses a differentiable proxy loss for SPV and maintains a dynamic training set which adaptively prioritizes safety-critical states. • Experimental evaluation in simulated and physical path following and simulated drone control that demonstrates effective empirical and provably-verified performance of the policies trained through our approach in comparison with state-of-the-art baselines. 
+
+# 2 Model 
+
+## 2.1 Problem Formulation 
+
+We consider a discrete-time dynamical system: 
+
+st+1 = f (st, u t), o t = h(st, ω ), s 0 ∼ D , ω ∼ Ω, (1) where st ∈ S is the system state (e.g., position, steering angle of the vehicle), ot ∈ O is the vision-based (image) observation perceived by the agent, ut ∈ U the control ac-tion, h the mapping from state to observation, and D a dis-tribution over the initial state s0. Notably, h takes as input a perceptual environment ω, which models an unobserved source of environment variation distributed according to an unknown distribution Ω. We assume that the dynamics f are known (for example, well-known dynamical system mod-els for physical systems), while h and D are both unknown. At execution time, we suppose that only observations ot are known to the controller, with state st unobservable. Our goal is to synthesize a control policy π mapping visual observa-tions o to control actions u which is provably safe in the sense we formalize next. Let P denote a safety specification, which is a predi-cate P (s) indicating whether a state s ∈ S is safe or not. Similarly, let P (T ) indicate whether P (s) is true for all 
+
+s ∈ T ⊆ S . We assume that both P (s) and P (T ) can be evaluated efficiently (for example, safety is often described using linear inequalities and T is a polyhedron). Given a pol-icy π, the controlled dynamical system effectively becomes 
+
+st+1 = f (st, π (h(st, ω )) . We say that this dynamical sys-tem is safe for an initial state s0 over a horizon K if P (st)
+
+is true for all 0 ≤ t ≤ K.This notion of safety, however, is limited for two reasons. First, we do not know h, so we cannot directly verify the dynamical system above. Second, we wish for a policy π to satisfy safety in a way that is not tied to a specific starting state, but with respect to the full set of initial states S. We address the first challenge by leveraging a conditional gener-ative neural network model to approximate h, and the second by using a semi-probabilistic verification (SPV) framework. We describe both of these ideas next. 
+
+## 2.2 Approximating the Visual Observation Model 
+
+We address the first challenge by using a conditional gener-ative model g(s, z ) which induces a distribution over obser-vations o ∈ O for a given state s ∈ S , with z ∈ Z a (typ-ically distributed according to a uniform or Gaussian distri-bution) random vector, analogous to the approach proposed by Katz et al. (2022). Such a generator can be trained, for ex-ample, using the conditional generative adversarial network (cGAN) framework (Mirza and Osindero 2014; Isola et al. 2017) or a conditional diffusion model (Yang and Mandt 2023) from a collection of data (o, s ) in which images o are annotated with associated states s. We can view the latent random vectors z as representations of natural environment variation (e.g., different perspectives, lighting, etc). The goal here is that g approximates h, but in practice this assumption is too strong. Instead, we make the following considerably weaker assumption about the relationship between h and g.
+
+Assumption 1. sup s,ω inf z ∥h(s, ω ) − g(s, z )∥ ≤ ϵ.
+
+In practice, this assumption boils down to having (a) suf-ficient training data for the generator g and (b) a sufficiently rich representation (e.g., neural network) and latent dimen-sion of z. We validate this assumption in Section 5 below. 
+
+# 3 Semi-Probabilistic Verification 
+
+Our notion of safety is based on K-reachability. In tradi-tional K-reachability, safety is guaranteed for all states in some specified set S0 ⊆ S from which dynamics may be initialized. However, such K-reachability proofs are gener-ally conservative and typically suffer from significant scal-ability challenges. When controllers use vision, scalability can be a prohibitive barrier to verification. In practice, how-ever, we can often obtain information about the distribution 
+
+D over initial states s0 of the dynamical system. For ex-ample, by collecting empirical visual data and annotating it with state-relevant information (Waymo (Sun et al. 2020) or KITTI (Geiger et al. 2013) datasets in the case of au-tonomous driving). On the other hand, the distribution over the initial state is often difficult to cleanly characterize (in-deed, it may be heavy-tailed). It is, therefore, natural to ap-peal to distribution-free bounds to obtain probabilistic safety proofs with respect to the unknown distribution D over s0
+
+based on safety properties obtained for a finite sample of ini-tial states. In contrast, the distribution of the visual environ-ment induced by ω is far more challenging to characterize or sample, particularly since we do not know h.We propose to balance these considerations through a semi-probabilistic verification (SPV) framework, in which we aim to obtain provable distribution-free guarantees with respect to D, but which hold in the worst case with respect to environment variation ω.To formalize, fix a policy π and let 
+
+St+1 (s0, π ) = {f (s, π (o)) |o = h(s, ω ),s ∈ S t(s0, π ), ω ∈ Ω},
+
+where S0(s0, π ) = {s0}. Define Reach K (s0, π ) =
+
+∪Kt=0 St(s0, π ), that is, all states that can be reached from s0
+
+for any perceptual environment ω ∈ Ω. Note that this form of reachability cannot be verified, since we do not know h.However, we can now leverage the generator g as a proxy, 35699 with Assumption 1 allowing us to obtain sound safety guar-antees. Specifically, let 
+
+ˆSt+1 (s0, π ) = {f (s, π (o)) |∥ o − g(s, z )∥ ≤ ϵ, s ∈ ˆSt(s0, π ), z ∈ Z} ,
+
+and define Reach K (s0, π, g ) = ∪Kt=0 ˆSt(s0, π ). The follow-ing result allows us to focus on verification with respect to 
+
+Reach K (s0, π, g ).
+
+Theorem 1. Under Assumption (1) , Reach K (s0, π ) ⊆
+
+Reach K (s0, π, g ). Therefore, P (Reach K (s0, π, g )) ⇒
+
+P (Reach K (s0, π )) .Proof. Suppose St ⊆ ˆSt and let s ∈ S t and o = h(s, ω )
+
+for some ω ∈ Ω. Then s ∈ ˆSt(s0, π ) and by Assump-tion (1), ∥o − g(s, z )∥ ≤ ϵ for some z ∈ Z . Consequently, 
+
+f (s, π (o)) ∈ ˆSt+1 (s0, π ). Since ˆS0(s0, π ) = S0(s0, π ) = 
+
+{s0}, the result follows by induction. In practice, we will make use of a verification tool that is able to efficiently obtain an over-approximation of 
+
+Reach K (s0, π, g ), which maintains soundness. Our next step is to combine this with a distribution-free tail bound with respect to the initial state distribution D.Specifically, suppose that we have a finite sample of N ini-tial states {si}Ni=1 i.i.d. from D. We show that by verifying only with respect to this finite sample of N states, we can achieve a semi-probabilistic safety guarantee for the entire initial region with respect to the unknown distribution D.
+
+Theorem 2. Suppose that {si}Ni=1 i.i.d. from D and let 
+
+V = {si|P (Reach K (si, π, g )) } be the subset of sampled initial states for which the reachable set is safe. Then under Assumption (1) ,
+
+Pr  
+
+> s∼D
+
+[P (Reach K (s, π ))] ≥ |V |
+
+N −
+
+r 12N log 2
+
+δ
+
+with probability at least 1 − δ.Proof. Let α = Pr s∼D [P (Reach K (s, π, g ))] and ˆα =  
+
+> |V|
+> N
+
+. By the Chernoff-Hoeffding bound, Pr ( |ˆα − α| ≥ ϵ) ≤
+
+2e−2N ϵ 2
+
+, where the probability is with respect to datasets of N initial states. Letting δ = 2e−2N ϵ 2
+
+, we obtain the confidence bound: Pr 
+
+
+
+α ≥ ˆα −
+
+q 12N log 2
+
+> δ
+
+
+
+≥ 1 − δ.Finally, since by Theorem 1, P (Reach K (s0, π, g )) ⇒
+
+P (Reach K (s0, π )) , the result follows. The SPV framework above can thereby combine reacha-bility over a finite sample of initial states to yield a rigorous tail bound guarantee for safety over a given safety horizon 
+
+K. This, of course, is for a given policy π. In the next sec-tion, we turn to the main subject of our work: synthesizing control policies π for the dynamical system (1) that achieve strong semi-probabilistic guarantees of this kind. 
+
+# 4 Learning-Based Synthesis of Provably Safe Vision-Based Control 
+
+At the high level, our goal is to learn a policy π which has a long safety horizon K (that is, does not reach an unsafe state for any possible trajectory over as long a horizon K
+
+as possible) with high probability 1 − δ. Suppose that πθ is parametric with parameters θ (e.g., a neural network), and 
+
+K (i.e., the target safety horizon) is fixed. Our goal is to maximize the probability that a trajectory is safe for at least 
+
+K steps, that is, 
+
+max  
+
+> θ
+
+Pr  
+
+> s∼D
+
+[P (Reach K (s, π θ ))] . (2) To make this practical, we can only rely on a finite sample of initial states, as well as make use of the cGAN g. Conse-quently, the revised proxy objective is 
+
+max 
+
+> θ
+
+X
+
+> i
+
+P (Reach K (si, π θ , g )) . (3) The previous section shows that this still enables rigorous semi-probabilistic verification. Additionally, we consider a special case in which safety properties are tied to a scalar 
+
+safety score (for example, cross-track error in lane follow-ing). In particular, let σ(Reach K (si, π θ , g )) be a safety score function over the reachable set, with P (T ) translat-ing the safety score into a predicate (e.g., error exceeds a predefined threshold). We assume that we can obtain dif-ferentiable bounds on σ(Reach K (si, π θ , g )) (e.g., if we use 
+
+α, β -CROWN (Zhang et al. 2018; Xu et al. 2020b,a)). 
+
+## 4.1 The Learning Framework 
+
+A central challenge in synthesizing a provably safe pol-icy πθ in our setting arises from the involvement of high-dimensional images generated by the generator g (as a proxy for the true perception model h), which serve as inputs to the controller. Our overall approach is as follows. First, we be-gin with a pre-trained controller πˆθ that is empirically safe, which we also use as the anchor controller to avoid sacrific-ing too much empirical performance as we train for safety verification. Next, starting with ˆθ, we train (or fine-tune) πθ
+
+to minimize P 
+
+> i∈Sl
+
+L(si, θ ), where Sl is a set of initial states which evolves over training iterations l, and L(θ) an appro-priate loss function. The central algorithm design questions thus amount to 1) the choice of the loss function, and 2) the problem of selecting data Sl to use in each iteration, so as to ultimately obtain a provably (rather than merely empirically) safe policy. We address these questions next. 
+
+## 4.2 Loss Function 
+
+We propose a loss function that integrates both aperformance-preserving loss and safety loss as follows: 
+
+L(s0, θ ) = λ1Lperf (si, θ ) + λ2Lsafety (si, θ ). (4) The performance loss Lperf aims to preserve the empiri-cal performance with respect to the pre-trained anchor con-troller πˆθ . Depending on the training method, it can be (1) 
+
+ℓ2 loss between predictions and ground truth for supervised 35700 training, or (2) RL objective (e.g. policy gradient) to encour-age high expected returns for RL training. Turning next to the safety loss, recall that we as-sume that safety is quantified by a safety score function 
+
+σ(Reach K (si, π θ , g )) . One candidate would simply be to use this score as part of the loss function. However, this is impractical, as it is typically intractable to compute at scale and to the extent that it can be done, the tools for doing so are not differentiable. However, neural network verification techniques exist which compute differentiable sound upper and lower bounds on this quantity , and these therefore make natural candidates to use in constructing a loss function. More precisely, let σ(Reach K (si, π θ , g )) ≤
+
+σ(Reach K (si, π θ , g )) ≤ σ(Reach K (si, π θ , g )) (i.e., σ(·) is the lower and σ(·) the upper bound on σ(·)). To simplify notation, we let σ(i) 
+
+> K
+
+= σ(Reach K (si, π θ , g )) , with σ(i) 
+
+> K
+
+and 
+
+σ(i) 
+
+> K
+
+the corresponding upper and lower bounds. Then we define the safety loss as 
+
+Lsaf ety (si, θ ) = |σ(i) 
+
+> K
+
+| + |σ(i) 
+
+> K
+
+|
+
+K − 1 , (5) which measures the rate of change of the reachable region. 
+
+## 4.3 Adaptive Training Data 
+
+Our adaptive training procedure performs gradient updates by sampling batches from an adaptive collection of training data Sl which consists of two disjoint and fixed-size com-ponents: the set of random initial states S0, and SA, main-tained as a priority queue, containing initial states for which safety is a challenge to satisfy. Specifically, when training starts, SA is empty, and we gradually populate SA during the warmup period by adding the m% most challenging data-points (in the sense detailed below) from each training batch to it. To ensure S0 and SA remain disjoint, whenever a dat-apoint is added to SA, it is also deleted from S0, and we generate another datapoint uniformly randomly to add to S0.We select datapoints to add to SA based on the rate of change in the safety margin σi over an entire K-step tra-jectory. For example, a datapoint where the vehicle deviates from the center of the lane and drifts toward the margin at high speed is prioritized. This allows us to detect points that are likely to become unsafe ahead of time. The safety loss defined in Equation (5) can be directly used as this metric here. If training fails to improve safety on datapoints in SA,
+
+SA effectively becomes fixed once full. Otherwise, if safety improves or we encounter new datapoints that are less safe, 
+
+SA adapts to reflect such changes. After we have enough datapoints in SA, future training batch T with size L consists of ⌊p · L⌋ datapoints from SA
+
+and the rest from S0, where p is a tunable parameter during training. The portion of datapoints from S0 can be sampled uniformly. The portion of datapoints from SA are sampled following the Efraimidis & Spirakis (Efraimidis and Spi-rakis 2006) weighted sampling approach to prioritize dat-apoints that are more difficult (less safe) than others. Specif-ically, for each datapoint i in SA, we first calculate a safety Algorithm 1: Data Sampling Algorithm  
+
+> 1:
+
+Input: Sl = S0 ∪ S A, β, α, p, L 
+
+> 2:
+
+Output: Sampled points T 
+
+> 3:
+
+LA ← ⌊ p · L⌋; L0 ← L − LA 
+
+> 4:
+
+for each datapoint xi ∈ S A do  
+
+> 5:
+
+Compute η(i) according to Equation 6  
+
+> 6:
+
+Compute weight wi = eα·η(i) 
+
+> 7:
+
+end for  
+
+> 8:
+
+Normalize wi and compute keys ki for all xi ∈ SA 
+
+> 9:
+
+TA ← top LA elements in SA by ki values  
+
+> 10:
+
+T0 ←− uniformly sample L0 points from S0 
+
+> 11:
+
+T ← TA ∪ T0 
+
+> 12:
+
+Return T
+
+parameter 
+
+η(i) = L(i) 
+
+> saf ety
+
+(6) 
+
++
+
+
+
+max(0 , |σ(i) 
+
+> K
+
+| − β) + max(0 , |σ(i) 
+
+> K
+
+| − β)
+
+
+
+,
+
+where the second term further penalizes datapoints whose upper and lower bound is outside of the [−β, β ] region, where β is a predefined safety threshold, and ensure such difficult-to-verify inputs are more likely to be sampled. We then assign a weight wi = eα·η(i)
+
+(where α is a hyperpa-rameter) to each datapoint i and normalize the weights such that PNi=1 wi = 1 . Finally we assign each element xi a key 
+
+ki = w1/U i 
+
+> i
+
+, where Ui ∼ Uniform (0 , 1) . Selecting the top 
+
+L elements with the highest ki values yields a weighted ran-dom sample without replacement, where each element xi is included with probability: P (xi ∈ S) = wi/ P 
+
+> j∈B
+
+wj .The full algorithm for data sampling is shown in Algo-rithm 1. Line 3 calculates how many datapoints to sample from the buffer based on a tunable parameter p; line 4 − 8
+
+computes the weights and keys following (Efraimidis and Spirakis 2006); line 9 − 11 construct the training batch. This approach enables us to have an adaptive training set which maintains the controller’s average performances while im-proving its verifiability with respect to datapoints that are more difficult. 
+
+## 4.4 Curriculum Learning 
+
+Finally, as in prior work (Wu, Zhang, and Vorobeychik 2024), we use curriculum learning. Specifically, during training, we first target Ki-step verified safety. After a series of epochs, we progress to Ki+1 -step verified safety, where 
+
+1 ≤ K1 < K 2 < · · · < K n−1 < K n = K. This gradual increase in the verification horizon helps improve training stability and enables the controller to learn more complex safety constraints. 
+
+# 5 Experiments 
+
+## 5.1 Experiment Setup 
+
+We evaluate our approach in four settings: 1) the X-Plane 11 Flight Simulator, 2) the CARLA Simulator, 3) a mini-city miniature urban physical autonomous driving platform with 35701 an F1Tenth racing car, and 4) the Airsim Simulator for drone control. We use two evaluation metrics: 1) empirical perfor-mance and 2) lower bound probability for safety guarantee as a function of K. We use three baselines for comparison: 1) RESPO (Ganai et al. 2024), a safe reinforcement learn-ing framework using iterative reachability analysis; 2) SAC-RCBF (Emam et al. 2022), which incorporates safety as a robust-control-barrier-function layer into training; and 3) VSRL (Wu, Zhang, and Vorobeychik 2024), which guaran-tees finite-horizon safety by integrating incremental reacha-bility verification into safe reinforcement learning. Specifically, we first consider the autonomous aircraft taxiing problem using the X-Plane 11 Flight Simula-tor (Laminar Research 2011). For training the image genera-tor, we collected 20,000 state-image pairs. Each sample con-sists of an image captured by a forward-facing camera and the corresponding state information (lateral offset d ranging from −10 to 10 meters and heading error θ between −0.5
+
+and 0.5 radians). Data was collected while the aircraft oper-ated at a constant ground speed. Our second set of experiments consider autonomous lane following using the CARLA Simulator (Dosovitskiy et al. 2017) version 0.9.14. For training the image generator, we sample initial states consisting of the lateral distance d from the lane center, the heading error θ relative to the lane direc-tion, and the global coordinates (x, y, z ) within the CARLA map. The dataset includes trajectories with d ∈ [−0.8, 0.8] 
+
+meters and θ ∈ [−0.15 , 0.15] radians. Final dataset contains 20,000 state-image pairs collected across different towns (maps) and environmental conditions. Our third experiment extend the CARLA experiments to a 
+
+F1Tenth racing car , an open-source 1:10 scale autonomous vehicle, for lane following in a miniature city physical testbed . The F1Tenth vehicle is equipped with a front-facing camera that provides visual input for lane following and can achieve scaled speeds comparable to full-scale autonomous vehicles. This platform enables us to evaluate the transfer-ability of our training framework to real-world physical sys-tems. We collected 400 images in the mini-city and manually annotated their state information. We then finetuned the im-age generator from the CARLA experiment on this dataset to obtain the image generator for the F1Tenth experiments. The final problem we consider is drone navigation and obstacle avoidance in Airsim Simulator (Shah et al. 2017). The drone is initialized at a fixed hovering position in front of an obstacle observable by its camera. The goal is to learn a smooth control policy while avoid collisions. The image generator is trained on a dataset with 20 , 000 samples. The state input consists of the drone’s 3D position (x, y, z ) and orientation represented as a quaternion (qw, q x, q y , q z ). The dataset was collected while the drone was manually con-trolled by a remote controller. For all experiments, we pretrain an anchor controller first. For the three path following experiments, the training is done by imitation learning from a tuned PID controller for the corresponding task, with learning rate of 0.0005 , batch size 256 , and 200 epochs. For the drone experiment, the an-chor controller is trained using the standard PPO algorithm with γ 0.99 , learning rate 0.0003 for a total of 200000 steps. 
+
+Figure 1: X-Plane and Carla generator illustrations. 
+
+Figure 2: Drone generator illustration. Then, during safety training, we used supervised train-ing for the path following experiments where we collected a dataset of 30 , 000 samples of (state, action) pair. We train the controller for 100 epochs, with batch size 128 and lear-ing rate 0.0002 . For the drone experiment, we integrated the safety loss directly into RL training using the PPO al-gorithm. The controller is trained for an additional 200000 
+
+steps with learning rate 0.0002 . Detailed hyperparameters and settings can be found in appendix of the extended ver-sion. 
+
+## 5.2 Image Generator Training and Evaluation 
+
+The image generators are implemented as conditional GAN (cGAN) that maps from state information and a dimension 
+
+10 latent vector to grayscale images; in ablations below we also consider diffusion models for this purpose. The latent vector z is sampled from a uniform distribution U(−1, 1) ,aiming to capture semantic variations that are not explic-itly represented in our state information (e.g., lighting con-ditions, road textures, environmental elements). The genera-tors output 8 × 16 images in the three path following exper-iments, and 64 × 64 images in the drone experiment. For the path following experiments, we use a 4-layer fully connected neural network with hidden layers of 256 neurons each, using ReLU activation for the hidden layers and Tanh activation for the output layer. For the drone experiment, we use a more complex convolutional generator—its exact ar-chitecture is documented in appendix of the extended ver-sion. The discriminator in all experiments is a convolutional neural network. During training, we apply spectral normal-ization (Miyato et al. 2018) to all discriminator layers and orthogonal regularization (Brock et al. 2017) to the genera-tor loss function. Both generator and discriminator networks are initialized using orthogonal initialization and trained with batch size 128, learning rate 7e-4, for 100 epochs. Figure 1 and Figure 2 show two ground truth images from the test set for each experimental setting alongside their cor-responding generated images. Images from F1Tenth are ex-cluded here as they are visually similar to the Carla im-35702 Figure 3: Empirical validation of Assumption 1. ages. From visual inspections, the generators perform well for the Carla and Plane experiments, which is largely due to the low-dimensional nature of the images in these settings. For the Drone experiment where we have higher resolution images, on the other hand, while the generated images are less precise, they still capture the essential semantic features needed for effective controller learning. An important ingredient in our approach is Assumption 1, that for true image inputs we can find a latent representation 
+
+z as input to the generator that results in its close approxi-mation. We validate this empirically for 8 choices of latent dimensions: 2, 4, 6, 8, 10 , 16 , 32 , 64 . We evaluate the gener-ators on a separate test set: for each ground-truth image, we perform gradient-based optimization to find the best latent variable z that minimizes the mean squared error (MSE). Notably, since this is not guaranteed to find a globally opti-mal z, our results provide a pessimistic evaluation (i.e., it is possible that such a z exists even if we fail to find it using gradient-based optimization). As shown in Figure 3, as latent dimension increases, the averaged MSE rapidly decreases, i.e., the generator g better approximates the unknown h in all four experiment settings we consider in this work. Moreover, we can find effective approximations of the true image inputs for even relatively small latent dimension. 
+
+## 5.3 Results 
+
+Empirical Performance To evaluate the controllers’ em-pirical performance, we simulate trajectories starting from 
+
+100 random initial states for 200 steps. We use the undis-counted cumulative rewards P rt as the evaluation metric. For the path following tasks (X-Plane, Carla, and Physi-cal Minicity), the reward at each step t is defined as rt =1 − min(1 , |dt|/β ), where dt is the cross-track error at step t
+
+and β is a predefined safety threshold. We set β = 1 .0m for Carla and Physical Minicity evaluations, and β = 12 .5m for X-Plane evaluations. For drone control in Airsim, we used the same reward function in both training and evaluation. The reward includes components for forward velocity, atti-tude stability, and control smoothness. The complete reward function is explained in appendix of the extended version. As shown in Figure 4, the proposed SPVT approach maintains strong empirical performance across all experi-mental settings. Notably, in the Drone experiment, which has the highest-dimensional image input, SPVT demon-strates significantly superior performance compared to all safe training baselines. This result suggests that SPVT is the only scalable safe training method capable of handling high-dimensional image inputs. It is worth noting that VSRL training fails entirely in the Drone experiment because VSRL requires formal verification over the controller’s com-plete input space, which becomes computationally infeasi-ble for high-dimensional image data. 
+
+Safety Guarantee For the path following tasks, the safety property we consider is the vehicle not leaving the current lane, equivalently, |di| ≤ β for 0 ≤ i ≤ K. For the drone experiment, safety properties include altitude bounds ( z ∈
+
+[0 .2, 15] meters) and attitude limits (roll and pitch angles ≤
+
+1.2 radians). To obtain the lower-bound safety probability under our semi-probabilistic verification (SPV) framework, we col-lected a dataset of 2000 initial states sampled i.i.d. from the initial state distribution. We used α, β -CROWN (Zhang et al. 2018; Xu et al. 2020a,b) to verify the model itera-tively. At each step, α, β -CROWN computes bounds on the model output, which, after dynamics calculations, gives the reachable state regions at the next timestep. We then check whether this state region intersects with unsafe states. We it-erate this forward reachability analysis for K steps, obtain-ing empirical verified safety result, i.e. the proportion of ini-tial states in our dataset that are verified safe at each step. These empirical results are then used in Theorem 2 to com-pute formal lower-bound safety probabilities over the entire initial state space. We set the confidence parameter δ = 0 .05 
+
+for all experiments. Figure 5 shows the resulting safety probability lower bounds as a function of horizon K. Compared to all base-line methods, the proposed SPVT approach significantly in-creases these probabilistic safety bounds. 
+
+Ablations A natural alternative to our cGAN-based state-to-image mapping is to use diffusion-based image genera-tion. In this case, g(s, z ) = z − ϕ(x, z ), where the diffusion model ϕ(x, z ) predicts the noise in the randomly generated input. To provide finer control over the dimension of z, we make use of an autoencoder ψ(z) that takes randomly gener-ated vector z of a given dimension as an input, and outputs a decoded noisy image z′ = ψ(z) with the dimension of the image, so that g(s, z ) = ψ(z) − ϕ(x, ψ (z)) . To evalu-ate this design choice, we implement a diffusion-based vari-ant of SPVT and compare it against our cGAN approach on both controller performance and safety verification. Figure 6 shows results in the X-Plane environment. We find that con-troller trainied in the cGAN setup achieve higher rewards and maintain better safety probability bounds. We refer the readers to the extended version for more results and detailed analysis. 
+
+# 6 Related Work 
+
+Formally verifying the safety of vision-based controllers is extremely challenging. Traditional verification tools (Katz 35703 Figure 4: Empirical performance comparison of controllers. Box plots show the distribution of episode rewards over 100 evaluation episodes. 
+
+Figure 5: Semi-Probabilistic Verification (SPV) results: x-axis marks the target verification trajectory length ( K). y-axis is the lower bound safety probability. 
+
+Figure 6: Ablation comparing cGAN vs. diffusion-based im-age generator in X-Plane. Left: controller performance over 100 episodes. Right: SPV verified safety probability bounds. et al. 2017; Huang et al. 2017; Ehlers 2017; Sinha et al. 2017) are too computationally demanding for this purpose. Recent progress has enabled verification of larger neural networks through over-approximation (Zhang et al. 2018; Gowal et al. 2018; Xu et al. 2020b), and abstract interpre-tation (Gehr et al. 2018; Singh et al. 2019; Katz et al. 2019). However, verifying vision-based controllers remains chal-lenging due to high dimensionality, as well as the difficulty of defining safety properties in the image space. A practical approach to verify vision-based controllers is by approximating the perception module. This reduces veri-fication complexity by projecting the problem from image space to lower-dimensional state space (Katz et al. 2022; Cai, Fan, and Bak 2024; Hsieh et al. 2022). These methods, however, only focus on post-hoc verification and cannot be integrated into the training process for learning a safer con-troller. For a more comprehensive survey on the verification of vision-based controllers, see (Mitra et al. 2024). Safe reinforcement learning encodes safety based on the constrained Markov decision processes (Altman 2021) but it is often too soft to enforce strict safety constraints (Wang et al. 2023). On the other hand, control-theoretic meth-ods such as barrier functions (Dawson et al. 2022; Emam et al. 2022; Xiao et al. 2023), and reachability analysis (Yu et al. 2022; Ganai et al. 2024) are more powerful but they have limited scalability to high-dimensional system such as vision-based controllers. Recently, some works extend these methods to the image space (Abdi, Raja, and Ghabcheloo 2023; Tong, Dawson, and Fan 2023; Yang and Sibai 2024; Tabbara and Sibai 2024). However, they function more like a safety check around the controller, giving yes/no answers for passed in reference control, without providing formal safety guarantees about the controller itself. 
+
+# 7 Conclusion and Limitations 
+
+We introduced a semi-probabilistic verification framework for efficiently training and verifying vision-based neural net-work controllers. Our method models the perceptual map-ping from state to image with a conditional generator and uses distribution-free tail bounds to get safety guarantees over the entire initial state space. We designed a differ-entiable proxy to the safety verification objective under the SPV framework that can be directly incorporated into gradient-based training, and an adaptive training set that pri-oritizes states for which safety property is difficult to verify. While our experiments demonstrate the efficacy of our ap-proach, many limitations remain. For the moment, our con-trollers and image generator require images to be grayscale and relatively low resolution, and latent dimension of the generator is relatively small. Further research is needed to handle high-resolution visual inputs, as well as to extend to multi-modal sensing. 35704 Acknowledgements 
+
+This work was partially supported by NSF (IIS-2214141, CCF-2403758), ARO (W911NF-25-1-0059), ONR (N00014-24-1-2663), Foresight Institute, and Amazon. 
+
+# References 
+
+Abdi, H.; Raja, G.; and Ghabcheloo, R. 2023. Safe Control using Vision-based Control Barrier Function (V-CBF). In 
+
+2023 IEEE International Conference on Robotics and Au-tomation (ICRA) , 782–788. Altman, E. 2021. Constrained Markov decision processes .Routledge. Brock, A.; Lim, T.; Ritchie, J.; and Weston, N. 2017. Neural Photo Editing with Introspective Adversarial Networks. In 
+
+International Conference on Learning Representations .Cai, F.; Fan, C.; and Bak, S. 2024. Scalable surrogate verification of image-based neural network control sys-tems using composition and unrolling. arXiv preprint arXiv:2405.18554 .Dawson, C.; Qin, Z.; Gao, S.; and Fan, C. 2022. Safe nonlin-ear control using robust neural lyapunov-barrier functions. In Conference on Robot Learning , 1724–1735. PMLR. Dosovitskiy, A.; Ros, G.; Codevilla, F.; Lopez, A.; and Koltun, V. 2017. CARLA: An Open Urban Driving Sim-ulator. In Conference on Robot Learning , 1–16. Efraimidis, P. S.; and Spirakis, P. G. 2006. Weighted random sampling with a reservoir. Information processing letters ,97: 181–185. Ehlers, R. 2017. Formal verification of piece-wise linear feed-forward neural networks. In International Symposium Automated Technology for Verification and Analysis , 269– 286. Emam, Y.; Notomista, G.; Glotfelter, P.; Kira, Z.; and Egerst-edt, M. 2022. Safe reinforcement learning using robust con-trol barrier functions. IEEE Robotics and Automation Let-ters .Ganai, M.; Gong, Z.; Yu, C.; Herbert, S.; and Gao, S. 2024. Iterative Reachability Estimation for Safe Reinforcement Learning. In Neural Information Processing Systems .Gehr, T.; Mirman, M.; Drachsler-Cohen, D.; Tsankov, P.; Chaudhuri, S.; and Vechev, M. 2018. AI2: Safety and ro-bustness certification of neural networks with abstract inter-pretation. In IEEE Symposium on Security and Privacy , 3– 18. Geiger, A.; Lenz, P.; Stiller, C.; and Urtasun, R. 2013. Vision meets robotics: The kitti dataset. The international journal of robotics research , 32(11): 1231–1237. Gowal, S.; Dvijotham, K.; Stanforth, R.; Bunel, R.; Qin, C.; Uesato, J.; Mann, T.; and Kohli, P. 2018. On the effective-ness of interval bound propagation for training verifiably ro-bust models. arXiv preprint arXiv:1810.12715 .Hsieh, C.; Li, Y.; Sun, D.; Joshi, K.; Misailovic, S.; and Mi-tra, S. 2022. Verifying controllers with vision-based percep-tion using safe approximate abstractions. IEEE Transactions on Computer-Aided Design of Integrated Circuits and Sys-tems , 41(11): 4205–4216. Huang, C.; Fan, J.; Li, W.; Chen, X.; and Zhu, Q. 2019. Reachnn: Reachability analysis of neural-network con-trolled systems. ACM Transactions on Embedded Comput-ing Systems (TECS) , 18(5s): 1–22. Huang, X.; Kwiatkowska, M.; Wang, S.; and Wu, M. 2017. Safety verification of deep neural networks. In International Conference on Computer Aided Verification , 3–29. Isola, P.; Zhu, J.-Y.; Zhou, T.; and Efros, A. A. 2017. Image-to-image translation with conditional adversarial networks. In IEEE Conference on Computer Vision and Pattern Recog-nition , 1125–1134. Katz, G.; Barrett, C.; Dill, D. L.; Julian, K.; and Kochender-fer, M. J. 2017. Reluplex: An efficient SMT solver for veri-fying deep neural networks. In International Conference on Computer Aided Verification , 97–117. Katz, G.; Huang, D. A.; Ibeling, D.; Julian, K.; Lazarus, C.; Lim, R.; Shah, P.; Thakoor, S.; Wu, H.; Zelji´ c, A.; et al. 2019. The marabou framework for verification and analy-sis of deep neural networks. In International Conference Computer Aided Verification , 443–452. Katz, S. M.; Corso, A. L.; Strong, C. A.; and Kochender-fer, M. J. 2022. Verification of image-based neural network controllers using generative models. Journal of Aerospace Information Systems , 19(9): 574–584. Kiran, B. R.; Sobh, I.; Talpaert, V.; Mannion, P.; Al Sallab, A. A.; Yogamani, S.; and P´ erez, P. 2021. Deep reinforcement learning for autonomous driving: A survey. IEEE trans-actions on intelligent transportation systems , 23(6): 4909– 4926. Kochdumper, N.; Krasowski, H.; Wang, X.; Bak, S.; and Al-thoff, M. 2023. Provably safe reinforcement learning via action projection using reachability analysis and polynomial zonotopes. IEEE Open Journal of Control Systems , 2: 79– 92. Laminar Research. 2011. X-Plane Flight Simulator. https: //www.x-plane.com. Le, N.; Rathour, V. S.; Yamazaki, K.; Luu, K.; and Savvides, M. 2022. Deep reinforcement learning in computer vision: a comprehensive survey. Artificial Intelligence Review , 1–87. Mirza, M.; and Osindero, S. 2014. Conditional Generative Adversarial Nets. ArXiv , abs/1411.1784. Mitra, S.; P˘ as˘ areanu, C.; Prabhakar, P.; Seshia, S. A.; Man-gal, R.; Li, Y.; Watson, C.; Gopinath, D.; and Yu, H. 2024. Formal Verification Techniques for Vision-Based Au-tonomous Systems–A Survey. In Principles of Verification: Cycling the Probabilistic Landscape: Essays Dedicated to Joost-Pieter Katoen on the Occasion of His 60th Birthday, Part III , 89–108. Springer. Miyato, T.; Kataoka, T.; Koyama, M.; and Yoshida, Y. 2018. Spectral Normalization for Generative Adversarial Networks. In International Conference on Learning Rep-resentations .Shah, S.; Dey, D.; Lovett, C.; and Kapoor, A. 2017. Air-Sim: High-Fidelity Visual and Physical Simulation for Au-tonomous Vehicles. In Field and Service Robotics .35705 Singh, G.; Gehr, T.; P¨ uschel, M.; and Vechev, M. 2019. An abstract domain for certifying neural networks. In ACM Symposium on Principles of Programming Languages .Sinha, A.; Namkoong, H.; Volpi, R.; and Duchi, J. 2017. Certifying some distributional robustness with principled adversarial training. arXiv preprint arXiv:1710.10571 .Sun, P.; Kretzschmar, H.; Dotiwalla, X.; Chouard, A.; Pat-naik, V.; Tsui, P.; Guo, J.; Zhou, Y.; Chai, Y.; Caine, B.; et al. 2020. Scalability in perception for autonomous driving: Waymo open dataset. In IEEE/CVF Conference on Com-puter Vision and Pattern Recognition , 2446–2454. Tabbara, I.; and Sibai, H. 2024. Learning Ensembles of Vision-based Safety Control Filters. arXiv:2412.02029. Tong, M.; Dawson, C.; and Fan, C. 2023. Enforcing safety for vision-based controllers via Control Barrier Functions and Neural Radiance Fields. In 2023 IEEE International Conference on Robotics and Automation (ICRA) , 10511– 10517. Wang, Y.; Zhan, S. S.; Jiao, R.; Wang, Z.; Jin, W.; Yang, Z.; Wang, Z.; Huang, C.; and Zhu, Q. 2023. Enforcing hard constraints with soft barriers: safe reinforcement learning in unknown stochastic environments. In International Confer-ence on Machine Learning .Wu, J.; Zhang, H.; and Vorobeychik, Y. 2024. Verified Safe Reinforcement Learning for Neural Network Dynamic Models. In Neural Information Processing Systems .Xiao, W.; Wang, T.-H.; Hasani, R.; Chahine, M.; Amini, A.; Li, X.; and Rus, D. 2023. BarrierNet: Differentiable Control Barrier Functions for Learning of Safe Robot Control. IEEE Transactions on Robotics , 39(3): 2289–2307. Xu, K.; Shi, Z.; Zhang, H.; Wang, Y.; Chang, K.-W.; Huang, M.; Kailkhura, B.; Lin, X.; and Hsieh, C.-J. 2020a. Auto-matic perturbation analysis for scalable certified robustness and beyond. Advances in Neural Information Processing Systems , 33. Xu, K.; Zhang, H.; Wang, S.; Wang, Y.; Jana, S.; Lin, X.; and Hsieh, C.-J. 2020b. Fast and complete: Enabling complete neural network verification with rapid and massively parallel incomplete verifiers. arXiv preprint arXiv:2011.13824 .Yang, R.; and Mandt, S. 2023. Lossy image compression with conditional diffusion models. In Neural Information Processing Systems , 64971–64995. Yang, Y.; and Sibai, H. 2024. Pre-Trained Vision Models as Perception Backbones for Safety Filters in Autonomous Driving. arXiv:2410.22585. Yu, D.; Ma, H.; Li, S.; and Chen, J. 2022. Reachability con-strained reinforcement learning. In International Confer-ence on Machine Learning , 25636–25655. PMLR. Zhang, H.; Weng, T.-W.; Chen, P.-Y.; Hsieh, C.-J.; and Daniel, L. 2018. Efficient Neural Network Robustness Cer-tification with General Activation Functions. In Neural In-formation Processing Systems .35706
