@@ -25,3 +25,62 @@ subscriptions:
     stage: A
     diff_threshold_pct: 15
   keyword_recall_mode: or
+  intent_profiles:
+    - tag: agent-safety
+      description: 查找有关自进化智能体、递归自我改进、LLM/agent 安全与对齐等主题的论文。
+      enabled: true
+      paper_sources:
+        - arxiv
+      keywords:
+        - keyword: self-evolving agents
+          keyword_cn: 自进化智能体
+          query: agents that autonomously improve their own skills and behavior over time
+        - keyword: recursive self-improvement
+          keyword_cn: 递归自我改进
+          query: artificial intelligence systems that repeatedly improve their own capabilities through self-modification
+        - keyword: agent safety
+          keyword_cn: 智能体安全
+          query: safety, robustness, and risk control for autonomous software agents
+        - keyword: autonomous agent alignment
+          keyword_cn: 自主智能体对齐
+          query: aligning autonomous agents with human intent and preventing harmful actions
+      intent_queries:
+        - query: >-
+            Safety and alignment challenges for self evolving large language model agents that autonomously improve
+            their capabilities.
+          query_cn: 能够自主提升能力的自进化大语言模型智能体所面临的安全与对齐挑战。
+          enabled: true
+          source: manual
+          note: ''
+        - query: Risks and governance of recursive self improvement in autonomous artificial intelligence systems.
+          query_cn: 自主人工智能系统中递归自我改进的风险与治理。
+          enabled: true
+          source: manual
+          note: ''
+        - query: Evaluating and controlling unsafe behavior in self modifying agents through oversight and alignment methods.
+          query_cn: 通过监督与对齐方法评估和控制自我修改智能体的不安全行为。
+          enabled: true
+          source: manual
+          note: ''
+        - query: How to prevent goal drift and reward hacking in agents that continuously update their own policies.
+          query_cn: 如何防止持续更新自身策略的智能体出现目标漂移和奖励黑客行为。
+          enabled: true
+          source: manual
+          note: ''
+      updated_at: '2026-11-06T13:27:05.844Z'
+      paused: true
+source_backends:
+  arxiv:
+    papers_table: arxiv_papers
+    use_vector_rpc: true
+    vector_rpc: match_arxiv_papers
+    vector_rpc_exact: match_arxiv_papers_exact
+    use_bm25_rpc: true
+    bm25_rpc: match_arxiv_papers_bm25
+    sync_table: arxiv_sync_status
+    sync_success_value: success
+    schema: public
+    kind: supabase
+    enabled: true
+    url: https://lyucdwgefyfbmaiopjbk.supabase.co
+    anon_key: sb_publishable_lX-oi64Uxyd7SIVv3_w2Uw_MTOojeKq
